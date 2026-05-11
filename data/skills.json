@@ -1,0 +1,18 @@
+{
+  "prototyping": {
+    "label": "Prototyping",
+    "projects": ["baha-car", "copenhagen-semester", "accessibility-audit"]
+  },
+  "ui-ux": {
+    "label": "UI/UX",
+    "projects": ["game-jam", "kookytiger-brand", "accessibility-audit", "design-system-toolkit", "dream-journal-app"]
+  },
+  "graphics": {
+    "label": "Graphics",
+    "projects": ["copenhagen-semester", "kookytiger-brand", "short-film-liminal", "motion-reel", "poster-series"]
+  },
+  "coding": {
+    "label": "Coding",
+    "projects": ["baha-car", "game-jam", "motion-reel", "design-system-toolkit", "dream-journal-app"]
+  }
+}

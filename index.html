@@ -4,55 +4,83 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>kookytiger — portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- ═══ Entry Ritual ═══════════════════════ -->
-  <div id="entry-ritual">
-    <div class="ritual-instruction">
-      help kookytiger write her first line
-      <button id="ritual-skip">skip →</button>
+  <!-- ═══ Entry Flow ═══════════════════════════ -->
+  <div id="entry-overlay">
+    <!-- Step 1: HELLO + name input -->
+    <div id="entry-hello" class="entry-step active">
+      <div id="hello-text">HELLO</div>
+      <div id="name-input-wrap">
+        <input type="text" id="name-input" placeholder="type your name..." maxlength="20" autocomplete="off" spellcheck="false">
+      </div>
     </div>
 
-    <div id="ritual-paper">
-      <!-- Drawing canvas sits below ghost text so strokes look like tracing -->
-      <canvas id="ritual-canvas"></canvas>
-      <div id="ritual-ghost-text">hello, world!</div>
+    <!-- Step 2: Greeting + mode picker -->
+    <div id="entry-greeting" class="entry-step">
+      <div id="speech-bubble">
+        <span id="greeting-text"></span>
+      </div>
+      <div id="mode-picker">
+        <button id="mode-quick" class="mode-btn">
+          <span class="mode-label">Quick view</span>
+          <span class="mode-sub">~30 seconds</span>
+        </button>
+        <button id="mode-hangout" class="mode-btn">
+          <span class="mode-label">Hang out</span>
+          <span class="mode-sub">explore everything</span>
+        </button>
+      </div>
     </div>
-
-    <!-- Paw + pencil: follows cursor, positioned by JS -->
-    <svg id="ritual-paw" viewBox="0 0 80 130" width="80" height="130"
-         xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <!-- Pencil rotated -25° around grip point (40, 65).
-           After rotation, graphite tip lands at ~(58, 104) in element space.
-           JS uses PAW_TIP_X=58, PAW_TIP_Y=104 to align tip with cursor. -->
-      <g transform="translate(40,65) rotate(-25) translate(-40,-65)">
-        <rect x="34" y="0" width="12" height="12" fill="#ffb8c6" rx="3 3 0 0"/>
-        <rect x="32.5" y="11" width="15" height="6" fill="#c8c8c8" rx="1"/>
-        <rect x="34" y="16" width="12" height="64" fill="#ffd740" rx="1"/>
-        <polygon points="34,80 46,80 44,96 36,96" fill="#e8c899"/>
-        <polygon points="36,96 44,96 40,110" fill="#2a2a2a"/>
-      </g>
-      <!-- Orange paw gripping the pencil -->
-      <ellipse cx="40" cy="62" rx="22" ry="19" fill="var(--color-accent)"/>
-      <!-- Toe beans -->
-      <circle cx="28" cy="51" r="6"   fill="#ffecd2"/>
-      <circle cx="40" cy="47" r="6.5" fill="#ffecd2"/>
-      <circle cx="52" cy="51" r="6"   fill="#ffecd2"/>
-      <ellipse cx="40" cy="68" rx="11" ry="9" fill="#ffecd2"/>
-      <!-- Pink pad highlights -->
-      <circle cx="28" cy="51" r="4"   fill="#ffb8c6" opacity="0.7"/>
-      <circle cx="40" cy="47" r="4.5" fill="#ffb8c6" opacity="0.7"/>
-      <circle cx="52" cy="51" r="4"   fill="#ffb8c6" opacity="0.7"/>
-      <ellipse cx="40" cy="68" rx="8" ry="6.5" fill="#ffb8c6" opacity="0.7"/>
-    </svg>
   </div>
 
-  <!-- ═══ Hub ═══════════════════════════════ -->
+  <!-- ═══ Hub ═══════════════════════════════════ -->
   <div id="hub">
 
-    <!-- Ambient background -->
+    <!-- HUD: top-left — % explored ring -->
+    <div id="hud-explored" class="hud-el">
+      <svg id="explored-ring" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="3"/>
+        <circle id="explored-fill" cx="24" cy="24" r="20" fill="none" stroke="var(--color-accent)" stroke-width="3"
+                stroke-dasharray="125.66" stroke-dashoffset="125.66" stroke-linecap="round"
+                transform="rotate(-90 24 24)"/>
+      </svg>
+      <span id="explored-pct">0%</span>
+    </div>
+
+    <!-- HUD: top-right — token counter + checklist -->
+    <div id="hud-right" class="hud-el">
+      <div id="token-counter">
+        <span id="token-icon">✦</span>
+        <span id="token-value">0</span>
+      </div>
+      <div id="checklist"></div>
+    </div>
+
+    <!-- HUD: left sidebar nav -->
+    <nav id="hud-sidebar" class="hud-el">
+      <button class="sidebar-btn" data-overlay="skills">Skills</button>
+      <button class="sidebar-btn" data-overlay="about">About</button>
+      <button class="sidebar-btn" data-overlay="contact">Contact</button>
+    </nav>
+
+    <!-- HUD: bottom-left — fridge + wardrobe -->
+    <div id="hud-bottom-left" class="hud-el">
+      <button id="btn-fridge" class="hud-icon locked" title="Fridge (unlock at 30%)">🍱</button>
+      <button id="btn-wardrobe" class="hud-icon locked" title="Wardrobe (unlock at 50%)">👔</button>
+    </div>
+
+    <!-- HUD: bottom-right — chat -->
+    <div id="hud-bottom-right" class="hud-el">
+      <button id="btn-chat" class="hud-icon locked" title="Chat (unlock at 10%)">💬</button>
+    </div>
+
+    <!-- Background -->
     <div id="hub-bg">
       <div class="bg-shape"></div>
       <div class="bg-shape"></div>
@@ -60,31 +88,34 @@
       <div class="bg-shape"></div>
     </div>
 
-    <!-- Tiger SVG ─────────────────────────── -->
+    <!-- Tiger SVG ─────────────────────────────── -->
     <div id="tiger-container">
+      <!-- Forecast bubble (pet care) -->
+      <div id="forecast-bubble" class="hidden"></div>
+
+      <!-- Preview cards fan-out on body-part hover -->
+      <div id="preview-cards"></div>
+
       <svg id="tiger-svg" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
 
-        <!-- ── Tail (behind body) ── -->
+        <!-- Tail (behind body) -->
         <g id="tail" class="tiger-zone">
           <g id="tiger-tail">
             <path d="M320 340 Q370 330 380 290 Q390 250 370 220 Q355 200 340 210"
                   fill="none" stroke="var(--color-accent)" stroke-width="16" stroke-linecap="round"/>
             <path d="M320 340 Q370 330 380 290 Q390 250 370 220 Q355 200 340 210"
                   fill="none" stroke="#c76a10" stroke-width="16" stroke-linecap="round" opacity="0.2"/>
-            <!-- Tail stripes -->
             <path d="M365 260 Q370 255 375 260" fill="none" stroke="#c76a10" stroke-width="3" stroke-linecap="round"/>
             <path d="M370 280 Q376 275 380 282" fill="none" stroke="#c76a10" stroke-width="3" stroke-linecap="round"/>
           </g>
         </g>
 
-        <!-- ── Body ── -->
+        <!-- Body -->
         <ellipse cx="200" cy="320" rx="110" ry="130" fill="var(--color-accent)"/>
-        <!-- Body shading -->
         <ellipse cx="200" cy="330" rx="85" ry="100" fill="#faa740" opacity="0.5"/>
-        <!-- Belly -->
         <ellipse cx="200" cy="340" rx="70" ry="80" fill="#ffecd2"/>
 
-        <!-- Tiger body stripes -->
+        <!-- Body stripes -->
         <path d="M105 280 Q115 275 120 285" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
         <path d="M95 310 Q108 305 110 318" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
         <path d="M98 345 Q112 340 112 355" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
@@ -92,23 +123,16 @@
         <path d="M298 308 Q286 304 285 316" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
         <path d="M295 342 Q283 338 283 352" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
 
-        <!-- ── Heart zone (on belly) ── -->
-        <g id="heart" class="tiger-zone">
-          <path d="M200 325
-                   C200 310, 180 300, 180 315
-                   C180 330, 200 345, 200 345
-                   C200 345, 220 330, 220 315
-                   C220 300, 200 310, 200 325Z"
+        <!-- Heart zone -->
+        <g id="heart" class="tiger-zone" data-section="philosophy">
+          <path d="M200 325 C200 310, 180 300, 180 315 C180 330, 200 345, 200 345 C200 345, 220 330, 220 315 C220 300, 200 310, 200 325Z"
                 fill="#ff6b8a" opacity="0.85"/>
-          <!-- Heart shine -->
           <ellipse cx="190" cy="318" rx="4" ry="6" fill="#fff" opacity="0.4" transform="rotate(-15,190,318)"/>
-          <!-- Invisible larger hit area -->
           <circle cx="200" cy="328" r="28" fill="transparent"/>
         </g>
 
-        <!-- ── Head ── -->
+        <!-- Head -->
         <ellipse cx="200" cy="165" rx="105" ry="95" fill="var(--color-accent)"/>
-        <!-- Head shading -->
         <ellipse cx="200" cy="170" rx="80" ry="72" fill="#faa740" opacity="0.35"/>
 
         <!-- Forehead stripes -->
@@ -116,33 +140,27 @@
         <path d="M200 98 L200 120" fill="none" stroke="#c76a10" stroke-width="3" stroke-linecap="round"/>
         <path d="M225 105 L220 125" fill="none" stroke="#c76a10" stroke-width="3" stroke-linecap="round"/>
 
-        <!-- Cheek fluffs -->
+        <!-- Cheek fluffs + blush -->
         <ellipse cx="115" cy="185" rx="25" ry="18" fill="#ffecd2" opacity="0.7"/>
         <ellipse cx="285" cy="185" rx="25" ry="18" fill="#ffecd2" opacity="0.7"/>
-
-        <!-- Cheek blush -->
         <ellipse cx="130" cy="195" rx="16" ry="10" fill="#ff9eb5" opacity="0.4"/>
         <ellipse cx="270" cy="195" rx="16" ry="10" fill="#ff9eb5" opacity="0.4"/>
 
-        <!-- ── Ears (easter egg) ── -->
-        <g id="ears" class="tiger-zone">
-          <!-- Left ear -->
+        <!-- Ears (easter egg) -->
+        <g id="ears" class="tiger-zone" data-easter="music">
           <path d="M120 105 L100 45 L155 90 Z" fill="var(--color-accent)"/>
           <path d="M125 100 L112 58 L148 92 Z" fill="#ffb366"/>
           <path d="M128 96 L120 68 L143 93 Z" fill="#ff9eb5" opacity="0.6"/>
-          <!-- Right ear -->
           <path d="M280 105 L300 45 L245 90 Z" fill="var(--color-accent)"/>
           <path d="M275 100 L288 58 L252 92 Z" fill="#ffb366"/>
           <path d="M272 96 L280 68 L257 93 Z" fill="#ff9eb5" opacity="0.6"/>
-          <!-- Invisible hit area -->
           <circle cx="112" cy="72" r="30" fill="transparent"/>
           <circle cx="288" cy="72" r="30" fill="transparent"/>
         </g>
 
-        <!-- ── Brain zone (top of head) ── -->
-        <g id="brain" class="tiger-zone">
+        <!-- Brain zone -->
+        <g id="brain" class="tiger-zone" data-section="experience">
           <circle cx="200" cy="100" r="38" fill="transparent"/>
-          <!-- Small sparkle icon hint -->
           <g opacity="0.6">
             <circle cx="188" cy="88" r="2" fill="var(--color-accent-secondary)"/>
             <circle cx="212" cy="85" r="1.5" fill="var(--color-accent-secondary)"/>
@@ -150,42 +168,30 @@
           </g>
         </g>
 
-        <!-- ── Eyes ── -->
-        <!-- Left eye zone -->
-        <g id="left-eye" class="tiger-zone">
+        <!-- Eyes -->
+        <g id="left-eye" class="tiger-zone" data-section="visual">
           <ellipse cx="160" cy="168" rx="28" ry="30" fill="#ffffff"/>
           <ellipse cx="160" cy="168" rx="25" ry="27" fill="var(--color-fg)" class="eye-pupil"/>
-          <!-- Iris detail -->
           <ellipse cx="160" cy="168" rx="15" ry="16" fill="var(--color-fg)"/>
           <ellipse cx="160" cy="168" rx="8" ry="8" fill="var(--color-fg)"/>
-          <!-- Eye shine -->
           <circle cx="168" cy="160" r="6" fill="#ffffff" opacity="0.9"/>
           <circle cx="154" cy="174" r="3" fill="#ffffff" opacity="0.5"/>
-          <!-- Invisible larger hit area -->
           <circle cx="160" cy="168" r="32" fill="transparent"/>
         </g>
-
-        <!-- Right eye zone -->
-        <g id="right-eye" class="tiger-zone">
+        <g id="right-eye" class="tiger-zone" data-section="film">
           <ellipse cx="240" cy="168" rx="28" ry="30" fill="#ffffff"/>
           <ellipse cx="240" cy="168" rx="25" ry="27" fill="var(--color-fg)" class="eye-pupil"/>
-          <!-- Iris detail -->
           <ellipse cx="240" cy="168" rx="15" ry="16" fill="var(--color-fg)"/>
           <ellipse cx="240" cy="168" rx="8" ry="8" fill="var(--color-fg)"/>
-          <!-- Eye shine -->
           <circle cx="248" cy="160" r="6" fill="#ffffff" opacity="0.9"/>
           <circle cx="234" cy="174" r="3" fill="#ffffff" opacity="0.5"/>
-          <!-- Invisible larger hit area -->
           <circle cx="240" cy="168" r="32" fill="transparent"/>
         </g>
 
-        <!-- ── Nose & mouth ── -->
+        <!-- Nose & mouth -->
         <ellipse cx="200" cy="200" rx="10" ry="7" fill="var(--color-fg)"/>
-        <!-- Nose shine -->
         <ellipse cx="197" cy="198" rx="3" ry="2" fill="#333" opacity="0.5"/>
-        <!-- Mouth -->
         <path d="M188 210 Q200 222 212 210" fill="none" stroke="var(--color-fg)" stroke-width="2.5" stroke-linecap="round"/>
-        <!-- Smile lines -->
         <path d="M183 208 Q187 210 188 210" fill="none" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
         <path d="M217 208 Q213 210 212 210" fill="none" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
 
@@ -197,53 +203,38 @@
         <line x1="300" y1="200" x2="257" y2="202" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
         <line x1="295" y1="212" x2="255" y2="208" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
 
-        <!-- ── Arms ── -->
-        <!-- Left arm -->
-        <path d="M105 300 Q70 330 80 370 Q85 385 100 380"
-              fill="var(--color-accent)" stroke="#c76a10" stroke-width="1"/>
-        <!-- Right arm -->
-        <path d="M295 300 Q330 330 320 370 Q315 385 300 380"
-              fill="var(--color-accent)" stroke="#c76a10" stroke-width="1"/>
+        <!-- Arms -->
+        <path d="M105 300 Q70 330 80 370 Q85 385 100 380" fill="var(--color-accent)" stroke="#c76a10" stroke-width="1"/>
+        <path d="M295 300 Q330 330 320 370 Q315 385 300 380" fill="var(--color-accent)" stroke="#c76a10" stroke-width="1"/>
 
-        <!-- ── Paws zone ── -->
-        <g id="paws" class="tiger-zone">
-          <!-- Left paw -->
+        <!-- Paws zone -->
+        <g id="paws" class="tiger-zone" data-section="product">
           <ellipse cx="92" cy="385" rx="22" ry="14" fill="#ffecd2"/>
-          <!-- Paw pads -->
           <circle cx="84" cy="382" r="4" fill="#ffb8c6" opacity="0.6"/>
           <circle cx="94" cy="380" r="4" fill="#ffb8c6" opacity="0.6"/>
           <circle cx="102" cy="383" r="4" fill="#ffb8c6" opacity="0.6"/>
           <ellipse cx="93" cy="390" rx="7" ry="5" fill="#ffb8c6" opacity="0.6"/>
-
-          <!-- Right paw -->
           <ellipse cx="308" cy="385" rx="22" ry="14" fill="#ffecd2"/>
-          <!-- Paw pads -->
           <circle cx="298" cy="382" r="4" fill="#ffb8c6" opacity="0.6"/>
           <circle cx="308" cy="380" r="4" fill="#ffb8c6" opacity="0.6"/>
           <circle cx="316" cy="383" r="4" fill="#ffb8c6" opacity="0.6"/>
           <ellipse cx="307" cy="390" rx="7" ry="5" fill="#ffb8c6" opacity="0.6"/>
-
-          <!-- Feet / bottom paws -->
           <ellipse cx="155" cy="450" rx="32" ry="16" fill="var(--color-accent)"/>
           <ellipse cx="155" cy="452" rx="25" ry="12" fill="#ffecd2"/>
           <circle cx="143" cy="450" r="4" fill="#ffb8c6" opacity="0.5"/>
           <circle cx="153" cy="448" r="4" fill="#ffb8c6" opacity="0.5"/>
           <circle cx="163" cy="450" r="4" fill="#ffb8c6" opacity="0.5"/>
-
           <ellipse cx="245" cy="450" rx="32" ry="16" fill="var(--color-accent)"/>
           <ellipse cx="245" cy="452" rx="25" ry="12" fill="#ffecd2"/>
           <circle cx="233" cy="450" r="4" fill="#ffb8c6" opacity="0.5"/>
           <circle cx="243" cy="448" r="4" fill="#ffb8c6" opacity="0.5"/>
           <circle cx="253" cy="450" r="4" fill="#ffb8c6" opacity="0.5"/>
-
-          <!-- Invisible large hit area across all paws -->
           <rect x="60" y="365" width="280" height="105" fill="transparent"/>
         </g>
 
-        <!-- ── Legs ── -->
+        <!-- Legs -->
         <rect x="130" y="400" width="50" height="50" rx="12" fill="var(--color-accent)"/>
         <rect x="220" y="400" width="50" height="50" rx="12" fill="var(--color-accent)"/>
-        <!-- Leg stripes -->
         <path d="M135 420 Q142 418 143 425" fill="none" stroke="#c76a10" stroke-width="2.5" stroke-linecap="round"/>
         <path d="M265 420 Q258 418 257 425" fill="none" stroke="#c76a10" stroke-width="2.5" stroke-linecap="round"/>
 
@@ -252,20 +243,108 @@
 
   </div><!-- /hub -->
 
-  <!-- ═══ Tooltip ═══════════════════════════ -->
+  <!-- ═══ Tooltip ═══════════════════════════════ -->
   <div id="tooltip"></div>
 
-  <!-- ═══ Project Overlay ═══════════════════ -->
-  <div id="project-overlay">
-    <div id="project-file">
-      <div id="project-header">
-        <div>
-          <div id="project-title"></div>
-          <div id="project-category"></div>
-        </div>
-        <button id="close-project" aria-label="Close project">✕</button>
+  <!-- ═══ Mode 1: Blackboard Overlay ════════════ -->
+  <div id="blackboard-overlay" class="overlay">
+    <div id="blackboard">
+      <div id="bb-content">
+        <h1 id="bb-hero-line"></h1>
+        <div id="bb-projects"></div>
+        <div id="bb-skills"></div>
+        <div id="bb-about"></div>
+        <div id="bb-contact"></div>
       </div>
-      <div id="project-content"></div>
+      <button id="bb-switch" class="cta-btn">want to hang out instead? →</button>
+    </div>
+    <div id="bb-checklist"></div>
+  </div>
+
+  <!-- ═══ Project Overlay ══════════════════════ -->
+  <div id="project-overlay" class="overlay">
+    <div id="project-card">
+      <button id="close-project" class="close-btn" aria-label="Close">✕</button>
+      <div id="project-hero"></div>
+      <div id="project-header">
+        <h2 id="project-title"></h2>
+        <div id="project-meta">
+          <span id="project-section-tag"></span>
+          <span id="project-year"></span>
+        </div>
+        <p id="project-logline"></p>
+      </div>
+      <div id="project-body"></div>
+      <div id="project-gallery"></div>
+    </div>
+  </div>
+
+  <!-- ═══ Section Landing Overlay ══════════════ -->
+  <div id="section-overlay" class="overlay">
+    <div id="section-card">
+      <button id="close-section" class="close-btn" aria-label="Close">✕</button>
+      <h2 id="section-title"></h2>
+      <div id="section-projects"></div>
+    </div>
+  </div>
+
+  <!-- ═══ Skills Overlay ═══════════════════════ -->
+  <div id="skills-overlay" class="overlay">
+    <div id="skills-card">
+      <button id="close-skills" class="close-btn" aria-label="Close">✕</button>
+      <h2>Skills</h2>
+      <div id="skills-grid"></div>
+    </div>
+  </div>
+
+  <!-- ═══ About Overlay ════════════════════════ -->
+  <div id="about-overlay" class="overlay">
+    <div id="about-card">
+      <button id="close-about" class="close-btn" aria-label="Close">✕</button>
+      <h2 id="about-name"></h2>
+      <p id="about-program"></p>
+      <div id="about-bio"></div>
+      <div id="about-philosophy"></div>
+    </div>
+  </div>
+
+  <!-- ═══ Contact Overlay ══════════════════════ -->
+  <div id="contact-overlay" class="overlay">
+    <div id="contact-card">
+      <button id="close-contact" class="close-btn" aria-label="Close">✕</button>
+      <h2>Contact</h2>
+      <div id="contact-links"></div>
+    </div>
+  </div>
+
+  <!-- ═══ Fridge Modal ═════════════════════════ -->
+  <div id="fridge-modal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn modal-close" aria-label="Close">✕</button>
+      <h2>Fridge 🍱</h2>
+      <div id="fridge-items"></div>
+    </div>
+  </div>
+
+  <!-- ═══ Wardrobe Modal ═══════════════════════ -->
+  <div id="wardrobe-modal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn modal-close" aria-label="Close">✕</button>
+      <h2>Wardrobe 👔</h2>
+      <div id="wardrobe-items"></div>
+    </div>
+  </div>
+
+  <!-- ═══ Chat Modal ═══════════════════════════ -->
+  <div id="chat-modal" class="modal">
+    <div class="modal-content chat-content">
+      <button class="close-btn modal-close" aria-label="Close">✕</button>
+      <h2>Chat with kookytiger</h2>
+      <div id="chat-messages"></div>
+      <div id="chat-input-wrap">
+        <input type="text" id="chat-input" placeholder="say something... (1,000 tokens)" autocomplete="off">
+        <button id="chat-send">→</button>
+      </div>
     </div>
   </div>
 
