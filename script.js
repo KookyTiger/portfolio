@@ -302,6 +302,8 @@ function startHub(mode) {
   initTigerBehavior();
   initHUD(m);
 
+  document.querySelectorAll('.hud-el').forEach(el => el.classList.remove('hidden'));
+
   if (m === 'quick') {
     openBlackboard();
   } else {

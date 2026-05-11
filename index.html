@@ -166,20 +166,24 @@
 <!-- ═══════════════════════════════════════
      HUD
      ═══════════════════════════════════════ -->
-<div id="hud-explored" class="hud-el" style="display:none">
+<div id="hud-explored" class="hud-el hidden">
   <svg id="explored-ring" width="42" height="42"><circle cx="21" cy="21" r="20" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2"/><circle id="explored-fill" cx="21" cy="21" r="20" fill="none" stroke="#f7931e" stroke-width="2" stroke-dasharray="125.66" stroke-dashoffset="125.66" transform="rotate(-90 21 21)"/></svg>
   <span id="explored-pct">0%</span>
 </div>
-<div id="hud-right" class="hud-el" style="display:none">
+<div id="hud-right" class="hud-el hidden">
   <div id="token-counter"><span id="token-icon">✦</span><span id="token-value">0</span></div>
   <div id="checklist"></div>
 </div>
-<div id="hud-sidebar" class="hud-el" style="display:none"></div>
-<div id="hud-bottom-left" class="hud-el" style="display:none">
+<div id="hud-sidebar" class="hud-el hidden">
+  <button class="sidebar-btn" data-overlay="skills">Skills</button>
+  <button class="sidebar-btn" data-overlay="about">About</button>
+  <button class="sidebar-btn" data-overlay="contact">Contact</button>
+</div>
+<div id="hud-bottom-left" class="hud-el hidden">
   <button id="btn-fridge" class="hud-icon locked">🍱</button>
   <button id="btn-wardrobe" class="hud-icon locked">👔</button>
 </div>
-<div id="hud-bottom-right" class="hud-el" style="display:none">
+<div id="hud-bottom-right" class="hud-el hidden">
   <button id="btn-chat" class="hud-icon locked">💬</button>
 </div>
 
