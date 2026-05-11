@@ -1005,6 +1005,55 @@ function initBackgroundStars() {
 }
 
 /* ════════════════════════════════════════════
+   POOL RIPPLE
+   ════════════════════════════════════════════ */
+function initPoolRipple() {
+  const ripple = document.getElementById('ripple-displacement');
+  if (!ripple) return;
+
+  let rippleScale = 0;
+  let lastX = 0, lastY = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    const speed = Math.sqrt(dx * dx + dy * dy);
+    rippleScale = Math.min(rippleScale + speed * 0.4, 30);
+  });
+
+  function decay() {
+    rippleScale *= 0.92;
+    if (rippleScale < 0.1) rippleScale = 0;
+    ripple.setAttribute('scale', rippleScale.toFixed(1));
+    requestAnimationFrame(decay);
+  }
+  decay();
+}
+
+/* ════════════════════════════════════════════
+   TIGER ZONES (pool mode)
+   ════════════════════════════════════════════ */
+function initTigerZones() {
+  const zones = document.querySelectorAll('.tiger-zone[data-section]');
+  zones.forEach((zone) => {
+    const section = zone.dataset.section;
+    zone.addEventListener('click', () => {
+      console.log(`[tiger] clicked: ${section}`);
+    });
+  });
+
+  const easterZones = document.querySelectorAll('.tiger-zone[data-easter]');
+  easterZones.forEach((zone) => {
+    const egg = zone.dataset.easter;
+    zone.addEventListener('click', () => {
+      console.log(`[tiger] easter egg: ${egg}`);
+    });
+  });
+}
+
+/* ════════════════════════════════════════════
    RESET (Phase 9)
    ════════════════════════════════════════════ */
 window.resetPortfolio = function () {
@@ -1018,6 +1067,13 @@ window.resetPortfolio = function () {
    ════════════════════════════════════════════ */
 async function init() {
   await loadData();
+
+  if (document.getElementById('pool-svg')) {
+    initPoolRipple();
+    initTigerZones();
+    return;
+  }
+
   initBackgroundStars();
   initChat();
   initEntry();

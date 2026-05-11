@@ -352,36 +352,69 @@ body {
 }
 
 /* ════════════════════════════════════════════
-   TIGER
+   POOL SCENE
    ════════════════════════════════════════════ */
 
-#tiger-container {
-  position: relative;
-  z-index: 1;
-  width: 380px;
-  height: 480px;
+#pool-scene {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#pool-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 #tiger-svg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  animation: tigerBreath 4s ease-in-out infinite;
+  pointer-events: none;
 }
 
-@keyframes tigerBreath {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
+#tiger-container {
+  pointer-events: all;
 }
 
 /* Interactive zones */
 .tiger-zone {
   cursor: pointer;
   pointer-events: all;
-  transition: filter 0.2s ease;
 }
 
-.tiger-zone:hover {
-  filter: drop-shadow(0 0 12px var(--color-accent-secondary));
+.tiger-zone path,
+.tiger-zone line,
+.tiger-zone circle,
+.tiger-zone ellipse {
+  transition: stroke-width 0.2s ease;
+}
+
+.tiger-zone:hover path,
+.tiger-zone:hover line,
+.tiger-zone:hover circle,
+.tiger-zone:hover ellipse {
+  stroke-width: 3.5;
+}
+
+/* Hover labels on body parts */
+.hover-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-style: italic;
+  fill: var(--color-fg);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.tiger-zone:hover .hover-label {
+  opacity: 0.6;
 }
 
 /* Blink */
@@ -1144,7 +1177,6 @@ body {
    ════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  #tiger-container { width: 260px; height: 330px; }
 
   #hud-sidebar { display: none; }
 
@@ -1176,7 +1208,6 @@ body {
 }
 
 @media (max-width: 480px) {
-  #tiger-container { width: 200px; height: 260px; }
   #hello-text { font-size: 36px; }
   #bb-content h1 { font-size: 20px; }
 }
