@@ -1040,15 +1040,14 @@ function initTigerZones() {
   zones.forEach((zone) => {
     const section = zone.dataset.section;
     zone.addEventListener('click', () => {
-      console.log(`[tiger] clicked: ${section}`);
+      openSection(section);
     });
   });
 
   const easterZones = document.querySelectorAll('.tiger-zone[data-easter]');
   easterZones.forEach((zone) => {
-    const egg = zone.dataset.easter;
     zone.addEventListener('click', () => {
-      console.log(`[tiger] easter egg: ${egg}`);
+      spawnMusicNotes(zone);
     });
   });
 }
@@ -1070,8 +1069,6 @@ async function init() {
 
   if (document.getElementById('pool-svg')) {
     initPoolRipple();
-    initTigerZones();
-    return;
   }
 
   initBackgroundStars();

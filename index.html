@@ -121,10 +121,51 @@
   </svg>
 </div>
 
+<!-- ═══════════════════════════════════════
+     ENTRY FLOW
+     ═══════════════════════════════════════ -->
+<div id="entry-overlay">
+  <div id="entry-hello" class="entry-step active">
+    <div id="hello-text">HELLO</div>
+    <div id="name-input-wrap">
+      <input id="name-input" type="text" placeholder="what's your name?" maxlength="20" autocomplete="off"/>
+    </div>
+  </div>
+  <div id="entry-greeting" class="entry-step">
+    <div id="speech-bubble">
+      <span id="greeting-text"></span>
+    </div>
+    <div id="mode-picker">
+      <button id="mode-quick" class="mode-btn">
+        <span class="mode-label">Quick Look</span>
+        <span class="mode-sub">scroll-through portfolio</span>
+      </button>
+      <button id="mode-hangout" class="mode-btn">
+        <span class="mode-label">Hang Out</span>
+        <span class="mode-sub">explore + interact</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     HUB BACKGROUND
+     ═══════════════════════════════════════ -->
+<div id="hub">
+  <div id="hub-bg">
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+  </div>
+</div>
+
 <!-- Tooltip -->
 <div id="tooltip"></div>
 
-<!-- HUD slots (reserved for future) -->
+<!-- ═══════════════════════════════════════
+     HUD
+     ═══════════════════════════════════════ -->
 <div id="hud-explored" class="hud-el" style="display:none">
   <svg id="explored-ring" width="42" height="42"><circle cx="21" cy="21" r="20" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2"/><circle id="explored-fill" cx="21" cy="21" r="20" fill="none" stroke="#f7931e" stroke-width="2" stroke-dasharray="125.66" stroke-dashoffset="125.66" transform="rotate(-90 21 21)"/></svg>
   <span id="explored-pct">0%</span>
@@ -144,6 +185,117 @@
 
 <div id="forecast-bubble" class="hidden"></div>
 <div id="preview-cards"></div>
+
+<!-- ═══════════════════════════════════════
+     OVERLAYS
+     ═══════════════════════════════════════ -->
+
+<!-- Blackboard (Mode 1: Quick Look) -->
+<div id="blackboard-overlay" class="overlay">
+  <div id="blackboard">
+    <button class="close-btn">✕</button>
+    <div id="bb-content">
+      <h1 id="bb-hero-line"></h1>
+      <div id="bb-projects"></div>
+      <div class="bb-skills-grid" id="bb-skills"></div>
+      <div id="bb-about"></div>
+      <div id="bb-contact"></div>
+    </div>
+  </div>
+  <div id="bb-checklist"></div>
+  <button id="bb-switch" class="cta-btn">Switch to Explore Mode</button>
+</div>
+
+<!-- Project detail -->
+<div id="project-overlay" class="overlay">
+  <div id="project-card">
+    <button class="close-btn">✕</button>
+    <div id="project-hero">[ cover ]</div>
+    <div id="project-header">
+      <div id="project-title"></div>
+      <div id="project-meta">
+        <span id="project-section-tag"></span>
+        <span id="project-year"></span>
+      </div>
+      <div id="project-logline"></div>
+    </div>
+    <div id="project-body"></div>
+    <div id="project-gallery"></div>
+  </div>
+</div>
+
+<!-- Section landing -->
+<div id="section-overlay" class="overlay">
+  <div id="section-card">
+    <button class="close-btn">✕</button>
+    <h2 id="section-title"></h2>
+    <div id="section-projects"></div>
+  </div>
+</div>
+
+<!-- Skills -->
+<div id="skills-overlay" class="overlay">
+  <div id="skills-card">
+    <button class="close-btn">✕</button>
+    <h2>Skills</h2>
+    <div id="skills-grid"></div>
+  </div>
+</div>
+
+<!-- About -->
+<div id="about-overlay" class="overlay">
+  <div id="about-card">
+    <button class="close-btn">✕</button>
+    <h2 id="about-name">Kay Xia</h2>
+    <div id="about-program"></div>
+    <div id="about-bio"></div>
+    <div id="about-philosophy"></div>
+  </div>
+</div>
+
+<!-- Contact -->
+<div id="contact-overlay" class="overlay">
+  <div id="contact-card">
+    <button class="close-btn">✕</button>
+    <h2>Contact</h2>
+    <div id="contact-links"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODALS
+     ═══════════════════════════════════════ -->
+
+<!-- Fridge -->
+<div id="fridge-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn modal-close">✕</button>
+    <h2>🍱 Fridge</h2>
+    <div id="fridge-items"></div>
+  </div>
+</div>
+
+<!-- Wardrobe -->
+<div id="wardrobe-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn modal-close">✕</button>
+    <h2>👔 Wardrobe</h2>
+    <div id="wardrobe-items"></div>
+  </div>
+</div>
+
+<!-- Chat -->
+<div id="chat-modal" class="modal">
+  <div class="modal-content chat-content">
+    <button class="close-btn modal-close">✕</button>
+    <h2>💬 Chat</h2>
+    <div id="chat-messages"></div>
+    <div id="chat-input-wrap">
+      <input id="chat-input" type="text" placeholder="say something..." autocomplete="off"/>
+      <button id="chat-send">→</button>
+    </div>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>

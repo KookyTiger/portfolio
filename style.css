@@ -181,12 +181,16 @@ body {
 
 #hub.hidden { display: none; }
 
-/* Background */
+/* Background (hidden when pool scene is active) */
 #hub-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
+}
+
+#pool-scene ~ #hub #hub-bg {
+  display: none;
 }
 
 .bg-shape {
