@@ -18,34 +18,43 @@
   <!-- Pool SVG -->
   <svg id="pool-svg" width="100%" height="100%" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid meet">
     <defs>
-      <!-- Pool edge breathing filter -->
+      <!-- Pool edge breathing filter (subtle, Hockney-style cleaner edges) -->
       <filter id="pool-breathe" x="-10%" y="-10%" width="120%" height="120%">
-        <feTurbulence type="turbulence" baseFrequency="0.012" numOctaves="3" result="breathe">
-          <animate attributeName="baseFrequency" values="0.010;0.020;0.010" dur="20s" repeatCount="indefinite"/>
+        <feTurbulence type="turbulence" baseFrequency="0.008" numOctaves="2" result="breathe">
+          <animate attributeName="baseFrequency" values="0.007;0.012;0.007" dur="20s" repeatCount="indefinite"/>
         </feTurbulence>
-        <feDisplacementMap in="SourceGraphic" in2="breathe" scale="14" xChannelSelector="R" yChannelSelector="G" result="breathed"/>
+        <feDisplacementMap in="SourceGraphic" in2="breathe" scale="6" xChannelSelector="R" yChannelSelector="G" result="breathed"/>
         <!-- Cursor ripple layer -->
         <feTurbulence type="turbulence" baseFrequency="0.035" numOctaves="2" result="ripple"/>
         <feDisplacementMap id="ripple-displacement" in="breathed" in2="ripple" scale="0" xChannelSelector="R" yChannelSelector="G"/>
       </filter>
     </defs>
 
-    <!-- Pool shape (two layers, square leaning left) -->
+    <!-- Pool shape (Hockney-inspired: bright turquoise, hard rectangle, surface ripples) -->
     <g id="pool-group" filter="url(#pool-breathe)">
-      <!-- Outer pool -->
+      <!-- Outer pool (tile deck shadow) -->
       <path id="pool-outer"
         d="M 120,220 C 220,210 580,208 720,222
            C 738,310 740,560 718,662
            C 600,672 220,672 122,660
            C 102,560 100,310 120,220 Z"
-        fill="#7fcdee" opacity="0.85"/>
-      <!-- Inner pool -->
+        fill="#4ec5e0" opacity="0.85"/>
+      <!-- Inner pool (water) -->
       <path id="pool-inner"
         d="M 170,260 C 260,252 560,250 680,262
            C 696,340 698,540 678,622
            C 580,630 250,632 172,620
            C 154,540 154,340 170,260 Z"
-        fill="#5ab5dd"/>
+        fill="#2ea8c9"/>
+
+      <!-- Hockney signature water ripple lines -->
+      <g id="pool-ripples" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8">
+        <path d="M 210,330 q 25,-12 50,0 q 25,12 50,0 q 25,-12 50,0 q 25,12 50,0"/>
+        <path d="M 250,400 q 30,-14 60,0 q 30,14 60,0 q 30,-14 60,0"/>
+        <path d="M 220,470 q 25,-10 50,0 q 25,10 50,0 q 25,-10 50,0 q 25,10 50,0"/>
+        <path d="M 280,540 q 30,-12 60,0 q 30,12 60,0 q 30,-12 60,0"/>
+        <path d="M 200,590 q 25,-10 50,0 q 25,10 50,0 q 25,-10 50,0"/>
+      </g>
     </g>
   </svg>
 
