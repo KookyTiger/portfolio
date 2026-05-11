@@ -12,279 +12,330 @@
 </head>
 <body>
 <canvas id="c"></canvas>
-<script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.3/dist/esm/simplex-noise.js" type="module"></script>
-<script type="module">
-import { createNoise3D } from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.3/dist/esm/simplex-noise.js';
+<script>
+/* ═══════════════════════════════════════════
+   INLINE SIMPLEX NOISE (no CDN dependency)
+   ═══════════════════════════════════════════ */
+const SimplexNoise = (() => {
+  const F3 = 1/3, G3 = 1/6;
+  const grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
+  const perm = new Uint8Array(512);
+  const permMod12 = new Uint8Array(512);
+  const p = new Uint8Array(256);
+  for (let i = 0; i < 256; i++) p[i] = i;
+  for (let i = 255; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
+  for (let i = 0; i < 512; i++) { perm[i] = p[i & 255]; permMod12[i] = perm[i] % 12; }
+
+  function dot3(g, x, y, z) { return g[0]*x + g[1]*y + g[2]*z; }
+
+  return function noise3D(xin, yin, zin) {
+    const s = (xin + yin + zin) * F3;
+    const i = Math.floor(xin + s), j = Math.floor(yin + s), k = Math.floor(zin + s);
+    const t = (i + j + k) * G3;
+    const X0 = i - t, Y0 = j - t, Z0 = k - t;
+    const x0 = xin - X0, y0 = yin - Y0, z0 = zin - Z0;
+
+    let i1, j1, k1, i2, j2, k2;
+    if (x0 >= y0) {
+      if (y0 >= z0) { i1=1;j1=0;k1=0;i2=1;j2=1;k2=0; }
+      else if (x0 >= z0) { i1=1;j1=0;k1=0;i2=1;j2=0;k2=1; }
+      else { i1=0;j1=0;k1=1;i2=1;j2=0;k2=1; }
+    } else {
+      if (y0 < z0) { i1=0;j1=0;k1=1;i2=0;j2=1;k2=1; }
+      else if (x0 < z0) { i1=0;j1=1;k1=0;i2=0;j2=1;k2=1; }
+      else { i1=0;j1=1;k1=0;i2=1;j2=1;k2=0; }
+    }
+
+    const x1 = x0-i1+G3, y1 = y0-j1+G3, z1 = z0-k1+G3;
+    const x2 = x0-i2+2*G3, y2 = y0-j2+2*G3, z2 = z0-k2+2*G3;
+    const x3 = x0-1+3*G3, y3 = y0-1+3*G3, z3 = z0-1+3*G3;
+
+    const ii = i & 255, jj = j & 255, kk = k & 255;
+    let n0=0, n1=0, n2=0, n3=0;
+    let t0 = 0.6-x0*x0-y0*y0-z0*z0;
+    if (t0 > 0) { t0 *= t0; n0 = t0*t0*dot3(grad3[permMod12[ii+perm[jj+perm[kk]]]], x0, y0, z0); }
+    let t1 = 0.6-x1*x1-y1*y1-z1*z1;
+    if (t1 > 0) { t1 *= t1; n1 = t1*t1*dot3(grad3[permMod12[ii+i1+perm[jj+j1+perm[kk+k1]]]], x1, y1, z1); }
+    let t2 = 0.6-x2*x2-y2*y2-z2*z2;
+    if (t2 > 0) { t2 *= t2; n2 = t2*t2*dot3(grad3[permMod12[ii+i2+perm[jj+j2+perm[kk+k2]]]], x2, y2, z2); }
+    let t3 = 0.6-x3*x3-y3*y3-z3*z3;
+    if (t3 > 0) { t3 *= t3; n3 = t3*t3*dot3(grad3[permMod12[ii+1+perm[jj+1+perm[kk+1]]]], x3, y3, z3); }
+    return 32 * (n0 + n1 + n2 + n3);
+  };
+})();
 
 /* ═══════════════════════════════════════════
    TUNABLE CONSTANTS — tweak these freely
    ═══════════════════════════════════════════ */
-
-const PARTICLE_COUNT      = 800;       // total particles (blue + orange)
-const ORANGE_RATIO        = 0.12;      // fraction that are orange tiger particles
-const BG_COLOR            = '#fafaf7'; // off-white background
-
-// Blue particle color range (deep navy → light sky)
-const BLUE_DEEP           = [26, 58, 92];    // #1a3a5c
-const BLUE_LIGHT          = [127, 205, 238]; // #7fcdee
-
-// Orange particle color
-const ORANGE_COLOR        = '#f7931e';
-
-// Particle size
-const RADIUS_MIN          = 1.5;
-const RADIUS_MAX          = 3.0;
-
-// Noise field
-const NOISE_SCALE         = 0.0015;   // spatial frequency of the flow field
-const NOISE_SPEED         = 0.0003;   // how fast the field evolves over time
-const FLOW_STRENGTH       = 0.8;      // how strongly particles follow the flow field
-
-// Cursor interaction
-const CURSOR_RADIUS       = 150;      // influence radius in px
-const CURSOR_PUSH         = 2.5;      // how strongly cursor pushes blue particles
-const CURSOR_PUSH_ORANGE  = 0.6;      // weaker push on orange (they resist)
-
-// Tiger silhouette
-const TIGER_SCALE         = 0.15;     // fraction of viewport width the tiger occupies
-const TIGER_ATTRACT       = 0.012;    // how strongly orange particles pull toward silhouette
-const TIGER_DAMPING       = 0.94;     // velocity damping for orange particles (lower = more sluggish)
-const BLUE_DAMPING        = 0.96;     // velocity damping for blue particles
-
-// Particle opacity
-const BLUE_OPACITY_MIN    = 0.25;
-const BLUE_OPACITY_MAX    = 0.7;
-const ORANGE_OPACITY      = 0.85;
+const CONFIG = {
+  ORANGE_COUNT: 500,
+  BLUE_COUNT: 2000,
+  TIGER_SCALE: 0.20,
+  TIGER_CENTER_Y_RATIO: 0.45,
+  HOME_RETURN_EASING: 0.07,
+  ORANGE_NOISE_AMPLITUDE: 5,
+  BLUE_NOISE_AMPLITUDE: 12,
+  NOISE_TIME_SCALE: 0.0005,
+  CURSOR_RADIUS: 100,
+  CURSOR_PUSH_MAX: 15,
+  PARTICLE_OPACITY_MIN: 0.4,
+  PARTICLE_OPACITY_MAX: 0.9,
+  BG_COLOR: '#fafaf7',
+  ORANGE_RADIUS_MIN: 1.5,
+  ORANGE_RADIUS_MAX: 2.5,
+  BLUE_RADIUS_MIN: 0.8,
+  BLUE_RADIUS_MAX: 1.8,
+  BLUE_EXCLUSION_RADIUS: 0.6,
+};
 
 /* ═══════════════════════════════════════════
-   TIGER SILHOUETTE — sample points (normalized -1 to 1)
-   These define the attractor shape.
+   COLORS
    ═══════════════════════════════════════════ */
+const BLUE_TONES = [
+  [211, 236, 246],  // #D3ECF6
+  [61, 107, 143],   // #3d6b8f
+  [26, 58, 92],     // #1a3a5c
+];
 
-// Simple abstract tiger: body oval, head, ears, tail, legs
-const TIGER_POINTS_NORM = [
-  // Head (circle, top center)
-  [0, -1.6], [0.25, -1.55], [-0.25, -1.55],
-  [0.15, -1.75], [-0.15, -1.75], [0.3, -1.45], [-0.3, -1.45],
-  [0, -1.4],
+const ORANGE_MAIN = '#f7931e';
+const ORANGE_HIGHLIGHT = '#ffb04d';
 
-  // Ears
-  [-0.35, -1.9], [-0.28, -2.05], [-0.2, -1.95],
-  [0.35, -1.9], [0.28, -2.05], [0.2, -1.95],
+/* ═══════════════════════════════════════════
+   TIGER SILHOUETTE — dense sample points (normalized -1 to 1)
+   ═══════════════════════════════════════════ */
+const TIGER_POINTS_NORM = (() => {
+  const pts = [];
 
-  // Body (oval)
-  [0, -0.8], [0, -0.4], [0, 0], [0, 0.4], [0, 0.7],
-  [0.35, -0.7], [-0.35, -0.7],
-  [0.45, -0.3], [-0.45, -0.3],
-  [0.45, 0.1], [-0.45, 0.1],
-  [0.4, 0.5], [-0.4, 0.5],
-  [0.3, 0.8], [-0.3, 0.8],
-  [0.2, -0.5], [-0.2, -0.5],
-  [0.2, 0.3], [-0.2, 0.3],
+  // Head — dense circle
+  for (let a = 0; a < Math.PI * 2; a += 0.35) {
+    pts.push([Math.cos(a) * 0.3, -1.55 + Math.sin(a) * 0.25]);
+  }
+  for (let a = 0; a < Math.PI * 2; a += 0.5) {
+    pts.push([Math.cos(a) * 0.15, -1.55 + Math.sin(a) * 0.12]);
+  }
+  pts.push([0, -1.55]);
+
+  // Left ear
+  pts.push([-0.25, -1.85], [-0.32, -2.0], [-0.22, -2.1], [-0.12, -2.0], [-0.18, -1.95]);
+  // Right ear
+  pts.push([0.25, -1.85], [0.32, -2.0], [0.22, -2.1], [0.12, -2.0], [0.18, -1.95]);
+
+  // Eyes
+  pts.push([-0.12, -1.55], [0.12, -1.55]);
+
+  // Nose
+  pts.push([0, -1.42]);
+
+  // Neck
+  pts.push([0, -1.25], [-0.15, -1.25], [0.15, -1.25]);
+  pts.push([0, -1.15], [-0.2, -1.15], [0.2, -1.15]);
+
+  // Body — filled oval with multiple rings
+  const bodyRings = [
+    { cy: -0.9, rx: 0.3, ry: 0.15 },
+    { cy: -0.6, rx: 0.4, ry: 0.15 },
+    { cy: -0.3, rx: 0.45, ry: 0.15 },
+    { cy: 0.0, rx: 0.45, ry: 0.15 },
+    { cy: 0.3, rx: 0.42, ry: 0.15 },
+    { cy: 0.55, rx: 0.35, ry: 0.12 },
+    { cy: 0.75, rx: 0.3, ry: 0.1 },
+  ];
+  for (const ring of bodyRings) {
+    for (let a = 0; a < Math.PI * 2; a += 0.4) {
+      pts.push([Math.cos(a) * ring.rx, ring.cy + Math.sin(a) * ring.ry]);
+    }
+    for (let a = 0; a < Math.PI * 2; a += 0.6) {
+      pts.push([Math.cos(a) * ring.rx * 0.5, ring.cy + Math.sin(a) * ring.ry * 0.5]);
+    }
+    pts.push([0, ring.cy]);
+  }
 
   // Front legs
-  [-0.3, 1.0], [-0.3, 1.3], [-0.3, 1.5],
-  [0.3, 1.0], [0.3, 1.3], [0.3, 1.5],
+  for (let y = 0.85; y <= 1.5; y += 0.12) {
+    pts.push([-0.22, y], [0.22, y], [-0.18, y], [0.18, y]);
+  }
+  pts.push([-0.25, 1.55], [-0.18, 1.55], [0.25, 1.55], [0.18, 1.55]);
 
-  // Back legs (wider)
-  [-0.45, 0.8], [-0.5, 1.1], [-0.45, 1.4],
-  [0.45, 0.8], [0.5, 1.1], [0.45, 1.4],
+  // Back legs
+  for (let y = 0.7; y <= 1.4; y += 0.12) {
+    pts.push([-0.42, y], [0.42, y], [-0.38, y], [0.38, y]);
+  }
+  pts.push([-0.45, 1.45], [-0.38, 1.45], [0.45, 1.45], [0.38, 1.45]);
 
-  // Tail (curves to the right)
-  [0.35, 0.6], [0.55, 0.4], [0.7, 0.15], [0.8, -0.1],
-  [0.85, -0.35], [0.8, -0.55],
-];
+  // Tail
+  const tailPts = [
+    [0.3, 0.6], [0.42, 0.45], [0.55, 0.25], [0.65, 0.05],
+    [0.72, -0.15], [0.75, -0.35], [0.72, -0.5], [0.65, -0.6],
+  ];
+  for (const tp of tailPts) pts.push(tp);
+  for (const tp of tailPts) pts.push([tp[0] + 0.04, tp[1] + 0.03]);
+
+  // Stripes
+  pts.push([-0.3, -0.5], [0.3, -0.5]);
+  pts.push([-0.25, -0.1], [0.25, -0.1]);
+  pts.push([-0.28, 0.25], [0.28, 0.25]);
+
+  return pts;
+})();
 
 /* ═══════════════════════════════════════════
    SETUP
    ═══════════════════════════════════════════ */
-
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-const noise3D = createNoise3D();
 
 let W, H, tigerCx, tigerCy, tigerSize, tigerPoints;
 let mouseX = -9999, mouseY = -9999;
+const orangeParticles = [];
+const blueParticles = [];
+let time = 0;
 
 function resize() {
   W = canvas.width = window.innerWidth;
   H = canvas.height = window.innerHeight;
   tigerCx = W * 0.5;
-  tigerCy = H * 0.52;
-  tigerSize = W * TIGER_SCALE;
+  tigerCy = H * CONFIG.TIGER_CENTER_Y_RATIO;
+  tigerSize = W * CONFIG.TIGER_SCALE;
 
-  // Convert normalized tiger points to screen coordinates
   tigerPoints = TIGER_POINTS_NORM.map(([nx, ny]) => [
     tigerCx + nx * tigerSize,
     tigerCy + ny * tigerSize * 0.5
   ]);
+
+  if (orangeParticles.length) repositionHomes();
 }
 
 window.addEventListener('resize', resize);
 resize();
 
 /* ═══════════════════════════════════════════
-   CURSOR TRACKING
+   CURSOR
    ═══════════════════════════════════════════ */
-
-canvas.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-});
-
-canvas.addEventListener('mouseleave', () => {
-  mouseX = -9999;
-  mouseY = -9999;
-});
+canvas.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+canvas.addEventListener('mouseleave', () => { mouseX = -9999; mouseY = -9999; });
 
 /* ═══════════════════════════════════════════
    PARTICLE CREATION
    ═══════════════════════════════════════════ */
-
-function lerpColor(a, b, t) {
-  return [
-    Math.round(a[0] + (b[0] - a[0]) * t),
-    Math.round(a[1] + (b[1] - a[1]) * t),
-    Math.round(a[2] + (b[2] - a[2]) * t),
-  ];
+function pickBlueColor() {
+  const tone = BLUE_TONES[Math.floor(Math.random() * BLUE_TONES.length)];
+  const jitter = () => Math.round((Math.random() - 0.5) * 20);
+  return `rgb(${Math.max(0,Math.min(255,tone[0]+jitter()))},${Math.max(0,Math.min(255,tone[1]+jitter()))},${Math.max(0,Math.min(255,tone[2]+jitter()))})`;
 }
 
-function createParticle(isOrange) {
-  const r = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
+function rng(min, max) { return min + Math.random() * (max - min); }
 
-  if (isOrange) {
-    // Start near a random tiger attractor point with some scatter
-    const tp = tigerPoints[Math.floor(Math.random() * tigerPoints.length)];
-    return {
-      x: tp[0] + (Math.random() - 0.5) * tigerSize * 0.8,
-      y: tp[1] + (Math.random() - 0.5) * tigerSize * 0.8,
-      vx: 0, vy: 0,
-      r,
-      isOrange: true,
-      color: ORANGE_COLOR,
-      opacity: ORANGE_OPACITY,
-      targetIdx: Math.floor(Math.random() * tigerPoints.length),
-    };
+function sampleBlueHome() {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const x = Math.random() * W;
+    const y = Math.random() * H;
+    const density = (SimplexNoise(x * 0.001, y * 0.001, 0) + 1) * 0.5;
+    if (Math.random() > density * 0.7 + 0.3) continue;
+    const dx = x - tigerCx, dy = y - tigerCy;
+    if (Math.sqrt(dx*dx + dy*dy) < tigerSize * CONFIG.BLUE_EXCLUSION_RADIUS && Math.random() < 0.7) continue;
+    return [x, y];
   }
-
-  const t = Math.random();
-  const [cr, cg, cb] = lerpColor(BLUE_DEEP, BLUE_LIGHT, t);
-  const opacity = BLUE_OPACITY_MIN + Math.random() * (BLUE_OPACITY_MAX - BLUE_OPACITY_MIN);
-
-  return {
-    x: Math.random() * W,
-    y: Math.random() * H,
-    vx: 0, vy: 0,
-    r,
-    isOrange: false,
-    color: `rgb(${cr},${cg},${cb})`,
-    opacity,
-    targetIdx: -1,
-  };
+  return [Math.random() * W, Math.random() * H];
 }
 
-const orangeCount = Math.round(PARTICLE_COUNT * ORANGE_RATIO);
-const blueCount = PARTICLE_COUNT - orangeCount;
-
-const particles = [];
-for (let i = 0; i < blueCount; i++) particles.push(createParticle(false));
-for (let i = 0; i < orangeCount; i++) particles.push(createParticle(true));
-
-/* ═══════════════════════════════════════════
-   FIND NEAREST TIGER POINT
-   ═══════════════════════════════════════════ */
-
-function nearestTigerPoint(x, y) {
-  let bestDist = Infinity, bestIdx = 0;
+function createOrangeParticles() {
+  orangeParticles.length = 0;
+  const perPoint = Math.ceil(CONFIG.ORANGE_COUNT / tigerPoints.length);
   for (let i = 0; i < tigerPoints.length; i++) {
-    const dx = x - tigerPoints[i][0];
-    const dy = y - tigerPoints[i][1];
-    const d = dx * dx + dy * dy;
-    if (d < bestDist) { bestDist = d; bestIdx = i; }
+    const [tx, ty] = tigerPoints[i];
+    for (let j = 0; j < perPoint; j++) {
+      if (orangeParticles.length >= CONFIG.ORANGE_COUNT) break;
+      const sc = 3;
+      const hx = tx + (Math.random() - 0.5) * sc;
+      const hy = ty + (Math.random() - 0.5) * sc;
+      orangeParticles.push({
+        homeX: hx, homeY: hy, x: hx, y: hy,
+        r: rng(CONFIG.ORANGE_RADIUS_MIN, CONFIG.ORANGE_RADIUS_MAX),
+        color: Math.random() < 0.1 ? ORANGE_HIGHLIGHT : ORANGE_MAIN,
+        opacity: rng(CONFIG.PARTICLE_OPACITY_MIN + 0.15, CONFIG.PARTICLE_OPACITY_MAX),
+        noiseId: Math.random() * 1000,
+      });
+    }
   }
-  return bestIdx;
 }
+
+function createBlueParticles() {
+  blueParticles.length = 0;
+  for (let i = 0; i < CONFIG.BLUE_COUNT; i++) {
+    const [hx, hy] = sampleBlueHome();
+    blueParticles.push({
+      homeX: hx, homeY: hy, x: hx, y: hy,
+      r: rng(CONFIG.BLUE_RADIUS_MIN, CONFIG.BLUE_RADIUS_MAX),
+      color: pickBlueColor(),
+      opacity: rng(CONFIG.PARTICLE_OPACITY_MIN, CONFIG.PARTICLE_OPACITY_MAX),
+      noiseId: Math.random() * 1000,
+    });
+  }
+}
+
+function repositionHomes() {
+  const perPoint = Math.ceil(orangeParticles.length / tigerPoints.length);
+  let idx = 0;
+  for (let i = 0; i < tigerPoints.length && idx < orangeParticles.length; i++) {
+    const [tx, ty] = tigerPoints[i];
+    for (let j = 0; j < perPoint && idx < orangeParticles.length; j++, idx++) {
+      orangeParticles[idx].homeX = tx + (Math.random() - 0.5) * 3;
+      orangeParticles[idx].homeY = ty + (Math.random() - 0.5) * 3;
+    }
+  }
+  for (const p of blueParticles) {
+    const [hx, hy] = sampleBlueHome();
+    p.homeX = hx; p.homeY = hy;
+  }
+}
+
+createOrangeParticles();
+createBlueParticles();
 
 /* ═══════════════════════════════════════════
    ANIMATION LOOP
    ═══════════════════════════════════════════ */
-
-let time = 0;
-
 function frame() {
   requestAnimationFrame(frame);
-  time += NOISE_SPEED;
+  time += CONFIG.NOISE_TIME_SCALE;
 
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = BG_COLOR;
+  ctx.fillStyle = CONFIG.BG_COLOR;
   ctx.fillRect(0, 0, W, H);
 
+  updateAndDraw(blueParticles, CONFIG.BLUE_NOISE_AMPLITUDE, false);
+  updateAndDraw(orangeParticles, CONFIG.ORANGE_NOISE_AMPLITUDE, true);
+}
+
+function updateAndDraw(particles, noiseAmp, isOrange) {
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
 
-    // Noise-driven flow field
-    const angle = noise3D(p.x * NOISE_SCALE, p.y * NOISE_SCALE, time) * Math.PI * 2;
-    p.vx += Math.cos(angle) * FLOW_STRENGTH;
-    p.vy += Math.sin(angle) * FLOW_STRENGTH;
+    const noiseX = SimplexNoise(p.noiseId, time, 0) * noiseAmp;
+    const noiseY = SimplexNoise(0, p.noiseId, time) * noiseAmp;
 
-    // Orange particles: attract toward tiger silhouette
-    if (p.isOrange) {
-      // Periodically reassign to nearest point for natural clustering
-      if (Math.random() < 0.02) {
-        p.targetIdx = nearestTigerPoint(p.x, p.y);
-      }
-      const tp = tigerPoints[p.targetIdx];
-      const dx = tp[0] - p.x;
-      const dy = tp[1] - p.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+    let targetX = p.homeX + noiseX;
+    let targetY = p.homeY + noiseY;
 
-      // Attraction strength increases with distance from target
-      const attract = TIGER_ATTRACT * (1 + dist * 0.005);
-      p.vx += dx * attract;
-      p.vy += dy * attract;
-    }
-
-    // Cursor repulsion
     const cdx = p.x - mouseX;
     const cdy = p.y - mouseY;
     const cDist = Math.sqrt(cdx * cdx + cdy * cdy);
-    if (cDist < CURSOR_RADIUS && cDist > 0) {
-      const pushStrength = p.isOrange ? CURSOR_PUSH_ORANGE : CURSOR_PUSH;
-      const force = (1 - cDist / CURSOR_RADIUS) * pushStrength;
-      p.vx += (cdx / cDist) * force;
-      p.vy += (cdy / cDist) * force;
+    if (cDist < CONFIG.CURSOR_RADIUS && cDist > 0) {
+      const pushAmt = (1 - cDist / CONFIG.CURSOR_RADIUS) * CONFIG.CURSOR_PUSH_MAX;
+      const resist = isOrange ? 0.3 : 1.0;
+      targetX += (cdx / cDist) * pushAmt * resist;
+      targetY += (cdy / cDist) * pushAmt * resist;
     }
 
-    // Damping
-    const damp = p.isOrange ? TIGER_DAMPING : BLUE_DAMPING;
-    p.vx *= damp;
-    p.vy *= damp;
+    p.x += (targetX - p.x) * CONFIG.HOME_RETURN_EASING;
+    p.y += (targetY - p.y) * CONFIG.HOME_RETURN_EASING;
 
-    // Update position
-    p.x += p.vx;
-    p.y += p.vy;
-
-    // Wrap blue particles around edges; orange particles bounce softly
-    if (p.isOrange) {
-      if (p.x < 0) { p.x = 0; p.vx *= -0.5; }
-      if (p.x > W) { p.x = W; p.vx *= -0.5; }
-      if (p.y < 0) { p.y = 0; p.vy *= -0.5; }
-      if (p.y > H) { p.y = H; p.vy *= -0.5; }
-    } else {
-      if (p.x < -20) p.x = W + 20;
-      if (p.x > W + 20) p.x = -20;
-      if (p.y < -20) p.y = H + 20;
-      if (p.y > H + 20) p.y = -20;
-    }
-
-    // Draw
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
     ctx.fillStyle = p.color;
     ctx.globalAlpha = p.opacity;
     ctx.fill();
   }
-
   ctx.globalAlpha = 1;
 }
 
