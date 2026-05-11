@@ -3,351 +3,292 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>kookytiger — portfolio</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <title>kookytiger — particle proof of concept</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #fafaf7; }
+    canvas { display: block; }
+  </style>
 </head>
 <body>
+<canvas id="c"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.3/dist/esm/simplex-noise.js" type="module"></script>
+<script type="module">
+import { createNoise3D } from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.3/dist/esm/simplex-noise.js';
 
-  <!-- ═══ Entry Flow ═══════════════════════════ -->
-  <div id="entry-overlay">
-    <!-- Step 1: HELLO + name input -->
-    <div id="entry-hello" class="entry-step active">
-      <div id="hello-text">HELLO</div>
-      <div id="name-input-wrap">
-        <input type="text" id="name-input" placeholder="type your name..." maxlength="20" autocomplete="off" spellcheck="false">
-      </div>
-    </div>
+/* ═══════════════════════════════════════════
+   TUNABLE CONSTANTS — tweak these freely
+   ═══════════════════════════════════════════ */
 
-    <!-- Step 2: Greeting + mode picker -->
-    <div id="entry-greeting" class="entry-step">
-      <div id="speech-bubble">
-        <span id="greeting-text"></span>
-      </div>
-      <div id="mode-picker">
-        <button id="mode-quick" class="mode-btn">
-          <span class="mode-label">Quick view</span>
-          <span class="mode-sub">~30 seconds</span>
-        </button>
-        <button id="mode-hangout" class="mode-btn">
-          <span class="mode-label">Hang out</span>
-          <span class="mode-sub">explore everything</span>
-        </button>
-      </div>
-    </div>
-  </div>
+const PARTICLE_COUNT      = 800;       // total particles (blue + orange)
+const ORANGE_RATIO        = 0.12;      // fraction that are orange tiger particles
+const BG_COLOR            = '#fafaf7'; // off-white background
 
-  <!-- ═══ Hub ═══════════════════════════════════ -->
-  <div id="hub">
+// Blue particle color range (deep navy → light sky)
+const BLUE_DEEP           = [26, 58, 92];    // #1a3a5c
+const BLUE_LIGHT          = [127, 205, 238]; // #7fcdee
 
-    <!-- HUD: top-left — % explored ring -->
-    <div id="hud-explored" class="hud-el">
-      <svg id="explored-ring" viewBox="0 0 48 48">
-        <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="3"/>
-        <circle id="explored-fill" cx="24" cy="24" r="20" fill="none" stroke="var(--color-accent)" stroke-width="3"
-                stroke-dasharray="125.66" stroke-dashoffset="125.66" stroke-linecap="round"
-                transform="rotate(-90 24 24)"/>
-      </svg>
-      <span id="explored-pct">0%</span>
-    </div>
+// Orange particle color
+const ORANGE_COLOR        = '#f7931e';
 
-    <!-- HUD: top-right — token counter + checklist -->
-    <div id="hud-right" class="hud-el">
-      <div id="token-counter">
-        <span id="token-icon">✦</span>
-        <span id="token-value">0</span>
-      </div>
-      <div id="checklist"></div>
-    </div>
+// Particle size
+const RADIUS_MIN          = 1.5;
+const RADIUS_MAX          = 3.0;
 
-    <!-- HUD: left sidebar nav -->
-    <nav id="hud-sidebar" class="hud-el">
-      <button class="sidebar-btn" data-overlay="skills">Skills</button>
-      <button class="sidebar-btn" data-overlay="about">About</button>
-      <button class="sidebar-btn" data-overlay="contact">Contact</button>
-    </nav>
+// Noise field
+const NOISE_SCALE         = 0.0015;   // spatial frequency of the flow field
+const NOISE_SPEED         = 0.0003;   // how fast the field evolves over time
+const FLOW_STRENGTH       = 0.8;      // how strongly particles follow the flow field
 
-    <!-- HUD: bottom-left — fridge + wardrobe -->
-    <div id="hud-bottom-left" class="hud-el">
-      <button id="btn-fridge" class="hud-icon locked" title="Fridge (unlock at 30%)">🍱</button>
-      <button id="btn-wardrobe" class="hud-icon locked" title="Wardrobe (unlock at 50%)">👔</button>
-    </div>
+// Cursor interaction
+const CURSOR_RADIUS       = 150;      // influence radius in px
+const CURSOR_PUSH         = 2.5;      // how strongly cursor pushes blue particles
+const CURSOR_PUSH_ORANGE  = 0.6;      // weaker push on orange (they resist)
 
-    <!-- HUD: bottom-right — chat -->
-    <div id="hud-bottom-right" class="hud-el">
-      <button id="btn-chat" class="hud-icon locked" title="Chat (unlock at 10%)">💬</button>
-    </div>
+// Tiger silhouette
+const TIGER_SCALE         = 0.15;     // fraction of viewport width the tiger occupies
+const TIGER_ATTRACT       = 0.012;    // how strongly orange particles pull toward silhouette
+const TIGER_DAMPING       = 0.94;     // velocity damping for orange particles (lower = more sluggish)
+const BLUE_DAMPING        = 0.96;     // velocity damping for blue particles
 
-    <!-- Background -->
-    <div id="hub-bg">
-      <div class="bg-shape"></div>
-      <div class="bg-shape"></div>
-      <div class="bg-shape"></div>
-      <div class="bg-shape"></div>
-    </div>
+// Particle opacity
+const BLUE_OPACITY_MIN    = 0.25;
+const BLUE_OPACITY_MAX    = 0.7;
+const ORANGE_OPACITY      = 0.85;
 
-    <!-- Tiger SVG ─────────────────────────────── -->
-    <div id="tiger-container">
-      <!-- Forecast bubble (pet care) -->
-      <div id="forecast-bubble" class="hidden"></div>
+/* ═══════════════════════════════════════════
+   TIGER SILHOUETTE — sample points (normalized -1 to 1)
+   These define the attractor shape.
+   ═══════════════════════════════════════════ */
 
-      <!-- Preview cards fan-out on body-part hover -->
-      <div id="preview-cards"></div>
+// Simple abstract tiger: body oval, head, ears, tail, legs
+const TIGER_POINTS_NORM = [
+  // Head (circle, top center)
+  [0, -1.6], [0.25, -1.55], [-0.25, -1.55],
+  [0.15, -1.75], [-0.15, -1.75], [0.3, -1.45], [-0.3, -1.45],
+  [0, -1.4],
 
-      <svg id="tiger-svg" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+  // Ears
+  [-0.35, -1.9], [-0.28, -2.05], [-0.2, -1.95],
+  [0.35, -1.9], [0.28, -2.05], [0.2, -1.95],
 
-        <!-- Tail (behind body) -->
-        <g id="tail" class="tiger-zone">
-          <g id="tiger-tail">
-            <path d="M320 340 Q370 330 380 290 Q390 250 370 220 Q355 200 340 210"
-                  fill="none" stroke="var(--color-accent)" stroke-width="16" stroke-linecap="round"/>
-            <path d="M320 340 Q370 330 380 290 Q390 250 370 220 Q355 200 340 210"
-                  fill="none" stroke="#c76a10" stroke-width="16" stroke-linecap="round" opacity="0.2"/>
-            <path d="M365 260 Q370 255 375 260" fill="none" stroke="#c76a10" stroke-width="3" stroke-linecap="round"/>
-            <path d="M370 280 Q376 275 380 282" fill="none" stroke="#c76a10" stroke-width="3" stroke-linecap="round"/>
-          </g>
-        </g>
+  // Body (oval)
+  [0, -0.8], [0, -0.4], [0, 0], [0, 0.4], [0, 0.7],
+  [0.35, -0.7], [-0.35, -0.7],
+  [0.45, -0.3], [-0.45, -0.3],
+  [0.45, 0.1], [-0.45, 0.1],
+  [0.4, 0.5], [-0.4, 0.5],
+  [0.3, 0.8], [-0.3, 0.8],
+  [0.2, -0.5], [-0.2, -0.5],
+  [0.2, 0.3], [-0.2, 0.3],
 
-        <!-- Body -->
-        <ellipse cx="200" cy="320" rx="110" ry="130" fill="var(--color-accent)"/>
-        <ellipse cx="200" cy="330" rx="85" ry="100" fill="#faa740" opacity="0.5"/>
-        <ellipse cx="200" cy="340" rx="70" ry="80" fill="#ffecd2"/>
+  // Front legs
+  [-0.3, 1.0], [-0.3, 1.3], [-0.3, 1.5],
+  [0.3, 1.0], [0.3, 1.3], [0.3, 1.5],
 
-        <!-- Body stripes -->
-        <path d="M105 280 Q115 275 120 285" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M95 310 Q108 305 110 318" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M98 345 Q112 340 112 355" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M290 275 Q280 272 278 283" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M298 308 Q286 304 285 316" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
-        <path d="M295 342 Q283 338 283 352" fill="none" stroke="#c76a10" stroke-width="3.5" stroke-linecap="round"/>
+  // Back legs (wider)
+  [-0.45, 0.8], [-0.5, 1.1], [-0.45, 1.4],
+  [0.45, 0.8], [0.5, 1.1], [0.45, 1.4],
 
-        <!-- Heart zone -->
-        <g id="heart" class="tiger-zone" data-section="philosophy">
-          <path d="M200 325 C200 310, 180 300, 180 315 C180 330, 200 345, 200 345 C200 345, 220 330, 220 315 C220 300, 200 310, 200 325Z"
-                fill="#ff6b8a" opacity="0.85"/>
-          <ellipse cx="190" cy="318" rx="4" ry="6" fill="#fff" opacity="0.4" transform="rotate(-15,190,318)"/>
-          <circle cx="200" cy="328" r="28" fill="transparent"/>
-        </g>
+  // Tail (curves to the right)
+  [0.35, 0.6], [0.55, 0.4], [0.7, 0.15], [0.8, -0.1],
+  [0.85, -0.35], [0.8, -0.55],
+];
 
-        <!-- Head -->
-        <ellipse cx="200" cy="165" rx="105" ry="95" fill="var(--color-accent)"/>
-        <ellipse cx="200" cy="170" rx="80" ry="72" fill="#faa740" opacity="0.35"/>
+/* ═══════════════════════════════════════════
+   SETUP
+   ═══════════════════════════════════════════ */
 
-        <!-- Forehead stripes -->
-        <path d="M175 105 L180 125" fill="none" stroke="#c76a10" stroke-width="3" stroke-linecap="round"/>
-        <path d="M200 98 L200 120" fill="none" stroke="#c76a10" stroke-width="3" stroke-linecap="round"/>
-        <path d="M225 105 L220 125" fill="none" stroke="#c76a10" stroke-width="3" stroke-linecap="round"/>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const noise3D = createNoise3D();
 
-        <!-- Cheek fluffs + blush -->
-        <ellipse cx="115" cy="185" rx="25" ry="18" fill="#ffecd2" opacity="0.7"/>
-        <ellipse cx="285" cy="185" rx="25" ry="18" fill="#ffecd2" opacity="0.7"/>
-        <ellipse cx="130" cy="195" rx="16" ry="10" fill="#ff9eb5" opacity="0.4"/>
-        <ellipse cx="270" cy="195" rx="16" ry="10" fill="#ff9eb5" opacity="0.4"/>
+let W, H, tigerCx, tigerCy, tigerSize, tigerPoints;
+let mouseX = -9999, mouseY = -9999;
 
-        <!-- Ears (easter egg) -->
-        <g id="ears" class="tiger-zone" data-easter="music">
-          <path d="M120 105 L100 45 L155 90 Z" fill="var(--color-accent)"/>
-          <path d="M125 100 L112 58 L148 92 Z" fill="#ffb366"/>
-          <path d="M128 96 L120 68 L143 93 Z" fill="#ff9eb5" opacity="0.6"/>
-          <path d="M280 105 L300 45 L245 90 Z" fill="var(--color-accent)"/>
-          <path d="M275 100 L288 58 L252 92 Z" fill="#ffb366"/>
-          <path d="M272 96 L280 68 L257 93 Z" fill="#ff9eb5" opacity="0.6"/>
-          <circle cx="112" cy="72" r="30" fill="transparent"/>
-          <circle cx="288" cy="72" r="30" fill="transparent"/>
-        </g>
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  tigerCx = W * 0.5;
+  tigerCy = H * 0.52;
+  tigerSize = W * TIGER_SCALE;
 
-        <!-- Brain zone -->
-        <g id="brain" class="tiger-zone" data-section="experience">
-          <circle cx="200" cy="100" r="38" fill="transparent"/>
-          <g opacity="0.6">
-            <circle cx="188" cy="88" r="2" fill="var(--color-accent-secondary)"/>
-            <circle cx="212" cy="85" r="1.5" fill="var(--color-accent-secondary)"/>
-            <circle cx="200" cy="78" r="2.5" fill="var(--color-accent-secondary)"/>
-          </g>
-        </g>
+  // Convert normalized tiger points to screen coordinates
+  tigerPoints = TIGER_POINTS_NORM.map(([nx, ny]) => [
+    tigerCx + nx * tigerSize,
+    tigerCy + ny * tigerSize * 0.5
+  ]);
+}
 
-        <!-- Eyes -->
-        <g id="left-eye" class="tiger-zone" data-section="visual">
-          <ellipse cx="160" cy="168" rx="28" ry="30" fill="#ffffff"/>
-          <ellipse cx="160" cy="168" rx="25" ry="27" fill="var(--color-fg)" class="eye-pupil"/>
-          <ellipse cx="160" cy="168" rx="15" ry="16" fill="var(--color-fg)"/>
-          <ellipse cx="160" cy="168" rx="8" ry="8" fill="var(--color-fg)"/>
-          <circle cx="168" cy="160" r="6" fill="#ffffff" opacity="0.9"/>
-          <circle cx="154" cy="174" r="3" fill="#ffffff" opacity="0.5"/>
-          <circle cx="160" cy="168" r="32" fill="transparent"/>
-        </g>
-        <g id="right-eye" class="tiger-zone" data-section="film">
-          <ellipse cx="240" cy="168" rx="28" ry="30" fill="#ffffff"/>
-          <ellipse cx="240" cy="168" rx="25" ry="27" fill="var(--color-fg)" class="eye-pupil"/>
-          <ellipse cx="240" cy="168" rx="15" ry="16" fill="var(--color-fg)"/>
-          <ellipse cx="240" cy="168" rx="8" ry="8" fill="var(--color-fg)"/>
-          <circle cx="248" cy="160" r="6" fill="#ffffff" opacity="0.9"/>
-          <circle cx="234" cy="174" r="3" fill="#ffffff" opacity="0.5"/>
-          <circle cx="240" cy="168" r="32" fill="transparent"/>
-        </g>
+window.addEventListener('resize', resize);
+resize();
 
-        <!-- Nose & mouth -->
-        <ellipse cx="200" cy="200" rx="10" ry="7" fill="var(--color-fg)"/>
-        <ellipse cx="197" cy="198" rx="3" ry="2" fill="#333" opacity="0.5"/>
-        <path d="M188 210 Q200 222 212 210" fill="none" stroke="var(--color-fg)" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M183 208 Q187 210 188 210" fill="none" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M217 208 Q213 210 212 210" fill="none" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
+/* ═══════════════════════════════════════════
+   CURSOR TRACKING
+   ═══════════════════════════════════════════ */
 
-        <!-- Whiskers -->
-        <line x1="105" y1="190" x2="145" y2="195" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="100" y1="200" x2="143" y2="202" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="105" y1="212" x2="145" y2="208" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="295" y1="190" x2="255" y2="195" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="300" y1="200" x2="257" y2="202" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="295" y1="212" x2="255" y2="208" stroke="var(--color-fg)" stroke-width="1.5" stroke-linecap="round"/>
+canvas.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
 
-        <!-- Arms -->
-        <path d="M105 300 Q70 330 80 370 Q85 385 100 380" fill="var(--color-accent)" stroke="#c76a10" stroke-width="1"/>
-        <path d="M295 300 Q330 330 320 370 Q315 385 300 380" fill="var(--color-accent)" stroke="#c76a10" stroke-width="1"/>
+canvas.addEventListener('mouseleave', () => {
+  mouseX = -9999;
+  mouseY = -9999;
+});
 
-        <!-- Paws zone -->
-        <g id="paws" class="tiger-zone" data-section="product">
-          <ellipse cx="92" cy="385" rx="22" ry="14" fill="#ffecd2"/>
-          <circle cx="84" cy="382" r="4" fill="#ffb8c6" opacity="0.6"/>
-          <circle cx="94" cy="380" r="4" fill="#ffb8c6" opacity="0.6"/>
-          <circle cx="102" cy="383" r="4" fill="#ffb8c6" opacity="0.6"/>
-          <ellipse cx="93" cy="390" rx="7" ry="5" fill="#ffb8c6" opacity="0.6"/>
-          <ellipse cx="308" cy="385" rx="22" ry="14" fill="#ffecd2"/>
-          <circle cx="298" cy="382" r="4" fill="#ffb8c6" opacity="0.6"/>
-          <circle cx="308" cy="380" r="4" fill="#ffb8c6" opacity="0.6"/>
-          <circle cx="316" cy="383" r="4" fill="#ffb8c6" opacity="0.6"/>
-          <ellipse cx="307" cy="390" rx="7" ry="5" fill="#ffb8c6" opacity="0.6"/>
-          <ellipse cx="155" cy="450" rx="32" ry="16" fill="var(--color-accent)"/>
-          <ellipse cx="155" cy="452" rx="25" ry="12" fill="#ffecd2"/>
-          <circle cx="143" cy="450" r="4" fill="#ffb8c6" opacity="0.5"/>
-          <circle cx="153" cy="448" r="4" fill="#ffb8c6" opacity="0.5"/>
-          <circle cx="163" cy="450" r="4" fill="#ffb8c6" opacity="0.5"/>
-          <ellipse cx="245" cy="450" rx="32" ry="16" fill="var(--color-accent)"/>
-          <ellipse cx="245" cy="452" rx="25" ry="12" fill="#ffecd2"/>
-          <circle cx="233" cy="450" r="4" fill="#ffb8c6" opacity="0.5"/>
-          <circle cx="243" cy="448" r="4" fill="#ffb8c6" opacity="0.5"/>
-          <circle cx="253" cy="450" r="4" fill="#ffb8c6" opacity="0.5"/>
-          <rect x="60" y="365" width="280" height="105" fill="transparent"/>
-        </g>
+/* ═══════════════════════════════════════════
+   PARTICLE CREATION
+   ═══════════════════════════════════════════ */
 
-        <!-- Legs -->
-        <rect x="130" y="400" width="50" height="50" rx="12" fill="var(--color-accent)"/>
-        <rect x="220" y="400" width="50" height="50" rx="12" fill="var(--color-accent)"/>
-        <path d="M135 420 Q142 418 143 425" fill="none" stroke="#c76a10" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M265 420 Q258 418 257 425" fill="none" stroke="#c76a10" stroke-width="2.5" stroke-linecap="round"/>
+function lerpColor(a, b, t) {
+  return [
+    Math.round(a[0] + (b[0] - a[0]) * t),
+    Math.round(a[1] + (b[1] - a[1]) * t),
+    Math.round(a[2] + (b[2] - a[2]) * t),
+  ];
+}
 
-      </svg>
-    </div><!-- /tiger-container -->
+function createParticle(isOrange) {
+  const r = RADIUS_MIN + Math.random() * (RADIUS_MAX - RADIUS_MIN);
 
-  </div><!-- /hub -->
+  if (isOrange) {
+    // Start near a random tiger attractor point with some scatter
+    const tp = tigerPoints[Math.floor(Math.random() * tigerPoints.length)];
+    return {
+      x: tp[0] + (Math.random() - 0.5) * tigerSize * 0.8,
+      y: tp[1] + (Math.random() - 0.5) * tigerSize * 0.8,
+      vx: 0, vy: 0,
+      r,
+      isOrange: true,
+      color: ORANGE_COLOR,
+      opacity: ORANGE_OPACITY,
+      targetIdx: Math.floor(Math.random() * tigerPoints.length),
+    };
+  }
 
-  <!-- ═══ Tooltip ═══════════════════════════════ -->
-  <div id="tooltip"></div>
+  const t = Math.random();
+  const [cr, cg, cb] = lerpColor(BLUE_DEEP, BLUE_LIGHT, t);
+  const opacity = BLUE_OPACITY_MIN + Math.random() * (BLUE_OPACITY_MAX - BLUE_OPACITY_MIN);
 
-  <!-- ═══ Mode 1: Blackboard Overlay ════════════ -->
-  <div id="blackboard-overlay" class="overlay">
-    <div id="blackboard">
-      <div id="bb-content">
-        <h1 id="bb-hero-line"></h1>
-        <div id="bb-projects"></div>
-        <div id="bb-skills"></div>
-        <div id="bb-about"></div>
-        <div id="bb-contact"></div>
-      </div>
-      <button id="bb-switch" class="cta-btn">want to hang out instead? →</button>
-    </div>
-    <div id="bb-checklist"></div>
-  </div>
+  return {
+    x: Math.random() * W,
+    y: Math.random() * H,
+    vx: 0, vy: 0,
+    r,
+    isOrange: false,
+    color: `rgb(${cr},${cg},${cb})`,
+    opacity,
+    targetIdx: -1,
+  };
+}
 
-  <!-- ═══ Project Overlay ══════════════════════ -->
-  <div id="project-overlay" class="overlay">
-    <div id="project-card">
-      <button id="close-project" class="close-btn" aria-label="Close">✕</button>
-      <div id="project-hero"></div>
-      <div id="project-header">
-        <h2 id="project-title"></h2>
-        <div id="project-meta">
-          <span id="project-section-tag"></span>
-          <span id="project-year"></span>
-        </div>
-        <p id="project-logline"></p>
-      </div>
-      <div id="project-body"></div>
-      <div id="project-gallery"></div>
-    </div>
-  </div>
+const orangeCount = Math.round(PARTICLE_COUNT * ORANGE_RATIO);
+const blueCount = PARTICLE_COUNT - orangeCount;
 
-  <!-- ═══ Section Landing Overlay ══════════════ -->
-  <div id="section-overlay" class="overlay">
-    <div id="section-card">
-      <button id="close-section" class="close-btn" aria-label="Close">✕</button>
-      <h2 id="section-title"></h2>
-      <div id="section-projects"></div>
-    </div>
-  </div>
+const particles = [];
+for (let i = 0; i < blueCount; i++) particles.push(createParticle(false));
+for (let i = 0; i < orangeCount; i++) particles.push(createParticle(true));
 
-  <!-- ═══ Skills Overlay ═══════════════════════ -->
-  <div id="skills-overlay" class="overlay">
-    <div id="skills-card">
-      <button id="close-skills" class="close-btn" aria-label="Close">✕</button>
-      <h2>Skills</h2>
-      <div id="skills-grid"></div>
-    </div>
-  </div>
+/* ═══════════════════════════════════════════
+   FIND NEAREST TIGER POINT
+   ═══════════════════════════════════════════ */
 
-  <!-- ═══ About Overlay ════════════════════════ -->
-  <div id="about-overlay" class="overlay">
-    <div id="about-card">
-      <button id="close-about" class="close-btn" aria-label="Close">✕</button>
-      <h2 id="about-name"></h2>
-      <p id="about-program"></p>
-      <div id="about-bio"></div>
-      <div id="about-philosophy"></div>
-    </div>
-  </div>
+function nearestTigerPoint(x, y) {
+  let bestDist = Infinity, bestIdx = 0;
+  for (let i = 0; i < tigerPoints.length; i++) {
+    const dx = x - tigerPoints[i][0];
+    const dy = y - tigerPoints[i][1];
+    const d = dx * dx + dy * dy;
+    if (d < bestDist) { bestDist = d; bestIdx = i; }
+  }
+  return bestIdx;
+}
 
-  <!-- ═══ Contact Overlay ══════════════════════ -->
-  <div id="contact-overlay" class="overlay">
-    <div id="contact-card">
-      <button id="close-contact" class="close-btn" aria-label="Close">✕</button>
-      <h2>Contact</h2>
-      <div id="contact-links"></div>
-    </div>
-  </div>
+/* ═══════════════════════════════════════════
+   ANIMATION LOOP
+   ═══════════════════════════════════════════ */
 
-  <!-- ═══ Fridge Modal ═════════════════════════ -->
-  <div id="fridge-modal" class="modal">
-    <div class="modal-content">
-      <button class="close-btn modal-close" aria-label="Close">✕</button>
-      <h2>Fridge 🍱</h2>
-      <div id="fridge-items"></div>
-    </div>
-  </div>
+let time = 0;
 
-  <!-- ═══ Wardrobe Modal ═══════════════════════ -->
-  <div id="wardrobe-modal" class="modal">
-    <div class="modal-content">
-      <button class="close-btn modal-close" aria-label="Close">✕</button>
-      <h2>Wardrobe 👔</h2>
-      <div id="wardrobe-items"></div>
-    </div>
-  </div>
+function frame() {
+  requestAnimationFrame(frame);
+  time += NOISE_SPEED;
 
-  <!-- ═══ Chat Modal ═══════════════════════════ -->
-  <div id="chat-modal" class="modal">
-    <div class="modal-content chat-content">
-      <button class="close-btn modal-close" aria-label="Close">✕</button>
-      <h2>Chat with kookytiger</h2>
-      <div id="chat-messages"></div>
-      <div id="chat-input-wrap">
-        <input type="text" id="chat-input" placeholder="say something... (1,000 tokens)" autocomplete="off">
-        <button id="chat-send">→</button>
-      </div>
-    </div>
-  </div>
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = BG_COLOR;
+  ctx.fillRect(0, 0, W, H);
 
-  <script src="script.js"></script>
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+
+    // Noise-driven flow field
+    const angle = noise3D(p.x * NOISE_SCALE, p.y * NOISE_SCALE, time) * Math.PI * 2;
+    p.vx += Math.cos(angle) * FLOW_STRENGTH;
+    p.vy += Math.sin(angle) * FLOW_STRENGTH;
+
+    // Orange particles: attract toward tiger silhouette
+    if (p.isOrange) {
+      // Periodically reassign to nearest point for natural clustering
+      if (Math.random() < 0.02) {
+        p.targetIdx = nearestTigerPoint(p.x, p.y);
+      }
+      const tp = tigerPoints[p.targetIdx];
+      const dx = tp[0] - p.x;
+      const dy = tp[1] - p.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Attraction strength increases with distance from target
+      const attract = TIGER_ATTRACT * (1 + dist * 0.005);
+      p.vx += dx * attract;
+      p.vy += dy * attract;
+    }
+
+    // Cursor repulsion
+    const cdx = p.x - mouseX;
+    const cdy = p.y - mouseY;
+    const cDist = Math.sqrt(cdx * cdx + cdy * cdy);
+    if (cDist < CURSOR_RADIUS && cDist > 0) {
+      const pushStrength = p.isOrange ? CURSOR_PUSH_ORANGE : CURSOR_PUSH;
+      const force = (1 - cDist / CURSOR_RADIUS) * pushStrength;
+      p.vx += (cdx / cDist) * force;
+      p.vy += (cdy / cDist) * force;
+    }
+
+    // Damping
+    const damp = p.isOrange ? TIGER_DAMPING : BLUE_DAMPING;
+    p.vx *= damp;
+    p.vy *= damp;
+
+    // Update position
+    p.x += p.vx;
+    p.y += p.vy;
+
+    // Wrap blue particles around edges; orange particles bounce softly
+    if (p.isOrange) {
+      if (p.x < 0) { p.x = 0; p.vx *= -0.5; }
+      if (p.x > W) { p.x = W; p.vx *= -0.5; }
+      if (p.y < 0) { p.y = 0; p.vy *= -0.5; }
+      if (p.y > H) { p.y = H; p.vy *= -0.5; }
+    } else {
+      if (p.x < -20) p.x = W + 20;
+      if (p.x > W + 20) p.x = -20;
+      if (p.y < -20) p.y = H + 20;
+      if (p.y > H + 20) p.y = -20;
+    }
+
+    // Draw
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.opacity;
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+requestAnimationFrame(frame);
+</script>
 </body>
 </html>
