@@ -233,13 +233,17 @@ body {
   gap: 8px;
 }
 
-#explored-ring { width: 42px; height: 42px; }
+#explored-ring { width: 80px; height: 80px; }
+
+#explored-fill {
+  transition: stroke-dashoffset 0.4s ease;
+}
 
 #explored-pct {
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 /* Top-right: tokens + checklist */

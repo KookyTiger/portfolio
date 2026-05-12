@@ -203,7 +203,7 @@ function updateExploredUI(pct) {
   const fill = document.getElementById('explored-fill');
   const label = document.getElementById('explored-pct');
   if (fill) {
-    const circumference = 2 * Math.PI * 20;
+    const circumference = 2 * Math.PI * 32;
     fill.style.strokeDashoffset = circumference * (1 - pct / 100);
   }
   if (label) label.textContent = Math.round(pct) + '%';

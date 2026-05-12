@@ -178,7 +178,10 @@
      HUD
      ═══════════════════════════════════════ -->
 <div id="hud-explored" class="hud-el hidden">
-  <svg id="explored-ring" width="42" height="42"><circle cx="21" cy="21" r="20" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="2"/><circle id="explored-fill" cx="21" cy="21" r="20" fill="none" stroke="#f7931e" stroke-width="2" stroke-dasharray="125.66" stroke-dashoffset="125.66" transform="rotate(-90 21 21)"/></svg>
+  <svg id="explored-ring" width="80" height="80" viewBox="0 0 80 80">
+    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="12"/>
+    <circle id="explored-fill" cx="40" cy="40" r="32" fill="none" stroke="#000" stroke-width="12" stroke-dasharray="201.06" stroke-dashoffset="201.06" stroke-linecap="butt" transform="rotate(-90 40 40)"/>
+  </svg>
   <span id="explored-pct">0%</span>
 </div>
 <div id="hud-right" class="hud-el hidden">
