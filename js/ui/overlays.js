@@ -10,9 +10,9 @@ export class Overlays {
   async loadData() {
     try {
       const [projects, skills, about] = await Promise.all([
-        fetch('/data/projects.json').then(r => r.json()),
-        fetch('/data/skills.json').then(r => r.json()),
-        fetch('/data/about.json').then(r => r.json()),
+        fetch('data/projects.json').then(r => r.json()),
+        fetch('data/skills.json').then(r => r.json()),
+        fetch('data/about.json').then(r => r.json()),
       ]);
       this.data = { projects, skills, about };
     } catch (e) {

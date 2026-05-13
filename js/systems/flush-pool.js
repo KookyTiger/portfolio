@@ -4,7 +4,7 @@ let loaded = false;
 
 export async function loadFlushPool() {
   try {
-    const data = await fetch('/data/flush-pool.json').then(r => r.json());
+    const data = await fetch('data/flush-pool.json').then(r => r.json());
     items = data.items;
     weights = data.weights;
     loaded = true;

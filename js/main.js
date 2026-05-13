@@ -42,7 +42,7 @@ function init() {
 
 async function loadSkillsData() {
   try {
-    skillsData = await fetch('/data/skills.json').then(r => r.json());
+    skillsData = await fetch('data/skills.json').then(r => r.json());
   } catch (e) {
     console.warn('Failed to load skills data:', e);
   }

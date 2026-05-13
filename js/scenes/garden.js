@@ -53,8 +53,8 @@ export class GardenScene {
   async loadData() {
     try {
       const [projects, skills] = await Promise.all([
-        fetch('/data/projects.json').then(r => r.json()),
-        fetch('/data/skills.json').then(r => r.json()),
+        fetch('data/projects.json').then(r => r.json()),
+        fetch('data/skills.json').then(r => r.json()),
       ]);
 
       // Create plants from skills — one per skill, placed on mid/upper platforms

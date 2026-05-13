@@ -230,9 +230,9 @@
     async function load() {
       try {
         const [projects, skills, about] = await Promise.all([
-          fetch('/data/projects.json').then(r => r.json()),
-          fetch('/data/skills.json').then(r => r.json()),
-          fetch('/data/about.json').then(r => r.json()),
+          fetch('data/projects.json').then(r => r.json()),
+          fetch('data/skills.json').then(r => r.json()),
+          fetch('data/about.json').then(r => r.json()),
         ]);
 
         renderHero(about);
