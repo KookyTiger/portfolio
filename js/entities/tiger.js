@@ -63,7 +63,7 @@ export class Tiger {
       this.frameTimer += dt;
       if (this.frameTimer >= 1 / FRAME_RATE) {
         this.frameTimer = 0;
-        this.frame = (this.frame + 1) % 4;
+        this.frame = (this.frame + 1) % 3;
       }
     } else if (!this.grounded) {
       this.frame = 1;
