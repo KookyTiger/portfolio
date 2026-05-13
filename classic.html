@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kay Xia — Portfolio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: monospace;
+      background: #f5f0eb;
+      color: #000;
+      line-height: 1.6;
+    }
+
+    a { color: #000; }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 120px 0 80px;
+      border-bottom: 3px solid #000;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: bold;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .hero .tagline {
+      font-size: 16px;
+      color: rgba(0,0,0,0.6);
+      max-width: 500px;
+    }
+
+    /* Section headers */
+    section {
+      padding: 60px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+
+    section h2 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 32px;
+      color: rgba(0,0,0,0.4);
+    }
+
+    /* Projects */
+    .project-card {
+      margin-bottom: 40px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .project-card:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .project-title {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .project-year {
+      font-size: 12px;
+      color: rgba(0,0,0,0.4);
+    }
+
+    .project-meta {
+      font-size: 12px;
+      color: rgba(0,0,0,0.4);
+      margin-bottom: 8px;
+    }
+
+    .project-logline {
+      font-size: 14px;
+      color: rgba(0,0,0,0.7);
+    }
+
+    .project-skills {
+      margin-top: 8px;
+    }
+
+    .skill-tag {
+      display: inline-block;
+      font-size: 11px;
+      border: 1px solid rgba(0,0,0,0.2);
+      padding: 2px 8px;
+      margin-right: 6px;
+      margin-top: 4px;
+    }
+
+    /* Skills */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .skill-card h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .skill-card .project-list {
+      font-size: 12px;
+      color: rgba(0,0,0,0.5);
+    }
+
+    /* About */
+    .about-text {
+      font-size: 14px;
+      color: rgba(0,0,0,0.7);
+      white-space: pre-line;
+      max-width: 600px;
+    }
+
+    .philosophy {
+      margin-top: 24px;
+      padding-left: 16px;
+      border-left: 3px solid #000;
+      font-style: italic;
+      color: rgba(0,0,0,0.5);
+      font-size: 14px;
+    }
+
+    /* Contact */
+    .contact-links {
+      font-size: 16px;
+    }
+
+    .contact-links a {
+      display: inline-block;
+      margin-right: 24px;
+      padding: 4px 0;
+      border-bottom: 2px solid #000;
+      text-decoration: none;
+    }
+
+    .contact-links a:hover {
+      border-bottom-color: rgba(0,0,0,0.3);
+    }
+
+    /* Footer */
+    .footer {
+      padding: 40px 0;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(0,0,0,0.3);
+    }
+
+    .footer a {
+      color: rgba(0,0,0,0.4);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(0,0,0,0.3);
+    }
+
+    .footer a:hover {
+      color: #000;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: rgba(0,0,0,0.3);
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 32px; }
+      .skills-grid { grid-template-columns: 1fr; }
+      .hero { padding: 80px 0 60px; }
+      section { padding: 40px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1 id="hero-name">loading...</h1>
+      <p class="tagline" id="hero-tagline"></p>
+    </header>
+
+    <section id="projects-section">
+      <h2>Projects</h2>
+      <div id="projects-list" class="loading">loading projects...</div>
+    </section>
+
+    <section id="skills-section">
+      <h2>Skills</h2>
+      <div id="skills-grid" class="skills-grid loading">loading skills...</div>
+    </section>
+
+    <section id="about-section">
+      <h2>About</h2>
+      <div id="about-content" class="loading">loading...</div>
+    </section>
+
+    <section id="contact-section">
+      <h2>Contact</h2>
+      <div id="contact-links" class="contact-links loading">loading...</div>
+    </section>
+
+    <footer class="footer">
+      <a href="index.html">back to the dream</a>
+    </footer>
+  </div>
+
+  <script type="module">
+    async function load() {
+      try {
+        const [projects, skills, about] = await Promise.all([
+          fetch('/data/projects.json').then(r => r.json()),
+          fetch('/data/skills.json').then(r => r.json()),
+          fetch('/data/about.json').then(r => r.json()),
+        ]);
+
+        renderHero(about);
+        renderProjects(projects, skills);
+        renderSkills(skills, projects);
+        renderAbout(about);
+        renderContact(about);
+      } catch (e) {
+        console.error('Failed to load data:', e);
+      }
+    }
+
+    function renderHero(about) {
+      document.getElementById('hero-name').textContent = about.name || 'kookytiger';
+      document.getElementById('hero-tagline').textContent =
+        about.program || 'designer, engineer, creative';
+    }
+
+    function renderProjects(projects, skills) {
+      const visible = projects.filter(p => !p.isHidden);
+      const hero = visible.filter(p => p.isHero);
+      const rest = visible.filter(p => !p.isHero);
+      const sorted = [...hero, ...rest];
+
+      const container = document.getElementById('projects-list');
+      container.className = '';
+      container.innerHTML = sorted.map(p => `
+        <div class="project-card">
+          <div class="project-header">
+            <span class="project-title">${esc(p.title)}</span>
+            <span class="project-year">${p.year || ''}</span>
+          </div>
+          ${p.course ? `<div class="project-meta">${esc(p.course)}</div>` : ''}
+          <p class="project-logline">${esc(p.logline)}</p>
+          <div class="project-skills">
+            ${p.skills.map(s => {
+              const label = skills[s]?.label || s;
+              return `<span class="skill-tag">${esc(label)}</span>`;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderSkills(skills, projects) {
+      const container = document.getElementById('skills-grid');
+      container.className = 'skills-grid';
+      container.innerHTML = Object.entries(skills).map(([key, skill]) => {
+        const projectNames = (skill.projects || []).map(slug => {
+          const p = projects.find(pr => pr.slug === slug);
+          return p ? esc(p.title) : slug;
+        }).join(', ');
+        const count = skill.projects?.length || 0;
+        return `
+          <div class="skill-card">
+            <h3>${esc(skill.label)} <span style="font-weight:normal;font-size:12px;color:rgba(0,0,0,0.4)">(${count})</span></h3>
+            <div class="project-list">${projectNames}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAbout(about) {
+      const container = document.getElementById('about-content');
+      container.className = '';
+      container.innerHTML = `
+        <div class="about-text">${esc(about.bio || '')}</div>
+        ${about.philosophy ? `<div class="philosophy">${esc(about.philosophy)}</div>` : ''}
+      `;
+    }
+
+    function renderContact(about) {
+      const container = document.getElementById('contact-links');
+      container.className = 'contact-links';
+      const links = [];
+      if (about.contact?.email) links.push(`<a href="mailto:${esc(about.contact.email)}">${esc(about.contact.email)}</a>`);
+      if (about.contact?.linkedin) links.push(`<a href="${esc(about.contact.linkedin)}" target="_blank">linkedin</a>`);
+      container.innerHTML = links.join('') || 'no contact info';
+    }
+
+    function esc(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    load();
+  </script>
+</body>
+</html>

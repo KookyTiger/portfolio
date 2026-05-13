@@ -1,0 +1,38 @@
+{
+  "items": [
+    { "id": "fish-1", "category": "fish", "text": "A startled goldfish" },
+    { "id": "fish-2", "category": "fish", "text": "A tropical friend" },
+    { "id": "fish-3", "category": "fish", "text": "A very tiny whale" },
+    { "id": "pol-1", "category": "polaroid", "text": "Copenhagen at 4am. The light never fully leaves." },
+    { "id": "pol-2", "category": "polaroid", "text": "First time bending steel tube. Hands shaking." },
+    { "id": "pol-3", "category": "polaroid", "text": "48 hours. Four people. One weird game." },
+    { "id": "pol-4", "category": "polaroid", "text": "The constraint was: one typeface, one word." },
+    { "id": "pol-5", "category": "polaroid", "text": "A dream about a library that kept rearranging." },
+    { "id": "note-1", "category": "note", "text": "Remember: constraints breed creativity." },
+    { "id": "note-2", "category": "note", "text": "Zero dependencies. Maximum control." },
+    { "id": "note-3", "category": "note", "text": "The interface IS the content." },
+    { "id": "note-4", "category": "note", "text": "Make it weird, then make it legible." },
+    { "id": "note-5", "category": "note", "text": "Simplicity is not the absence of complexity." },
+    { "id": "ward-1", "category": "wardrobe", "text": "A tiny scarf appeared!" },
+    { "id": "ward-2", "category": "wardrobe", "text": "A soggy beret floated up!" },
+    { "id": "ward-3", "category": "wardrobe", "text": "Miniature sunglasses!" },
+    { "id": "q-1", "category": "question", "text": "When did you last make something just for fun?" },
+    { "id": "q-2", "category": "question", "text": "What would you design if no one was watching?" },
+    { "id": "q-3", "category": "question", "text": "What's the last thing that made you laugh out loud?" },
+    { "id": "q-4", "category": "question", "text": "Do you dream in color?" },
+    { "id": "q-5", "category": "question", "text": "What's the bravest thing you've ever made?" },
+    { "id": "surp-1", "category": "surprise", "text": "A rubber duck. Classic." },
+    { "id": "surp-2", "category": "surprise", "text": "A single pearl rolls across the screen." },
+    { "id": "surp-3", "category": "surprise", "text": "A sock. Just one sock." },
+    { "id": "surp-4", "category": "surprise", "text": "A paper airplane unfolds into a heart." },
+    { "id": "surp-5", "category": "surprise", "text": "A tiny origami tiger!" }
+  ],
+  "weights": {
+    "fish": 15,
+    "polaroid": 25,
+    "note": 25,
+    "wardrobe": 10,
+    "question": 15,
+    "surprise": 10
+  }
+}

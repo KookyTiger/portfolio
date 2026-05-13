@@ -1,18 +1,34 @@
 {
   "prototyping": {
     "label": "Prototyping",
-    "projects": ["baha-car", "copenhagen-semester", "accessibility-audit"]
+    "projects": ["baha-car", "copenhagen-semester", "accessibility-audit"],
+    "plant": {
+      "name": "The Prototype Fern",
+      "bloomStory": "Every idea started as a sketch on a napkin. The fern grew from failed tests and midnight pivots."
+    }
   },
   "ui-ux": {
     "label": "UI/UX",
-    "projects": ["game-jam", "kookytiger-brand", "accessibility-audit", "design-system-toolkit", "dream-journal-app"]
+    "projects": ["game-jam", "kookytiger-brand", "accessibility-audit", "design-system-toolkit", "dream-journal-app"],
+    "plant": {
+      "name": "The Interface Orchid",
+      "bloomStory": "Beauty that responds to touch. Every petal a button, every leaf a feedback loop."
+    }
   },
   "graphics": {
     "label": "Graphics",
-    "projects": ["copenhagen-semester", "kookytiger-brand", "short-film-liminal", "motion-reel", "poster-series"]
+    "projects": ["copenhagen-semester", "kookytiger-brand", "short-film-liminal", "motion-reel", "poster-series"],
+    "plant": {
+      "name": "The Pixel Vine",
+      "bloomStory": "It started with one frame. Then another. Now it climbs every wall, painting as it goes."
+    }
   },
   "coding": {
     "label": "Coding",
-    "projects": ["baha-car", "game-jam", "motion-reel", "design-system-toolkit", "dream-journal-app"]
+    "projects": ["baha-car", "game-jam", "motion-reel", "design-system-toolkit", "dream-journal-app"],
+    "plant": {
+      "name": "The Logic Cactus",
+      "bloomStory": "Thorns of syntax, flowers of function. It survives in any environment."
+    }
   }
 }
