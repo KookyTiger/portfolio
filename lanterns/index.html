@@ -1,0 +1,91 @@
+<title>KookyTiger</title>
+<meta name="description" content="Zishu Kay Tu — a tiger walks a snowy night and lights eleven lanterns, one per project. The twelfth is yours. Product, film, games, analytics. Northwestern MaDE + RTVF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Schibsted+Grotesque:wght@400;500&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="style.css">
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div id="grain" aria-hidden="true"></div>
+
+<div id="loader" aria-live="polite">
+  <div class="top"><span id="ld-title">KookyTiger</span><span id="ld-sub">lighting twelve lanterns</span></div>
+  <div><div class="pct" id="ld-pct">000</div><div class="bar"><i id="ld-bar"></i></div></div>
+</div>
+
+<nav class="nav" aria-label="Site">
+  <div class="brand" id="nav-brand"></div>
+  <div class="links" id="nav-links"></div>
+  <div class="right" id="nav-right"></div>
+</nav>
+
+<div id="cursor" aria-hidden="true"><div class="dot"></div><div class="pill" id="cursor-pill">scroll</div></div>
+<div class="quip" id="quip"></div>
+
+<main id="page">
+  <section class="header" id="header" aria-label="Intro">
+    <div class="content">
+      <p class="statement split" id="h-statement"></p>
+      <span class="mono scroll split" id="h-scroll"></span>
+    </div>
+  </section>
+
+  <section class="hero" id="hero" aria-label="Kooky T-shaped tiger">
+    <div class="corner l" id="hero-l"></div>
+    <div class="corner r" id="hero-r"></div>
+    <div class="words" id="hero-words"></div>
+  </section>
+
+  <section class="intro grid" id="intro" aria-label="About">
+    <div class="big" id="intro-big"></div>
+    <div class="small"><span class="star">*</span><div id="intro-small"></div></div>
+    <a class="reel" id="intro-reel" href="#" onclick="return false"></a>
+    <div class="title" id="intro-title"></div>
+  </section>
+
+  <section class="walk" id="walk" aria-label="Twelve lanterns"></section>
+
+  <section class="dawn" id="dawn" aria-label="One left">
+    <div class="content">
+      <div>
+        <div class="big" id="dawn-big"></div>
+        <div class="sub split" id="dawn-sub"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="archives grid" id="archives" aria-label="Archives">
+    <div class="head" id="arch-head"></div>
+    <table id="arch-table"></table>
+  </section>
+
+  <footer class="footer" id="footer">
+    <div class="words" id="foot-words"></div>
+    <div class="bottom" id="foot-bottom"></div>
+  </footer>
+</main>
+
+<div class="overlay" id="overlay" aria-hidden="true">
+  <div class="title-well split" id="walk-title"></div>
+  <div class="card" id="card">
+    <p class="eyebrow mono"><span class="n" id="c-n">01 / 12</span><span id="c-cat"></span></p>
+    <h2 id="c-name"></h2>
+    <p id="c-desc"></p>
+    <p class="meta mono" id="c-meta"></p>
+    <p class="take" id="c-take"></p>
+  </div>
+  <aside class="hud" id="hud">
+    <div class="next">next<canvas id="next" width="88" height="44"></canvas></div>
+    <div class="row"><span>lantern</span><b id="h-piece">01 / 12</b></div>
+    <div class="row"><span>walked</span><b id="h-xy">000 m</b></div>
+    <div class="row"><span>lit</span><b id="h-lines">00</b></div>
+    <div class="stack" id="h-stack"></div>
+    <p class="hint" id="h-hint"></p>
+  </aside>
+</div>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/CustomEase.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script type="module" src="app.js"></script>
