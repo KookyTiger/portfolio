@@ -39,7 +39,7 @@ const body = $('body'); let html = '';
 WINDOWS.forEach((idx, w) => {
   const last = w === WINDOWS.length - 1; const n = idx.length * SCREEN_PER_CARD + (last ? SHORE_SCREENS : 0);
   html += `<section class="window" id="win${w}" style="--n:${n}" aria-label="Projects ${idx[0] + 1}–${idx[idx.length - 1] + 1}">`;
-  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in"><div class="text">
+  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}"><div class="text">
     <p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span></p>
     <h2 class="split">${p.name}</h2><p class="desc split">${p.desc}</p><p class="meta mono"><span>${p.meta.join(' · ')}</span><span>${p.year}</span></p><p class="take split">${p.take}</p></div>
     <figure><svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption></figure></div></article>`; });
@@ -52,6 +52,23 @@ $('arch-head').innerHTML = `<span class="split">${COPY.archives.title}</span><sp
 $('arch-table').innerHTML = ARCHIVE.map((r, i) => `<tr><td>${String(i + 1).padStart(2, '0')}</td><td><b>${r[0]}</b><span>${r[1]}</span></td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
 $('foot-words').innerHTML = COPY.footer.words.map((w) => `<span class="word split">${w}</span>`).join('') + `<a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.footer.sayhi}</a>`;
 $('foot-bottom').innerHTML = `<span>${COPY.footer.bottom[0]} · ${COPY.footer.bottom[1]}</span><a href="mailto:${COPY.footer.email}">${COPY.footer.email}</a><span>${COPY.footer.bottom[2]}</span>`;
+
+// ───────────────────────── Project detail panel (slides in from the left; the tiger keeps hanging on the right) ─────────────────────────
+const panel = $('panel'), panelInner = $('panel-inner'), panelScrim = $('panel-scrim'); let panelOpen = false, panelFrom = null;
+function openPanel(pi, from) { const p = PIECES[pi], d = p.detail || {}, L = COPY.panel; panelFrom = from || null;
+  const sec = (k, v, cls = '') => v ? `<div class="sec blk ${cls}"><span class="k mono">${k}</span><p>${v}</p></div>` : '';
+  panelInner.innerHTML = `<p class="eyebrow mono blk"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span><span>${p.meta.join(' · ')}</span></p>
+    <h2 id="panel-title" class="blk">${p.name}</h2><p class="line blk">${d.line || p.desc}</p>
+    ${sec(L.role, d.role)}${sec(L.tools, d.tools)}${sec(L.numbers, d.numbers)}${sec(L.one, d.one || p.take, 'one')}
+    <figure class="blk">${p.img ? `<img src="${p.img}" alt="${p.name}">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg>`}</figure>
+    <a class="ask blk" href="mailto:${COPY.footer.email}?subject=${encodeURIComponent(p.name)}">${L.ask}</a>`;
+  panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); panelScrim.classList.add('on'); panelOpen = true; panel.scrollTop = 0;
+  gsap.fromTo(panelInner.querySelectorAll('.blk'), { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'reveal', stagger: 0.05, delay: 0.12, overwrite: true });
+  lenis.stop(); setTimeout(() => $('panel-close').focus({ preventScroll: true }), 50); }
+function closePanel() { if (!panelOpen) return; panelOpen = false; panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true }); }
+document.querySelectorAll('.card .in').forEach((el) => { const pi = +el.closest('.card').dataset.p; el.addEventListener('click', () => openPanel(pi, el)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(pi, el); } }); });
+$('panel-close').addEventListener('click', closePanel); panelScrim.addEventListener('click', closePanel);
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
 
 // ───────────────────────── Text grammar (Léo): masked lines; statements char by char ─────────────────────────
 const texts = [];
@@ -188,9 +205,14 @@ const WALL = -0.36;                                                             
 const CLIMB = [ { ph: 0.25, lo: 0.67, planted: 0.6, z: -0.22 }, { ph: 0.75, lo: 0.67, planted: 0.6, z: 0.22 },        // hands (front paws)
                 { ph: 0.5, lo: -0.98, planted: 0.78, z: -0.2 }, { ph: 0.0, lo: -0.98, planted: 0.78, z: 0.2 } ];       // feet
 CLIMB.forEach((b) => { b.hi = b.lo + TIGER.step * b.planted; });
-const H0 = -RATE * TIGER.edgeEnd - TIGER.glue;                                             // hips y when the climb cycle is at c = 0
-const cycleAt = (hipsY) => (H0 - hipsY) / TIGER.step;                                     // clip time is a function of world height = scroll
-const RUNG0 = H0 + CLIMB[3].lo;                                                            // the rung the right foot lands on at c = 0; rungs every TIGER.rung
+// layout tiers: phones get a narrower frame, so the camera shifts right, opens up, and the tiger hangs lower
+const LAY = { mobile: false, camX: CAMERA.x, fov: CAMERA.fov, glue: TIGER.glue, H0: 0, RUNG0: 0, drift: 1 };
+function tune() { LAY.mobile = vw < 820 || (vh > vw && vw < 1024);
+  LAY.camX = LAY.mobile ? 1.15 : CAMERA.x; LAY.fov = LAY.mobile ? 40 : CAMERA.fov; LAY.glue = LAY.mobile ? 1.55 : TIGER.glue; LAY.drift = LAY.mobile ? 0.5 : 1;
+  LAY.H0 = -RATE * TIGER.edgeEnd - LAY.glue;                                                // hips y when the climb cycle is at c = 0
+  LAY.RUNG0 = LAY.H0 + CLIMB[3].lo;                                                         // the rung the right foot lands on at c = 0; rungs every TIGER.rung
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, LAY.mobile ? 1.25 : 1.5)); key.shadow.mapSize.set(LAY.mobile ? 1024 : 2048, LAY.mobile ? 1024 : 2048); if (key.shadow.map) { key.shadow.map.dispose(); key.shadow.map = null; } }
+const cycleAt = (hipsY) => (LAY.H0 - hipsY) / TIGER.step;                                 // clip time is a function of world height = scroll
 // one limb's climb target in the hips frame at cycle time c (planted: rides up with the ladder; swing: drops to the next rung with an arc)
 function climbTarget(i, c, out) { const b = CLIMB[i]; const u = frac(c - b.ph);
   if (u < b.planted) out.set(b.lo + (b.hi - b.lo) * (u / b.planted), WALL, b.z);
@@ -204,7 +226,7 @@ const sideMat = new THREE.MeshStandardMaterial({ map: sideTex, roughness: 0.95 }
 const pierMat = new THREE.MeshStandardMaterial({ map: pierTex, roughness: 0.95 });
 const world = { objs: [], ledges: [], groundY: 0, landS: 0, camYMin: 0 };
 const camYAt = (s) => -RATE * s;                                                         // the rail: screens → camera y (clamped at the landing)
-const hipsGlued = (s) => camYAt(s) - TIGER.glue;
+const hipsGlued = (s) => camYAt(s) - LAY.glue;
 function buildWorld() {
   world.objs.forEach((o) => scene.remove(o)); world.objs = []; world.ledges = []; window.__world = world; window.__scene = scene;
   const X = TIGER.x, L = TIGER.ledgeY;
@@ -221,7 +243,7 @@ function buildWorld() {
   for (const sx of [-0.5, 0.5]) { const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, railH, 8), woodMat); rail.position.set(X + sx, (railTop + G + 0.05) / 2, TIGER.ladderZ); rail.castShadow = true; pier.add(rail);
     const bar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.4), woodMat); bar.position.set(X + sx, L + 1.0, TIGER.ladderZ - 0.16); pier.add(bar); }
   const rungGeo = new THREE.CylinderGeometry(0.035, 0.035, 1.0, 8); rungGeo.rotateZ(HALF);
-  const topRung = RUNG0 + TIGER.rung * Math.floor((railTop - 0.15 - RUNG0) / TIGER.rung);
+  const topRung = LAY.RUNG0 + TIGER.rung * Math.floor((railTop - 0.15 - LAY.RUNG0) / TIGER.rung);
   const nR = Math.floor((topRung - (G + 0.25)) / TIGER.rung) + 1; const rungs = new THREE.InstancedMesh(rungGeo, rungMat, nR); rungs.castShadow = true;
   { const mm = new THREE.Matrix4(); for (let j = 0; j < nR; j++) { mm.makeTranslation(X, topRung - j * TIGER.rung, TIGER.ladderZ); rungs.setMatrixAt(j, mm); } }
   pier.add(rungs);
@@ -247,7 +269,7 @@ function buildWorld() {
   ground.rotation.x = -HALF; ground.position.set(0, G, 4); ground.receiveShadow = true; shore.add(ground);
   const water = new THREE.Mesh(new THREE.PlaneGeometry(90, 30), new THREE.MeshStandardMaterial({ color: 0xa9d3e2, roughness: 0.25, metalness: 0.1 })); water.rotation.x = -HALF; water.position.set(0, G - 0.12, 26); shore.add(water);
   const bank = new THREE.Mesh(new THREE.BoxGeometry(90, 0.5, 2.4), new THREE.MeshStandardMaterial({ color: 0xa08f6a, roughness: 1 })); bank.position.set(0, G - 0.3, 12); shore.add(bank);
-  const gN = 900; const grass = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07, 0.42, 0.07), new THREE.MeshStandardMaterial({ color: 0x93c979, roughness: 1 }), gN);
+  const gN = LAY.mobile ? 400 : 900; const grass = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07, 0.42, 0.07), new THREE.MeshStandardMaterial({ color: 0x93c979, roughness: 1 }), gN);
   const mm = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
   for (let i = 0; i < gN; i++) { let x = (Math.random() - 0.5) * 30, z = 11 - Math.random() * 24; if (x > X - 1.6 && z < -0.1) x -= 6; e.set((Math.random() - 0.5) * 0.4, Math.random() * Math.PI, (Math.random() - 0.5) * 0.4); q.setFromEuler(e); p.set(x, G + 0.16, z); sc.set(1, 0.6 + Math.random() * 0.9, 1); mm.compose(p, q, sc); grass.setMatrixAt(i, mm); }
   grass.castShadow = true; shore.add(grass);
@@ -264,7 +286,7 @@ function measure() {
   R.windows = WINDOWS.map((_, w) => { const r = $('win' + w).getBoundingClientRect(); return { top: r.top + scroll, h: r.height }; });
   texts.forEach((t) => { const r = t.el.getBoundingClientRect(); t.top = r.top + scroll; t.h = r.height; });
   chars.forEach((c) => { const r = c.el.getBoundingClientRect(); c.top = r.top + scroll; c.h = r.height; });
-  renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.updateProjectionMatrix();
+  tune(); renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.fov = LAY.fov; camera.updateProjectionMatrix();
   buildWorld();
 }
 
@@ -372,7 +394,7 @@ function frame(now) {
   // ── the rail (Léo): camera = linear in scroll, everywhere; clamped when the tiger has landed
   const landed = s >= world.landS;
   const camY = Math.max(camYAt(s), world.camYMin);
-  camera.position.set(CAMERA.x, camY, CAMERA.z + CAMERA.header.rangeZ * (1 - clamp(s / CAMERA.header.screens, 0, 1)));
+  camera.position.set(LAY.camX, camY, CAMERA.z + CAMERA.header.rangeZ * (1 - clamp(s / CAMERA.header.screens, 0, 1)));
   key.position.set(5, camY + 9, 9); key.target.position.set(1, camY - 3, -1); key.target.updateMatrixWorld();
 
   // ── which window are we in? (for the sky tint + the cards)
@@ -394,14 +416,14 @@ function frame(now) {
   let nearestA = 9, activeCat = null;
   for (const L of world.ledges) { const a = L.s - s;
     if (Math.abs(a) < Math.abs(nearestA)) { nearestA = a; activeCat = PIECES[+L.el.dataset.p].cat; }
-    if (Math.abs(a) < 0.75) { const u = clamp(0.5 - a, 0, 1); L.el.style.transform = `translate3d(0, ${lerp(MOTION.drift.from, MOTION.drift.to, u).toFixed(2)}vh, 0)`; }
+    if (Math.abs(a) < 0.75) { const u = clamp(0.5 - a, 0, 1); L.el.style.transform = `translate3d(0, ${(lerp(MOTION.drift.from, MOTION.drift.to, u) * LAY.drift).toFixed(2)}vh, 0)`; }
     if (a < 0.14 && a > -0.5 && !L.glanced && state === 'climb') { L.glanced = true; glance(TIGER.glance.yaw, TIGER.glance.pitch); }
     if (a > 0.3 || a < -0.6) L.glanced = false;
     const flick = 1 + 0.08 * Math.sin(t * 9.3 + L.seed) + 0.05 * Math.sin(t * 17.1 + L.seed * 2); L.light.intensity = LIGHT.torch.intensity * flick * (1 - shoreMix * 0.7); L.flame.scale.setScalar(0.9 + 0.15 * flick); }
   if (Math.abs(nearestA) > 0.5) activeCat = null;
 
   // ── head layers: glance (Laurens timing) + hover look-back + idle bits
-  const hoverLook = hoverTiger && state === 'climb' ? 1 : 0; T.hover.y += ((hoverLook ? 1.8 : 0) - T.hover.y) * Math.min(1, dt * 6); T.hover.p += ((hoverLook ? 0.55 : 0) - T.hover.p) * Math.min(1, dt * 6);
+  const hoverLook = (hoverTiger || panelOpen) && state === 'climb' ? 1 : 0; T.hover.y += ((hoverLook ? 1.8 : 0) - T.hover.y) * Math.min(1, dt * 6); T.hover.p += ((hoverLook ? 0.55 : 0) - T.hover.p) * Math.min(1, dt * 6);
   P.headYaw += T.glance.y + T.hover.y; P.headPitch += T.glance.p + T.hover.p;
   T.blinkAt -= dt; if (T.blinkAt < 0) { T.blink = !T.blink; T.blinkAt = T.blink ? 0.12 : 2.2 + Math.random() * 3; }
   rig.eyes.scale.y += ((T.blink ? 0.08 : 1) - rig.eyes.scale.y) * Math.min(1, dt * 30);
@@ -436,13 +458,14 @@ function frame(now) {
   mx.cx += (mx.x - mx.cx) * 0.25; mx.cy += (mx.y - mx.cy) * 0.25;
   cursor.style.transform = `translate3d(${mx.cx.toFixed(1)}px, ${mx.cy.toFixed(1)}px, 0)`;
   ray.setFromCamera(new THREE.Vector2(mouse.x, -mouse.y), camera); hoverTiger = inWorld && ray.intersectObject(tigerHit).length > 0;
-  const under = document.elementFromPoint(mx.x, mx.y); const overCard = under?.closest?.('.card .in'); const overLink = under?.closest?.('a');
-  setPill(hoverTiger ? COPY.cursor.tiger : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted ? 'scroll' : ''));
+  const under = document.elementFromPoint(mx.x, mx.y); const overCard = !panelOpen && under?.closest?.('.card .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close');
+  setPill(overClose ? COPY.panel.close : hoverTiger && !panelOpen ? COPY.cursor.tiger : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
 
   window.__dbg = { s: +s.toFixed(3), state, landed, aN: +nearestA.toFixed(3), inWindow, cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };
   renderer.render(scene, camera);
-  requestAnimationFrame(frame);
+  if (!document.hidden) requestAnimationFrame(frame);
 }
 window.addEventListener('resize', measure);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = performance.now(); requestAnimationFrame(frame); } });
 measure();
 requestAnimationFrame(frame);

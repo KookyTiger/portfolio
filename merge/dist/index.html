@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>KookyTiger</title>
 <meta name="description" content="Zishu Kay Tu — eleven projects, one tiger, one descent. Product, film, games, analytics. Northwestern MaDE + RTVF.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F1F1EE">
+<meta property="og:title" content="KookyTiger — Zishu Kay Tu">
+<meta property="og:description" content="Eleven projects, one tiger, one descent. Product, film, games, analytics.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://kookytiger.github.io/portfolio/og.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Schibsted+Grotesque:wght@400;500&family=Space+Mono:wght@400;700&display=swap">
@@ -164,6 +171,72 @@ a { color: inherit; }
 }
 @media (prefers-reduced-motion: reduce) { #grain { animation: none; } }
 
+/* ── project detail panel (slides in from the left over the cards; the tiger keeps hanging on the right) ── */
+#panel-scrim { position: fixed; inset: 0; z-index: 44; display: none; }
+#panel-scrim.on { display: block; }
+.panel { position: fixed; left: 0; top: 0; bottom: 0; z-index: 45; width: min(58vw, 860px); background: var(--paper); color: var(--ink); box-shadow: 40px 0 120px rgba(20,20,16,.14); transform: translate3d(-104%, 0, 0); transition: transform .75s cubic-bezier(.4,0,0,1); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.panel.open { transform: translate3d(0, 0, 0); }
+.panel .close { position: absolute; right: 22px; top: 22px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
+.panel .close:hover { background: var(--ink); color: var(--paper); }
+.panel .inner { padding: 96px 56px 56px; }
+.panel .eyebrow { display: flex; gap: 14px; margin: 0 0 18px; }
+.panel .eyebrow .n { color: var(--ink); }
+.panel h2 { font-size: clamp(30px, 3.2vw, 44px); line-height: 1.05; letter-spacing: -.02em; font-weight: 400; margin: 0 0 16px; }
+.panel .line { font-size: 19px; line-height: 1.3; margin: 0 0 34px; max-width: 40ch; }
+.panel .sec { display: grid; grid-template-columns: 120px 1fr; column-gap: 20px; padding: 16px 0; border-top: 1px solid var(--line); }
+.panel .sec .k { padding-top: 3px; }
+.panel .sec p { margin: 0; font-size: 15.5px; line-height: 1.5; max-width: 52ch; }
+.panel .sec.one p { font-size: 18px; line-height: 1.35; }
+.panel figure { margin: 34px 0 0; width: min(100%, 420px); aspect-ratio: 200 / 140; position: relative; }
+.panel figure svg { width: 100%; height: 100%; fill: var(--ink); }
+.panel figure img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.panel figure::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -6%; height: 14%; border-radius: 50%; background: rgba(20,20,16,.28); filter: blur(10px); }
+.panel .ask { display: inline-block; margin-top: 40px; font-size: 16px; text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
+.panel .blk { will-change: transform, opacity; }
+.card .in { cursor: pointer; }
+.card .in:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+/* ── phones / portrait ── */
+@media (max-width: 820px), (orientation: portrait) and (max-width: 1024px) {
+  :root { --gutter: 16px; --gap: 12px; }
+  .nav { padding-top: 18px; }
+  .nav .links { display: none; }
+  .nav .brand { grid-column: 1 / 7; }
+  .nav .right { grid-column: 7 / 13; gap: 14px; font-size: 13px; }
+  .header .content { left: var(--gutter); bottom: 100vh; margin-bottom: 32px; width: 72vw; }
+  .header .content::before { width: 60vw; height: 60vw; }
+  .statement { font-size: 20px; }
+  .hero { padding: 84px var(--gutter) 56px; }
+  .hero .corner { top: 62px; font-size: 12px; }
+  .hero .ind { font-size: 13px; }
+  .intro { padding: 80px 0 120px; }
+  .intro .big, .intro .small, .intro .reel { grid-column: 1 / -1; }
+  .intro .big { font-size: 26px; }
+  .intro .small { font-size: 16px; margin-top: 36px; }
+  .intro .reel { grid-row: auto; margin-top: 36px; }
+  .card { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 9vh); }
+  .card .in { transform: none; grid-template-columns: 1fr; row-gap: 8px; padding: 22px 22px 20px; box-shadow: 0 20px 60px rgba(20,20,16,.12); }
+  .card h2 { font-size: 26px; margin-bottom: 10px; }
+  .card .desc { font-size: 14.5px; max-width: none; }
+  .card .take { font-size: 13.5px; margin-top: 10px; max-width: none; }
+  .card .meta { font-size: 12px; }
+  .card figure { max-width: 42%; justify-self: start; margin-top: 4px; }
+  .card figcaption { display: none; }
+  .window .shore-text { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 8vh); transform: none !important; }
+  .window .shore-text .big { font-size: clamp(40px, 14vw, 84px); }
+  .window .shore-text::before { display: none; }
+  .st { min-height: 80vh; }
+  .st .big { grid-column: 1 / -1; max-width: none; font-size: clamp(38px, 13vw, 80px); }
+  .archives .head { grid-column: 1 / -1; }
+  .archives table { grid-column: 1 / -1; font-size: 13px; }
+  .footer .word { font-size: clamp(38px, 13vw, 80px); }
+  .panel { width: 100vw; box-shadow: none; }
+  .panel .inner { padding: 84px 22px 48px; }
+  .panel .sec { grid-template-columns: 1fr; row-gap: 6px; }
+  .panel .line { font-size: 17px; }
+  .quip { font-size: 10px; }
+}
+
 </style>
 </head>
 <body>
@@ -182,6 +255,11 @@ a { color: inherit; }
 </nav>
 
 <div id="cursor" aria-hidden="true"><div class="dot"></div><div class="pill" id="cursor-pill">scroll</div></div>
+<div id="panel-scrim" aria-hidden="true"></div>
+<aside id="panel" class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" aria-hidden="true">
+  <button class="close" id="panel-close" type="button" aria-label="Close">×</button>
+  <div class="inner" id="panel-inner"></div>
+</aside>
 <div class="quip" id="quip"></div>
 
 <main id="page">
@@ -300,17 +378,28 @@ const SIL = {
 };
 
 const PIECES = [
-  { name: 'LevelUp',               cat: 'product',   year: '2025', sil: 'level',   desc: 'A clip-on bubble level for barbells, iterated from 70 sketches down to one $1.30 part.', meta: ['DTC', 'prototype'], take: '80% of testers picked it over the two competing concepts. It still failed three specs, and the report says which.' },
-  { name: 'Austin Vaccine Siting', cat: 'analytics', year: '2025', sil: 'map',     desc: 'Clustered 42 Austin ZIP areas to site vaccine distribution: k-medoids first, then two Gurobi integer programs.', meta: ['IEMS 313', 'optimization'], take: 'We handed back two answers and said which one to pick depending on what you care about.' },
-  { name: 'No-Tip-Clip',           cat: 'product',   year: '2025', sil: 'caster',  desc: 'An anti-tip caster for wheelchairs carrying halo-traction patients at Shriners Children’s.', meta: ['DTC', 'clinical'], take: 'Proxy testing killed the obvious counterweight idea exactly where patients needed it most. $62.26, printed.' },
-  { name: 'CASE × Ama La Vida',    cat: 'analytics', year: '2025', sil: 'ladder',  desc: 'Pricing and retention strategy for a virtual career-coaching company, from five years of churn data.', meta: ['consulting', 'pricing'], take: '43% of cancellations said “goal achieved.” The product was working. That’s an argument for charging more.' },
-  { name: 'Neighbors',             cat: 'film',      year: '2026', sil: 'headset', desc: 'A VR film. You cannot cut. You can only wait.', meta: ['RTVF', 'VR'], take: 'In VR the edit is the viewer.' },
-  { name: 'Slide Master',          cat: 'product',   year: '2025', sil: 'board',   desc: 'A wheelchair-to-shower transfer board for Shirley Ryan AbilityLab, built around friction, stability and pinching.', meta: ['DSGN 308', 'wood'], take: 'The plywood mockup cracked under a person. That failure, not a calculation, is why the final board is pine.' },
-  { name: 'CASE × Yello',          cat: 'analytics', year: '2024', sil: 'funnel',  desc: 'Mapped the HR-tech landscape for a talent-acquisition platform and found the public-sector opening.', meta: ['consulting', 'market sizing'], take: '98.8% of the Fortune 500 already run an ATS. The opening isn’t displacement, it’s adjacency.' },
-  { name: 'Northwestern Game Jam', cat: 'game',      year: '2026', sil: 'house',   desc: 'A Taoist exorcist hired to cleanse a haunted show-home, and the grandmother who refused to leave.', meta: ['game jam', 'Godot'], take: 'The concept pivoted three times. The question never changed: who has more claim to a home.' },
-  { name: 'Running',               cat: 'film',      year: '2026', sil: 'reel',    desc: 'AI-assisted short, RTVF 376.', meta: ['RTVF 376', 'storyboard'], take: 'The storyboard survived. The model didn’t.' },
-  { name: 'AMG-786',               cat: 'analytics', year: '2025', sil: 'capsule', desc: 'Financial analysis of a drug candidate: 10-year revenue forecast, risk-adjusted NPV.', meta: ['CIV_ENV 205', 'Excel'], take: '“Proceed, but wary of Phase II.” Half of pricing is deciding what not to count.' },
-  { name: 'One Birth Too Many',    cat: 'game',      year: '2025', sil: 'table',   desc: 'A Twine game set in a 1983 Chinese village under the One-Child Policy. One Friday morning, six perspectives, one dinner table.', meta: ['RTVF 360', 'Twine'], take: 'Choices in one character’s morning silently change another’s. You find out at dinner.' },
+  { name: 'LevelUp',               cat: 'product',   year: '2025', sil: 'level',   desc: 'A clip-on bubble level for barbells, iterated from 70 sketches down to one $1.30 part.', meta: ['DTC', 'prototype'], take: '80% of testers picked it over the two competing concepts. It still failed three specs, and the report says which.',
+    detail: { line: 'Built after watching gym-goers at SPAC misalign bars without ever noticing.', tools: 'AEIOU observational research at SPAC · user and lift-coach interviews · structured ideation (70 sketches → 21 → 3 concepts) · three-setting mockup testing · 3D printing · Colab analysis of time-per-rep data', numbers: 'Against spec: 4.35/5 visibility (goal 4/5), 2.5 s setup (goal < 5 s), $1.30 unit cost (goal < $10), 100% of reps level (goal ≥ 90%). It failed three: it interfered with movement for 1 in 3 users, fit only 28.5 mm bars, and came in at 0.98 s per rep.', one: 'During bench-press testing the bubble hit the tester’s chest and split into several smaller bubbles — the device defeating its own readout. The final surface-tension fix exists because of that.' } },
+  { name: 'Austin Vaccine Siting', cat: 'analytics', year: '2025', sil: 'map',     desc: 'Clustered 42 Austin ZIP areas to site vaccine distribution: k-medoids first, then two Gurobi integer programs.', meta: ['IEMS 313', 'optimization'], take: 'We handed back two answers and said which one to pick depending on what you care about.',
+    detail: { line: 'Balancing CDC social vulnerability, population-weighted distance and human mobility — first as a custom k-medoids heuristic, then reformulated as two competing integer programs.', tools: 'Python · Gurobi (gurobipy) · pandas, numpy, scikit-learn · integer programming · k-medoids with a population-balance penalty · Haversine distance · CDC SVI, census ZCTA and mobility-visit data · TIGER shapefiles', numbers: 'The all-pairs model at K = 2 splits Austin into clusters within 1% of each other by population, at 15% suboptimality on distance and vulnerability and 10% on connectivity. The medoids model reaches an objective value 15× better — but doesn’t balance population nearly as well. Weights came out of 132 generated cluster maps across 11 weight ratios.', one: 'We didn’t hand back one answer. We handed back two, and said which one to pick depending on whether you care more about serving equal populations or about the number in the objective function.' } },
+  { name: 'No-Tip-Clip',           cat: 'product',   year: '2025', sil: 'caster',  desc: 'An anti-tip caster for wheelchairs carrying halo-traction patients at Shriners Children’s.', meta: ['DTC', 'clinical'], take: 'Proxy testing killed the obvious counterweight idea exactly where patients needed it most. $62.26, printed.',
+    detail: { line: 'A 3D-printed adjustable clamp and caster that works like a training wheel on a bicycle.', role: 'Ran and documented the mockup user-testing phase — wrote the Mockup Feedback and Testing Summaries, running proxy-user tests on three competing concepts in the Segal Prototyping Lab and outdoors.', tools: 'Client interviews and a site visit to Shriners Children’s Hospital · secondary research on halo traction · proxy-user testing with weighted loads and timed obstacle courses · 3D printing (Cura, 95% infill, ~50 h print) · McMaster-Carr hardware sourcing', numbers: 'Proxy-user testing scored stability 2/10 at 1 kg rising to 8/10 at 5–10 kg against a fixed 7 kg halo load, with flexibility falling 5/10 → 4/10 as weight increased — the data that killed the weight-bag concept. Final clamp assembly bills out at $62.26, with a cutout radius sized ~1.5× standard frame tubing.', one: 'A $62 printed part for a real pediatric hospital safety problem — chosen because proxy testing showed the “obvious” counterweight solution got worse exactly where patients needed it most.' } },
+  { name: 'CASE × Ama La Vida',    cat: 'analytics', year: '2025', sil: 'ladder',  desc: 'Pricing and retention strategy for a virtual career-coaching company, from five years of churn data.', meta: ['consulting', 'pricing'], take: '43% of cancellations said “goal achieved.” The product was working. That’s an argument for charging more.',
+    detail: { line: 'Built from competitor benchmarking and 2020–2024 membership churn data.', role: 'Pricing & Retention Strategies workstream (with two other analysts), on a six-analyst team under two project managers.', tools: 'Competitor pricing benchmarking · churn and retention cohort analysis · pricing-tier design · implementation planning · client presentation', numbers: 'Recommended raising the ceiling from $189.50 to $250 per session, restructuring the 12-session bundle from $1,933 to $2,550 and the 24-session from $3,638 to $4,800. 12-month retention falls from 14% on the 1×-monthly plan to 4% on 2×-monthly; 43.3% of cancellations cite “goal achieved” rather than price — only 3.9% say they didn’t see value.', one: 'The churn data said the product was working, not failing — people were leaving because they’d finished. That’s an argument for charging more, not less.' } },
+  { name: 'Neighbors',             cat: 'film',      year: '2026', sil: 'headset', desc: 'A VR film. You cannot cut. You can only wait.', meta: ['RTVF', 'VR'], take: 'In VR the edit is the viewer.',
+    detail: { line: 'A VR film. You cannot cut. You can only wait.', one: 'In VR the edit is the viewer.', todo: 'Kay: add role, tools and a still — nothing verified beyond the card yet.' } },
+  { name: 'Slide Master',          cat: 'product',   year: '2025', sil: 'board',   desc: 'A wheelchair-to-shower transfer board for Shirley Ryan AbilityLab, built around friction, stability and pinching.', meta: ['DSGN 308', 'wood'], take: 'The plywood mockup cracked under a person. That failure, not a calculation, is why the final board is pine.',
+    detail: { line: 'Redesigned around the three failures of existing boards: skin friction, instability, and finger pinching.', role: 'Co-wrote the Design Concept and Rationale; front matter and references; presented existing solutions and ran the demo at the poster session.', tools: 'User interviews and on-site observation at Shirley Ryan AbilityLab · iterative mockup testing · woodworking (jigsaw, drill press, band saw, sander) · drawer-slide mechanism · orthographic drafting', numbers: 'Final board 29″ × 9″ × 0.75″ with a 23″ × 3″ hollow cavity, a 10° tapered onboarding end chosen after testing multiple mockup angles, and a 10″ × 11″ sliding seat platform on 12″ drawer rails.', one: 'The plywood mockup cracked under a person’s weight during testing. That failure, not a calculation, is why the final board is solid pine.' } },
+  { name: 'CASE × Yello',          cat: 'analytics', year: '2024', sil: 'funnel',  desc: 'Mapped the HR-tech landscape for a talent-acquisition platform and found the public-sector opening.', meta: ['consulting', 'market sizing'], take: '98.8% of the Fortune 500 already run an ATS. The opening isn’t displacement, it’s adjacency.',
+    detail: { line: 'Competitive landscape, partnership and expansion targets for a talent-acquisition software company — including the federal public-sector opening.', role: 'Partnership Identification & Expansion workstream (with two other analysts).', tools: 'Competitive and SWOT analysis of ATS vendors · market sizing · secondary research synthesis (Gartner, Deloitte, McKinsey, J.P. Morgan) · partnership target identification', numbers: '98.8% of the Fortune 500 already run an ATS, and Workday holds 37.1% of that market to SuccessFactors’ 13.1%. 55% of recruiting executives expect to spend more on recruiting tech; 80% of vendors are expected to embed AI by 2027.', one: 'The opening isn’t displacement, it’s adjacency.' } },
+  { name: 'Northwestern Game Jam', cat: 'game',      year: '2026', sil: 'house',   desc: 'A Taoist exorcist hired to cleanse a haunted show-home, and the grandmother who refused to leave.', meta: ['game jam', 'Godot'], take: 'The concept pivoted three times. The question never changed: who has more claim to a home.',
+    detail: { line: 'Northwestern Game Jam 2026, theme “Twist of Fate” — a four-person team, showcased May 9.', role: 'Wrote the game design document and the narrative bible.', tools: 'Game design documentation · narrative bible · Godot 4 (2D) · AI-generated character and environment art · asset pipeline organization', one: 'The concept pivoted three times — Airbnb guests in the walls, then a sublet roommate in the walls, then a ghost displaced by gentrification — but the question never changed: who has more claim to a home, the person who owns it or the person who lived in it.' } },
+  { name: 'Running',               cat: 'film',      year: '2026', sil: 'reel',    desc: 'AI-assisted short, RTVF 376.', meta: ['RTVF 376', 'storyboard'], take: 'The storyboard survived. The model didn’t.',
+    detail: { line: 'AI-assisted short, RTVF 376.', one: 'The storyboard survived. The model didn’t.', todo: 'Kay: add role, tools and a frame — nothing verified beyond the card yet.' } },
+  { name: 'AMG-786',               cat: 'analytics', year: '2025', sil: 'capsule', desc: 'Financial analysis of a drug candidate: 10-year revenue forecast, risk-adjusted NPV.', meta: ['CIV_ENV 205', 'Excel'], take: '“Proceed, but wary of Phase II.” Half of pricing is deciding what not to count.',
+    detail: { line: 'A go / no-go on a drug candidate, priced against Wegovy, Mounjaro and Ozempic.', role: 'Calculator — the Excel model behind the numbers; authored the mechanism comparison and the pricing table (Wegovy $1,349/mo, Mounjaro $1,100, Ozempic $959.60; inflation-adjusted 2033 average $1,470.41).', tools: 'Excel · revenue forecasting · risk-adjusted NPV · comparable pricing', numbers: '10-year revenue forecast of $3.37B; risk-adjusted NPV positive; recommendation: proceed, but wary of Phase II.', one: 'Half of pricing is deciding what not to count.' } },
+  { name: 'One Birth Too Many',    cat: 'game',      year: '2025', sil: 'table',   desc: 'A Twine game set in a 1983 Chinese village under the One-Child Policy. One Friday morning, six perspectives, one dinner table.', meta: ['RTVF 360', 'Twine'], take: 'Choices in one character’s morning silently change another’s. You find out at dinner.',
+    detail: { line: 'Replay one Friday morning from up to six perspectives before they all collide at a single dinner table.', role: 'Sole writer and designer (RTVF 360, Writing in Video Games).', tools: 'Twine / SugarCube 2.37.3 · branching narrative design · hub-and-spoke structure · multi-protagonist state tracking · HTML/JS', numbers: 'Over 10 endings across 2 playable protagonists and 6 explorable morning vignettes, converging on a five-round dinner-table confrontation with a government inspector.', one: 'Choices made in one character’s morning silently change the conditions of another’s. You don’t find that out until dinner.' } },
 ];
 
 // Page rhythm: paper / window / paper / window / paper / window (Léo), three windows share one shaft (Laurens).
@@ -351,6 +440,7 @@ const COPY = {
   archives: { title: 'Archives', note: 'monsters too small to mention' },
   footer: { words: ['ELEVEN DOWN.', 'BRING', 'YOUR BOSS'], sayhi: 'Say hi ↗', email: 'kaytu2027@u.northwestern.edu', bottom: ['Zishu Kay Tu', 'Northwestern MaDE + RTVF', '© 2026'] },
   cursor: { tiger: 'click the tiger', card: 'open' },
+  panel:  { role: 'What I did', tools: 'Tools', numbers: 'Numbers', one: 'The one thing', ask: 'Ask me for the full report ↗', close: 'Close' },
 };
 
 const ARCHIVE = [
@@ -423,7 +513,7 @@ const body = $('body'); let html = '';
 WINDOWS.forEach((idx, w) => {
   const last = w === WINDOWS.length - 1; const n = idx.length * SCREEN_PER_CARD + (last ? SHORE_SCREENS : 0);
   html += `<section class="window" id="win${w}" style="--n:${n}" aria-label="Projects ${idx[0] + 1}–${idx[idx.length - 1] + 1}">`;
-  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in"><div class="text">
+  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}"><div class="text">
     <p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span></p>
     <h2 class="split">${p.name}</h2><p class="desc split">${p.desc}</p><p class="meta mono"><span>${p.meta.join(' · ')}</span><span>${p.year}</span></p><p class="take split">${p.take}</p></div>
     <figure><svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption></figure></div></article>`; });
@@ -436,6 +526,23 @@ $('arch-head').innerHTML = `<span class="split">${COPY.archives.title}</span><sp
 $('arch-table').innerHTML = ARCHIVE.map((r, i) => `<tr><td>${String(i + 1).padStart(2, '0')}</td><td><b>${r[0]}</b><span>${r[1]}</span></td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
 $('foot-words').innerHTML = COPY.footer.words.map((w) => `<span class="word split">${w}</span>`).join('') + `<a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.footer.sayhi}</a>`;
 $('foot-bottom').innerHTML = `<span>${COPY.footer.bottom[0]} · ${COPY.footer.bottom[1]}</span><a href="mailto:${COPY.footer.email}">${COPY.footer.email}</a><span>${COPY.footer.bottom[2]}</span>`;
+
+// ───────────────────────── Project detail panel (slides in from the left; the tiger keeps hanging on the right) ─────────────────────────
+const panel = $('panel'), panelInner = $('panel-inner'), panelScrim = $('panel-scrim'); let panelOpen = false, panelFrom = null;
+function openPanel(pi, from) { const p = PIECES[pi], d = p.detail || {}, L = COPY.panel; panelFrom = from || null;
+  const sec = (k, v, cls = '') => v ? `<div class="sec blk ${cls}"><span class="k mono">${k}</span><p>${v}</p></div>` : '';
+  panelInner.innerHTML = `<p class="eyebrow mono blk"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span><span>${p.meta.join(' · ')}</span></p>
+    <h2 id="panel-title" class="blk">${p.name}</h2><p class="line blk">${d.line || p.desc}</p>
+    ${sec(L.role, d.role)}${sec(L.tools, d.tools)}${sec(L.numbers, d.numbers)}${sec(L.one, d.one || p.take, 'one')}
+    <figure class="blk">${p.img ? `<img src="${p.img}" alt="${p.name}">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg>`}</figure>
+    <a class="ask blk" href="mailto:${COPY.footer.email}?subject=${encodeURIComponent(p.name)}">${L.ask}</a>`;
+  panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); panelScrim.classList.add('on'); panelOpen = true; panel.scrollTop = 0;
+  gsap.fromTo(panelInner.querySelectorAll('.blk'), { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'reveal', stagger: 0.05, delay: 0.12, overwrite: true });
+  lenis.stop(); setTimeout(() => $('panel-close').focus({ preventScroll: true }), 50); }
+function closePanel() { if (!panelOpen) return; panelOpen = false; panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true }); }
+document.querySelectorAll('.card .in').forEach((el) => { const pi = +el.closest('.card').dataset.p; el.addEventListener('click', () => openPanel(pi, el)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(pi, el); } }); });
+$('panel-close').addEventListener('click', closePanel); panelScrim.addEventListener('click', closePanel);
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
 
 // ───────────────────────── Text grammar (Léo): masked lines; statements char by char ─────────────────────────
 const texts = [];
@@ -572,9 +679,14 @@ const WALL = -0.36;                                                             
 const CLIMB = [ { ph: 0.25, lo: 0.67, planted: 0.6, z: -0.22 }, { ph: 0.75, lo: 0.67, planted: 0.6, z: 0.22 },        // hands (front paws)
                 { ph: 0.5, lo: -0.98, planted: 0.78, z: -0.2 }, { ph: 0.0, lo: -0.98, planted: 0.78, z: 0.2 } ];       // feet
 CLIMB.forEach((b) => { b.hi = b.lo + TIGER.step * b.planted; });
-const H0 = -RATE * TIGER.edgeEnd - TIGER.glue;                                             // hips y when the climb cycle is at c = 0
-const cycleAt = (hipsY) => (H0 - hipsY) / TIGER.step;                                     // clip time is a function of world height = scroll
-const RUNG0 = H0 + CLIMB[3].lo;                                                            // the rung the right foot lands on at c = 0; rungs every TIGER.rung
+// layout tiers: phones get a narrower frame, so the camera shifts right, opens up, and the tiger hangs lower
+const LAY = { mobile: false, camX: CAMERA.x, fov: CAMERA.fov, glue: TIGER.glue, H0: 0, RUNG0: 0, drift: 1 };
+function tune() { LAY.mobile = vw < 820 || (vh > vw && vw < 1024);
+  LAY.camX = LAY.mobile ? 1.15 : CAMERA.x; LAY.fov = LAY.mobile ? 40 : CAMERA.fov; LAY.glue = LAY.mobile ? 1.55 : TIGER.glue; LAY.drift = LAY.mobile ? 0.5 : 1;
+  LAY.H0 = -RATE * TIGER.edgeEnd - LAY.glue;                                                // hips y when the climb cycle is at c = 0
+  LAY.RUNG0 = LAY.H0 + CLIMB[3].lo;                                                         // the rung the right foot lands on at c = 0; rungs every TIGER.rung
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, LAY.mobile ? 1.25 : 1.5)); key.shadow.mapSize.set(LAY.mobile ? 1024 : 2048, LAY.mobile ? 1024 : 2048); if (key.shadow.map) { key.shadow.map.dispose(); key.shadow.map = null; } }
+const cycleAt = (hipsY) => (LAY.H0 - hipsY) / TIGER.step;                                 // clip time is a function of world height = scroll
 // one limb's climb target in the hips frame at cycle time c (planted: rides up with the ladder; swing: drops to the next rung with an arc)
 function climbTarget(i, c, out) { const b = CLIMB[i]; const u = frac(c - b.ph);
   if (u < b.planted) out.set(b.lo + (b.hi - b.lo) * (u / b.planted), WALL, b.z);
@@ -588,7 +700,7 @@ const sideMat = new THREE.MeshStandardMaterial({ map: sideTex, roughness: 0.95 }
 const pierMat = new THREE.MeshStandardMaterial({ map: pierTex, roughness: 0.95 });
 const world = { objs: [], ledges: [], groundY: 0, landS: 0, camYMin: 0 };
 const camYAt = (s) => -RATE * s;                                                         // the rail: screens → camera y (clamped at the landing)
-const hipsGlued = (s) => camYAt(s) - TIGER.glue;
+const hipsGlued = (s) => camYAt(s) - LAY.glue;
 function buildWorld() {
   world.objs.forEach((o) => scene.remove(o)); world.objs = []; world.ledges = []; window.__world = world; window.__scene = scene;
   const X = TIGER.x, L = TIGER.ledgeY;
@@ -605,7 +717,7 @@ function buildWorld() {
   for (const sx of [-0.5, 0.5]) { const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, railH, 8), woodMat); rail.position.set(X + sx, (railTop + G + 0.05) / 2, TIGER.ladderZ); rail.castShadow = true; pier.add(rail);
     const bar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.4), woodMat); bar.position.set(X + sx, L + 1.0, TIGER.ladderZ - 0.16); pier.add(bar); }
   const rungGeo = new THREE.CylinderGeometry(0.035, 0.035, 1.0, 8); rungGeo.rotateZ(HALF);
-  const topRung = RUNG0 + TIGER.rung * Math.floor((railTop - 0.15 - RUNG0) / TIGER.rung);
+  const topRung = LAY.RUNG0 + TIGER.rung * Math.floor((railTop - 0.15 - LAY.RUNG0) / TIGER.rung);
   const nR = Math.floor((topRung - (G + 0.25)) / TIGER.rung) + 1; const rungs = new THREE.InstancedMesh(rungGeo, rungMat, nR); rungs.castShadow = true;
   { const mm = new THREE.Matrix4(); for (let j = 0; j < nR; j++) { mm.makeTranslation(X, topRung - j * TIGER.rung, TIGER.ladderZ); rungs.setMatrixAt(j, mm); } }
   pier.add(rungs);
@@ -631,7 +743,7 @@ function buildWorld() {
   ground.rotation.x = -HALF; ground.position.set(0, G, 4); ground.receiveShadow = true; shore.add(ground);
   const water = new THREE.Mesh(new THREE.PlaneGeometry(90, 30), new THREE.MeshStandardMaterial({ color: 0xa9d3e2, roughness: 0.25, metalness: 0.1 })); water.rotation.x = -HALF; water.position.set(0, G - 0.12, 26); shore.add(water);
   const bank = new THREE.Mesh(new THREE.BoxGeometry(90, 0.5, 2.4), new THREE.MeshStandardMaterial({ color: 0xa08f6a, roughness: 1 })); bank.position.set(0, G - 0.3, 12); shore.add(bank);
-  const gN = 900; const grass = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07, 0.42, 0.07), new THREE.MeshStandardMaterial({ color: 0x93c979, roughness: 1 }), gN);
+  const gN = LAY.mobile ? 400 : 900; const grass = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07, 0.42, 0.07), new THREE.MeshStandardMaterial({ color: 0x93c979, roughness: 1 }), gN);
   const mm = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
   for (let i = 0; i < gN; i++) { let x = (Math.random() - 0.5) * 30, z = 11 - Math.random() * 24; if (x > X - 1.6 && z < -0.1) x -= 6; e.set((Math.random() - 0.5) * 0.4, Math.random() * Math.PI, (Math.random() - 0.5) * 0.4); q.setFromEuler(e); p.set(x, G + 0.16, z); sc.set(1, 0.6 + Math.random() * 0.9, 1); mm.compose(p, q, sc); grass.setMatrixAt(i, mm); }
   grass.castShadow = true; shore.add(grass);
@@ -648,7 +760,7 @@ function measure() {
   R.windows = WINDOWS.map((_, w) => { const r = $('win' + w).getBoundingClientRect(); return { top: r.top + scroll, h: r.height }; });
   texts.forEach((t) => { const r = t.el.getBoundingClientRect(); t.top = r.top + scroll; t.h = r.height; });
   chars.forEach((c) => { const r = c.el.getBoundingClientRect(); c.top = r.top + scroll; c.h = r.height; });
-  renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.updateProjectionMatrix();
+  tune(); renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.fov = LAY.fov; camera.updateProjectionMatrix();
   buildWorld();
 }
 
@@ -756,7 +868,7 @@ function frame(now) {
   // ── the rail (Léo): camera = linear in scroll, everywhere; clamped when the tiger has landed
   const landed = s >= world.landS;
   const camY = Math.max(camYAt(s), world.camYMin);
-  camera.position.set(CAMERA.x, camY, CAMERA.z + CAMERA.header.rangeZ * (1 - clamp(s / CAMERA.header.screens, 0, 1)));
+  camera.position.set(LAY.camX, camY, CAMERA.z + CAMERA.header.rangeZ * (1 - clamp(s / CAMERA.header.screens, 0, 1)));
   key.position.set(5, camY + 9, 9); key.target.position.set(1, camY - 3, -1); key.target.updateMatrixWorld();
 
   // ── which window are we in? (for the sky tint + the cards)
@@ -778,14 +890,14 @@ function frame(now) {
   let nearestA = 9, activeCat = null;
   for (const L of world.ledges) { const a = L.s - s;
     if (Math.abs(a) < Math.abs(nearestA)) { nearestA = a; activeCat = PIECES[+L.el.dataset.p].cat; }
-    if (Math.abs(a) < 0.75) { const u = clamp(0.5 - a, 0, 1); L.el.style.transform = `translate3d(0, ${lerp(MOTION.drift.from, MOTION.drift.to, u).toFixed(2)}vh, 0)`; }
+    if (Math.abs(a) < 0.75) { const u = clamp(0.5 - a, 0, 1); L.el.style.transform = `translate3d(0, ${(lerp(MOTION.drift.from, MOTION.drift.to, u) * LAY.drift).toFixed(2)}vh, 0)`; }
     if (a < 0.14 && a > -0.5 && !L.glanced && state === 'climb') { L.glanced = true; glance(TIGER.glance.yaw, TIGER.glance.pitch); }
     if (a > 0.3 || a < -0.6) L.glanced = false;
     const flick = 1 + 0.08 * Math.sin(t * 9.3 + L.seed) + 0.05 * Math.sin(t * 17.1 + L.seed * 2); L.light.intensity = LIGHT.torch.intensity * flick * (1 - shoreMix * 0.7); L.flame.scale.setScalar(0.9 + 0.15 * flick); }
   if (Math.abs(nearestA) > 0.5) activeCat = null;
 
   // ── head layers: glance (Laurens timing) + hover look-back + idle bits
-  const hoverLook = hoverTiger && state === 'climb' ? 1 : 0; T.hover.y += ((hoverLook ? 1.8 : 0) - T.hover.y) * Math.min(1, dt * 6); T.hover.p += ((hoverLook ? 0.55 : 0) - T.hover.p) * Math.min(1, dt * 6);
+  const hoverLook = (hoverTiger || panelOpen) && state === 'climb' ? 1 : 0; T.hover.y += ((hoverLook ? 1.8 : 0) - T.hover.y) * Math.min(1, dt * 6); T.hover.p += ((hoverLook ? 0.55 : 0) - T.hover.p) * Math.min(1, dt * 6);
   P.headYaw += T.glance.y + T.hover.y; P.headPitch += T.glance.p + T.hover.p;
   T.blinkAt -= dt; if (T.blinkAt < 0) { T.blink = !T.blink; T.blinkAt = T.blink ? 0.12 : 2.2 + Math.random() * 3; }
   rig.eyes.scale.y += ((T.blink ? 0.08 : 1) - rig.eyes.scale.y) * Math.min(1, dt * 30);
@@ -820,14 +932,15 @@ function frame(now) {
   mx.cx += (mx.x - mx.cx) * 0.25; mx.cy += (mx.y - mx.cy) * 0.25;
   cursor.style.transform = `translate3d(${mx.cx.toFixed(1)}px, ${mx.cy.toFixed(1)}px, 0)`;
   ray.setFromCamera(new THREE.Vector2(mouse.x, -mouse.y), camera); hoverTiger = inWorld && ray.intersectObject(tigerHit).length > 0;
-  const under = document.elementFromPoint(mx.x, mx.y); const overCard = under?.closest?.('.card .in'); const overLink = under?.closest?.('a');
-  setPill(hoverTiger ? COPY.cursor.tiger : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted ? 'scroll' : ''));
+  const under = document.elementFromPoint(mx.x, mx.y); const overCard = !panelOpen && under?.closest?.('.card .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close');
+  setPill(overClose ? COPY.panel.close : hoverTiger && !panelOpen ? COPY.cursor.tiger : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
 
   window.__dbg = { s: +s.toFixed(3), state, landed, aN: +nearestA.toFixed(3), inWindow, cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };
   renderer.render(scene, camera);
-  requestAnimationFrame(frame);
+  if (!document.hidden) requestAnimationFrame(frame);
 }
 window.addEventListener('resize', measure);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = performance.now(); requestAnimationFrame(frame); } });
 measure();
 requestAnimationFrame(frame);
 
