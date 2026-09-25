@@ -94,7 +94,7 @@ a { color: inherit; }
 /* ───────── windows: the world shows; cards rise past the tiger ───────── */
 .window { height: calc(var(--n) * 100vh); }
 .card { position: absolute; left: var(--gutter); top: calc(var(--i) * 100vh + 50vh); width: calc(7 * var(--col) + 6 * var(--gap)); pointer-events: none; will-change: transform; }
-.card .in { transform: translateY(-50%); background: var(--paper); box-shadow: 0 30px 80px rgba(20,20,16,.10), 0 2px 0 rgba(20,20,16,.04); padding: 36px 40px 34px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; pointer-events: auto; }
+.card .in { transform: translateY(-50%); background: rgba(241,241,238,.74); -webkit-backdrop-filter: blur(14px) saturate(1.05); backdrop-filter: blur(14px) saturate(1.05); box-shadow: 0 30px 80px rgba(20,20,16,.10), 0 2px 0 rgba(20,20,16,.04), inset 0 0 0 1px rgba(255,255,255,.35); padding: 36px 40px 34px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; pointer-events: auto; }
 .card .eyebrow { display: flex; gap: 14px; margin: 0 0 12px; }
 .card .eyebrow .n { color: var(--ink); }
 .card h2 { font-size: 34px; line-height: 1.1; letter-spacing: -.015em; font-weight: 400; margin: 0 0 14px; }
@@ -156,7 +156,7 @@ a { color: inherit; }
 /* ── project detail panel (slides in from the left over the cards; the tiger keeps hanging on the right) ── */
 #panel-scrim { position: fixed; inset: 0; z-index: 44; display: none; }
 #panel-scrim.on { display: block; }
-.panel { position: fixed; left: 0; top: 0; bottom: 0; z-index: 45; width: min(58vw, 860px); background: var(--paper); color: var(--ink); box-shadow: 40px 0 120px rgba(20,20,16,.14); transform: translate3d(-104%, 0, 0); transition: transform .75s cubic-bezier(.4,0,0,1); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.panel { position: fixed; left: 0; top: 0; bottom: 0; z-index: 45; width: min(58vw, 860px); background: rgba(241,241,238,.9); -webkit-backdrop-filter: blur(18px) saturate(1.05); backdrop-filter: blur(18px) saturate(1.05); color: var(--ink); box-shadow: 40px 0 120px rgba(20,20,16,.14); transform: translate3d(-104%, 0, 0); transition: transform .75s cubic-bezier(.4,0,0,1); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .panel.open { transform: translate3d(0, 0, 0); }
 .panel .close { position: absolute; right: 22px; top: 22px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
 .panel .close:hover { background: var(--ink); color: var(--paper); }
