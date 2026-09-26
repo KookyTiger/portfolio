@@ -94,7 +94,7 @@ export const DECK = { z: 0.7, entry: 0.5, exit: 1.5, box: { desktop: [-0.9, 0.28
 export const CARD_ART = 'photo';                                     // 'sil' = ink silhouette cut from the photo · 'photo' = the colour cut-out itself
 export const SCREEN_PER_CARD = 1.0;                                // vh per card inside a window
 export const SHORE_SCREENS = 2.3;                                  // extra screens at the end of the last window (landing, turn, sit)
-export const SHORE_TEXT_AT = 0.55;                                  // shore statement centre, in screens from the start of the shore (+0.5)
+export const SHORE_TEXT_AT = 0.8;                                   // shore statement centre, in screens from the start of the shore: = the landing (shore − 1.5 + 2.3), so the words arrive with the tiger
 
 // The rail (Léo): camera position is a LINEAR function of page scroll, everywhere, paper included. Lenis is the only smoothing.
 // Léo's header cameraParams are rangePos (0, 2.4, 4) over the 200vh header: down 2.4, forward 4. We keep those numbers.

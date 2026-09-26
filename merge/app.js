@@ -427,11 +427,16 @@ const mx = { x: -100, y: -100, cx: -100, cy: -100 };
 window.addEventListener('pointermove', (e) => { mx.x = e.clientX; mx.y = e.clientY; mouse.x = (e.clientX / vw) * 2 - 1; mouse.y = (e.clientY / vh) * 2 - 1; });
 function setPill(text) { if (text === pillText) return; pillText = text; if (text) { pill.textContent = text; if (!pillShown) { pillShown = true; gsap.to(pill, { '--reveal': 1, duration: MOTION.cursor.inDuration, ease: MOTION.cursor.inEase, overwrite: true }); } } else if (pillShown) { pillShown = false; gsap.to(pill, { '--reveal': 0, duration: MOTION.cursor.outDuration, ease: MOTION.cursor.outEase, overwrite: true }); } }
 const quipEl = $('quip'); const v3 = new THREE.Vector3();
-const T = { deckOn: false, deckK: -1, landedCls: false, navLight: false, blinkAt: 2.5, blink: false, earAt: 3, ear: 0, quipT: 0, quip: '', sit: 0, waveAt: 2.5, wave: 0, glance: { y: 0, p: 0 }, hover: { y: 0, p: 0 }, headY: 0, headP: 0, tailV: 0 };
+const T = { deckOn: false, deckK: -1, landedCls: false, inWorld: false, navLight: false, blinkAt: 2.5, blink: false, earAt: 3, ear: 0, quipT: 0, quip: '', sit: 0, waveAt: 2.5, wave: 0, glance: { y: 0, p: 0 }, hover: { y: 0, p: 0 }, headY: 0, headP: 0, tailV: 0 };
 function say(text, dur = 2.6, who = 'KOOKYTIGER') { T.quip = text; T.quipT = dur; quipEl.textContent = text; quipEl.dataset.who = who + '  '; }
 function glance(yaw, pitch) { const g = TIGER.glance; gsap.killTweensOf(T.glance); gsap.timeline().to(T.glance, { y: yaw, p: pitch, duration: g.turn, ease: 'power2.out' }).to(T.glance, { y: 0, p: 0, duration: g.back, ease: 'power2.inOut' }, `+=${g.hold}`); }
-const ray = new THREE.Raycaster(); let hoverTiger = false;
-canvas.addEventListener('click', () => { if (!hoverTiger) return; glance(1.9, 0.6); T.waveAt = 0; say(['kooky.', 'again?', 'which floor is this.', 'that tickles.'][Math.floor(Math.random() * 4)]); });
+const ray = new THREE.Raycaster(); let hoverTiger = false; const clickNdc = new THREE.Vector2();
+// click the tiger: the paper and window sections sit over the canvas, so listen on the window and cast from the click itself
+// (this also makes a tap work on phones, where there is no hover to rely on)
+const pokeTiger = (e) => { if (panelOpen || !T.inWorld) return; if (e.target?.closest?.('a, button, .card .in, .slide .in, .nav, .panel, #deck')) return;
+  clickNdc.set((e.clientX / vw) * 2 - 1, -((e.clientY / vh) * 2 - 1)); ray.setFromCamera(clickNdc, camera); if (!ray.intersectObject(tigerHit).length) return;
+  glance(1.9, 0.6); T.waveAt = 0; say(['kooky.', 'again?', 'which floor is this.', 'that tickles.'][Math.floor(Math.random() * 4)]); };
+window.addEventListener('click', pokeTiger);
 let booted = false;
 (async () => {
   const t0 = performance.now(); let p = 0;
@@ -503,6 +508,7 @@ function stSit(t, dt) { const X = TIGER.x, G = world.groundY, k = smooth(T.sit);
 // ───────────────────────── Frame ─────────────────────────
 let last = performance.now(), shoreMix = 0, vel = 0, lastScroll = 0, saidShore = false, state = '';
 const tiltEls = [document.querySelector('.hero .words'), document.querySelector('.shore-text'), ...document.querySelectorAll('.value-text')];
+const shoreEl = document.querySelector('.shore-text');
 const skyTarget = new THREE.Color(SKY.bottom);
 function frame(now) {
   const dt = SNAP ? 0.2 : Math.min(0.05, (now - last) / 1000); last = now;
@@ -524,13 +530,14 @@ function frame(now) {
 
   // ── the rail (Léo): camera = linear in scroll, everywhere; clamped when the tiger has landed
   const landed = s >= world.landS; if (landed !== T.landedCls) { T.landedCls = landed; document.documentElement.classList.toggle('landed', landed); }
+  if (shoreEl) shoreEl.style.setProperty('--pin', landed ? (scroll - world.landS * vh).toFixed(1) + 'px' : '0px');   // the words land with the tiger and stay put
   const camY = Math.max(camYAt(s), world.camYMin);
   camera.position.set(LAY.camX, camY, CAMERA.z + CAMERA.header.rangeZ * (1 - clamp(s / CAMERA.header.screens, 0, 1)));
   key.position.set(5, camY + 9, 9); key.target.position.set(1, camY - 3, -1); key.target.updateMatrixWorld();
 
   // ── which window are we in? (for the sky tint + the cards)
   let inWindow = -1; R.windows.forEach((w, i) => { if (scroll + vh * 0.5 >= w.top && scroll + vh * 0.5 < w.top + w.h) inWindow = i; });
-  const inWorld = scroll < R.hero.top - vh * 0.1 || inWindow >= 0;
+  const inWorld = scroll < R.hero.top - vh * 0.1 || inWindow >= 0; T.inWorld = inWorld;
 
   // ── the character state (Laurens): scrubbed by scroll; only the idle bits run on time
   const sl = world.landS; let next;
@@ -608,7 +615,8 @@ function frame(now) {
   const under = document.elementFromPoint(mx.x, mx.y); const overCard = !panelOpen && under?.closest?.('.card .in, .slide .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close');
   setPill(overClose ? COPY.panel.close : hoverTiger && !panelOpen ? COPY.cursor.tiger : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
 
-  window.__dbg = { s: +s.toFixed(3), state, landed, aN: +nearestA.toFixed(3), inWindow, cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };
+  v3.copy(rig.root.position).y += (state === 'climb' || state === 'edge') ? 0.1 : 0.4; v3.project(camera);
+  window.__dbg = { s: +s.toFixed(3), state, landed, aN: +nearestA.toFixed(3), inWindow, tiger: [+v3.x.toFixed(3), +v3.y.toFixed(3)], quipT: +T.quipT.toFixed(2), cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };
   renderer.render(scene, camera);
   if (!document.hidden) requestAnimationFrame(frame);
 }

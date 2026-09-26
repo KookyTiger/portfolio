@@ -114,7 +114,8 @@ html.nav-light { --nav-fg: var(--paper); }
 .card .more { margin: 14px 0 0; color: var(--ink); }
 .card .in:focus-visible { outline: none; }
 .window .shore-text::before { content: ""; position: absolute; left: 40%; top: 45%; width: 70vw; height: 40vw; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(ellipse at center, rgba(241,241,238,.85) 20%, rgba(241,241,238,0) 70%); z-index: -1; pointer-events: none; }
-.window .shore-text { position: absolute; left: calc(var(--gutter) + 1 * (var(--col) + var(--gap))); top: calc(var(--i) * 100vh + 50vh); transform: translateY(-50%); width: min(62.85vw, 900px); }
+/* --pin: after the landing the camera is clamped, so the words are pinned too (they never slide under the nav); the archives paper covers them */
+.window .shore-text { position: absolute; left: calc(var(--gutter) + 1 * (var(--col) + var(--gap))); top: calc(var(--i) * 100vh + 50vh + var(--pin, 0px)); transform: translateY(-50%); width: min(62.85vw, 900px); }
 .window .shore-text .big { font-family: var(--display); font-weight: 800; font-size: clamp(48px, 8.19vw, 118px); line-height: .8; letter-spacing: -.035em; text-transform: uppercase; }
 .window .shore-text .sub { margin-top: 18px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .window .shore-text .sayhi { display: inline-block; margin-top: 26px; font-size: 18px; text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
@@ -266,7 +267,7 @@ html.nav-light { --nav-fg: var(--paper); }
   .card .take { display: none; }
   .card .more { margin-top: 8px; }
   .card figcaption { display: none; }
-  .window .shore-text { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 8vh); transform: none !important; }
+  .window .shore-text { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 8vh + var(--pin, 0px)); transform: none !important; }
   .window .shore-text .big { font-size: clamp(40px, 14vw, 84px); }
   .window .shore-text::before { display: none; }
   /* no halo on phones: the shore words stay paper-coloured in the dark room until the sky flips at the landing */
