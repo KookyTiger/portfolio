@@ -7,7 +7,7 @@
 //   The rig below is a procedural placeholder with the same clip grammar, so a skinned GLB can replace it later:
 //   each state is a function of (scroll phase) → pose, exactly like `action.time = f(scroll)`.
 import * as THREE from './vendor/three.module.min.js';
-import { CATS, SIL, PIECES, WINDOWS, SCREEN_PER_CARD, SHORE_SCREENS, SHORE_TEXT_AT, RATE, CAMERA, TIGER, LEDGE_X, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
+import { CATS, SIL, PIECES, WINDOWS, CARD_ART, SCREEN_PER_CARD, SHORE_SCREENS, SHORE_TEXT_AT, RATE, CAMERA, TIGER, LEDGE_X, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
 
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -35,14 +35,15 @@ $('hero-r').innerHTML = `Northwestern ’27<br>MaDE + RTVF`;
 $('intro-big').innerHTML = COPY.intro.big.map((t) => `<p class="split">${t}</p>`).join('');
 $('intro-small').innerHTML = COPY.intro.small.map((t) => `<p class="split">${t}</p>`).join('');
 $('intro-reel').textContent = COPY.intro.reel;
+const cardArt = (p) => { const src = CARD_ART === 'photo' ? (p.img || p.silImg) : (p.silImg || p.img); return src ? `<img src="${src}" alt="${p.name}" loading="lazy" decoding="async">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption>`; };
 const body = $('body'); let html = '';
 WINDOWS.forEach((idx, w) => {
   const last = w === WINDOWS.length - 1; const n = idx.length * SCREEN_PER_CARD + (last ? SHORE_SCREENS : 0);
   html += `<section class="window" id="win${w}" style="--n:${n}" aria-label="Projects ${idx[0] + 1}–${idx[idx.length - 1] + 1}">`;
-  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}"><div class="text">
-    <p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span></p>
-    <h2 class="split">${p.name}</h2><p class="desc split">${p.desc}</p><p class="meta mono"><span>${p.meta.join(' · ')}</span><span>${p.year}</span></p><p class="take split">${p.take}</p></div>
-    <figure><svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption></figure></div></article>`; });
+  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}">
+    <figure>${cardArt(p)}</figure>
+    <div class="text"><p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span></p>
+    <h2>${p.name}</h2><p class="desc">${p.desc}</p><p class="take">${p.take}</p><p class="more mono">${COPY.cursor.card} ↗</p></div></div></article>`; });
   if (last) html += `<div class="shore-text" style="--i:${SHORE_TEXT_AT}"><div class="big" id="shore-big">${COPY.shore.words.map((x) => `<span class="split" style="display:block">${x}</span>`).join('')}</div><div class="sub split">${COPY.shore.sub}</div><br><a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.shore.sayhi}</a></div>`;
   html += `</section>`;
   if (!last) html += `<section class="paper st" id="st${w}"><div class="big" id="st-big${w}">${COPY.statements[w].map((l) => `<span class="line">${l}</span>`).join('')}</div></section>`;

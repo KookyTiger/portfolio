@@ -111,20 +111,24 @@ a { color: inherit; }
 
 /* ───────── windows: the world shows; cards rise past the tiger ───────── */
 .window { height: calc(var(--n) * 100vh); }
-.card { position: absolute; left: var(--gutter); top: calc(var(--i) * 100vh + 50vh); width: calc(7 * var(--col) + 6 * var(--gap)); pointer-events: none; will-change: transform; }
-.card .in { transform: translateY(-50%); background: rgba(241,241,238,.74); -webkit-backdrop-filter: blur(14px) saturate(1.05); backdrop-filter: blur(14px) saturate(1.05); box-shadow: 0 30px 80px rgba(20,20,16,.10), 0 2px 0 rgba(20,20,16,.04), inset 0 0 0 1px rgba(255,255,255,.35); padding: 36px 40px 34px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; pointer-events: auto; }
-.card .eyebrow { display: flex; gap: 14px; margin: 0 0 12px; }
+.card { position: absolute; left: var(--gutter); top: calc(var(--i) * 100vh + 50vh); width: calc(8 * var(--col) + 7 * var(--gap)); pointer-events: none; will-change: transform; }
+/* no frame: the object floats in the shaft; its words appear beside it on hover */
+.card .in { transform: translateY(-50%); display: grid; grid-template-columns: calc(4 * var(--col) + 3 * var(--gap)) 1fr; column-gap: var(--gap); align-items: center; pointer-events: none; cursor: pointer; }
+.card figure { margin: 0; position: relative; width: 100%; aspect-ratio: 200 / 140; pointer-events: auto; }
+.card figure svg, .card figure img { position: relative; z-index: 1; width: 100%; height: 100%; display: block; fill: var(--ink); object-fit: contain; transition: transform .7s cubic-bezier(.4,0,0,1); filter: drop-shadow(0 18px 22px rgba(20,20,16,.22)); }
+.card figure::after { content: ""; position: absolute; left: 14%; right: 14%; bottom: 2%; height: 12%; border-radius: 50%; background: rgba(20,20,16,.22); filter: blur(12px); transition: transform .7s cubic-bezier(.4,0,0,1), opacity .7s; }
+.card .in:hover figure svg, .card .in:hover figure img, .card .in:focus-visible figure img, .card .in:focus-visible figure svg { transform: translateY(-10px) rotate(-1.5deg) scale(1.02); }
+.card .in:hover figure::after { transform: scaleX(1.08) translateY(6px); opacity: .7; }
+.card figcaption { position: absolute; left: 0; bottom: -22px; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.card .text { opacity: 0; transform: translate3d(-10px, 0, 0); transition: opacity .45s cubic-bezier(.4,0,0,1), transform .6s cubic-bezier(.4,0,0,1); color: var(--ink); pointer-events: auto; }
+.card .in:hover .text, .card .in:focus-visible .text { opacity: 1; transform: translate3d(0, 0, 0); }
+.card .eyebrow { display: flex; gap: 12px; margin: 0 0 10px; }
 .card .eyebrow .n { color: var(--ink); }
-.card h2 { font-size: 34px; line-height: 1.1; letter-spacing: -.015em; font-weight: 400; margin: 0 0 14px; }
-.card .desc { margin: 0 0 14px; color: var(--ink); font-size: 16px; max-width: 34ch; }
-.card .meta { display: flex; justify-content: space-between; gap: 14px; margin: 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 14px; }
-.card .take { margin: 14px 0 0; font-size: 15px; color: var(--ink-2); max-width: 34ch; }
-.card figure { margin: 0; position: relative; align-self: center; justify-self: center; width: 100%; max-width: 380px; aspect-ratio: 200 / 140; }
-.card figure svg { position: relative; z-index: 1; width: 100%; height: 100%; display: block; fill: var(--ink); transition: transform .6s cubic-bezier(.4,0,0,1); }
-.card figure::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -6%; height: 14%; border-radius: 50%; background: rgba(20,20,16,.28); filter: blur(10px); transition: transform .6s cubic-bezier(.4,0,0,1), opacity .6s; }
-.card .in:hover figure svg { transform: translateY(-8px) rotate(-1.5deg); }
-.card .in:hover figure::after { transform: scaleX(1.06); opacity: .8; }
-.card figcaption { position: absolute; left: 0; bottom: -24px; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.card h2 { font-size: 30px; line-height: 1.05; letter-spacing: -.015em; font-weight: 400; margin: 0 0 10px; }
+.card .desc { margin: 0 0 10px; font-size: 15px; line-height: 1.4; max-width: 28ch; }
+.card .take { margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--ink); opacity: .78; max-width: 30ch; }
+.card .more { margin: 14px 0 0; color: var(--ink); }
+.card .in:focus-visible { outline: none; }
 .window .shore-text::before { content: ""; position: absolute; left: 40%; top: 45%; width: 70vw; height: 40vw; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(ellipse at center, rgba(241,241,238,.85) 20%, rgba(241,241,238,0) 70%); z-index: -1; pointer-events: none; }
 .window .shore-text { position: absolute; left: calc(var(--gutter) + 1 * (var(--col) + var(--gap))); top: calc(var(--i) * 100vh + 50vh); transform: translateY(-50%); width: min(62.85vw, 900px); }
 .window .shore-text .big { font-family: var(--display); font-weight: 800; font-size: clamp(48px, 8.19vw, 118px); line-height: .8; letter-spacing: -.035em; text-transform: uppercase; }
@@ -165,7 +169,6 @@ a { color: inherit; }
   .nav { grid-template-columns: 1fr auto; } .nav .links { display: none; } .nav .right { grid-column: 2; }
   .header .content { left: var(--gutter); width: 70vw; }
   .intro .big, .intro .small { grid-column: 1 / -1; } .intro .reel { grid-column: 1 / -1; grid-row: auto; margin-top: 40px; }
-  .card { width: calc(100vw - 2 * var(--gutter)); } .card .in { grid-template-columns: 1fr; padding: 24px; } .card figure { max-width: 240px; }
   .st .big { grid-column: 1 / -1; max-width: none; }
   .archives td:nth-child(3) { display: none; }
 }
@@ -214,13 +217,14 @@ a { color: inherit; }
   .intro .big { font-size: 26px; }
   .intro .small { font-size: 16px; margin-top: 36px; }
   .intro .reel { grid-row: auto; margin-top: 36px; }
-  .card { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 9vh); }
-  .card .in { transform: none; grid-template-columns: 1fr; row-gap: 8px; padding: 22px 22px 20px; box-shadow: 0 20px 60px rgba(20,20,16,.12); }
-  .card h2 { font-size: 26px; margin-bottom: 10px; }
-  .card .desc { font-size: 14.5px; max-width: none; }
-  .card .take { font-size: 13.5px; margin-top: 10px; max-width: none; }
-  .card .meta { font-size: 12px; }
-  .card figure { max-width: 42%; justify-self: start; margin-top: 4px; }
+  .card { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 8vh); }
+  .card .in { transform: none; grid-template-columns: 1fr; row-gap: 6px; }
+  .card figure { width: 62%; }
+  .card .text { opacity: 1; transform: none; }
+  .card h2 { font-size: 24px; margin-bottom: 6px; }
+  .card .desc { font-size: 14px; max-width: none; }
+  .card .take { display: none; }
+  .card .more { margin-top: 8px; }
   .card figcaption { display: none; }
   .window .shore-text { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 8vh); transform: none !important; }
   .window .shore-text .big { font-size: clamp(40px, 14vw, 84px); }
@@ -378,7 +382,7 @@ const SIL = {
 };
 
 const PIECES = [
-  { name: 'LevelUp',               cat: 'product',   year: '2025', sil: 'level',   desc: 'A clip-on bubble level for barbells, iterated from 70 sketches down to one $1.30 part.', meta: ['DTC', 'prototype'], take: '80% of testers picked it over the two competing concepts. It still failed three specs, and the report says which.',
+  { name: 'LevelUp',               cat: 'product',   year: '2025', sil: 'level',   img: 'assets/projects/levelup.webp', silImg: 'assets/projects/levelup-sil.webp', desc: 'A clip-on bubble level for barbells, iterated from 70 sketches down to one $1.30 part.', meta: ['DTC', 'prototype'], take: '80% of testers picked it over the two competing concepts. It still failed three specs, and the report says which.',
     detail: { line: 'Built after watching gym-goers at SPAC misalign bars without ever noticing.', tools: 'AEIOU observational research at SPAC · user and lift-coach interviews · structured ideation (70 sketches → 21 → 3 concepts) · three-setting mockup testing · 3D printing · Colab analysis of time-per-rep data', numbers: 'Against spec: 4.35/5 visibility (goal 4/5), 2.5 s setup (goal < 5 s), $1.30 unit cost (goal < $10), 100% of reps level (goal ≥ 90%). It failed three: it interfered with movement for 1 in 3 users, fit only 28.5 mm bars, and came in at 0.98 s per rep.', one: 'During bench-press testing the bubble hit the tester’s chest and split into several smaller bubbles — the device defeating its own readout. The final surface-tension fix exists because of that.' } },
   { name: 'Austin Vaccine Siting', cat: 'analytics', year: '2025', sil: 'map',     desc: 'Clustered 42 Austin ZIP areas to site vaccine distribution: k-medoids first, then two Gurobi integer programs.', meta: ['IEMS 313', 'optimization'], take: 'We handed back two answers and said which one to pick depending on what you care about.',
     detail: { line: 'Balancing CDC social vulnerability, population-weighted distance and human mobility — first as a custom k-medoids heuristic, then reformulated as two competing integer programs.', tools: 'Python · Gurobi (gurobipy) · pandas, numpy, scikit-learn · integer programming · k-medoids with a population-balance penalty · Haversine distance · CDC SVI, census ZCTA and mobility-visit data · TIGER shapefiles', numbers: 'The all-pairs model at K = 2 splits Austin into clusters within 1% of each other by population, at 15% suboptimality on distance and vulnerability and 10% on connectivity. The medoids model reaches an objective value 15× better — but doesn’t balance population nearly as well. Weights came out of 132 generated cluster maps across 11 weight ratios.', one: 'We didn’t hand back one answer. We handed back two, and said which one to pick depending on whether you care more about serving equal populations or about the number in the objective function.' } },
@@ -406,6 +410,7 @@ const PIECES = [
 // Ledges with torches on the left wall of the shaft (decor behind the cards).
 const LEDGE_X = [-6.0, -2.2];
 const WINDOWS = [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10]];   // project indices per window
+const CARD_ART = 'photo';                                     // 'sil' = ink silhouette cut from the photo · 'photo' = the colour cut-out itself
 const SCREEN_PER_CARD = 1.0;                                // vh per card inside a window
 const SHORE_SCREENS = 2.3;                                  // extra screens at the end of the last window (landing, turn, sit)
 const SHORE_TEXT_AT = 4.55;                                  // shore statement centre, in screens from the top of the last window (+0.5)
@@ -509,14 +514,15 @@ $('hero-r').innerHTML = `Northwestern ’27<br>MaDE + RTVF`;
 $('intro-big').innerHTML = COPY.intro.big.map((t) => `<p class="split">${t}</p>`).join('');
 $('intro-small').innerHTML = COPY.intro.small.map((t) => `<p class="split">${t}</p>`).join('');
 $('intro-reel').textContent = COPY.intro.reel;
+const cardArt = (p) => { const src = CARD_ART === 'photo' ? (p.img || p.silImg) : (p.silImg || p.img); return src ? `<img src="${src}" alt="${p.name}" loading="lazy" decoding="async">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption>`; };
 const body = $('body'); let html = '';
 WINDOWS.forEach((idx, w) => {
   const last = w === WINDOWS.length - 1; const n = idx.length * SCREEN_PER_CARD + (last ? SHORE_SCREENS : 0);
   html += `<section class="window" id="win${w}" style="--n:${n}" aria-label="Projects ${idx[0] + 1}–${idx[idx.length - 1] + 1}">`;
-  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}"><div class="text">
-    <p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span></p>
-    <h2 class="split">${p.name}</h2><p class="desc split">${p.desc}</p><p class="meta mono"><span>${p.meta.join(' · ')}</span><span>${p.year}</span></p><p class="take split">${p.take}</p></div>
-    <figure><svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption></figure></div></article>`; });
+  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}">
+    <figure>${cardArt(p)}</figure>
+    <div class="text"><p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span></p>
+    <h2>${p.name}</h2><p class="desc">${p.desc}</p><p class="take">${p.take}</p><p class="more mono">${COPY.cursor.card} ↗</p></div></div></article>`; });
   if (last) html += `<div class="shore-text" style="--i:${SHORE_TEXT_AT}"><div class="big" id="shore-big">${COPY.shore.words.map((x) => `<span class="split" style="display:block">${x}</span>`).join('')}</div><div class="sub split">${COPY.shore.sub}</div><br><a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.shore.sayhi}</a></div>`;
   html += `</section>`;
   if (!last) html += `<section class="paper st" id="st${w}"><div class="big" id="st-big${w}">${COPY.statements[w].map((l) => `<span class="line">${l}</span>`).join('')}</div></section>`;
