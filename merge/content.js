@@ -67,13 +67,16 @@ export const PIECES = [
 // Page rhythm: paper / window / paper / window / paper / window (Léo), three windows share one shaft (Laurens).
 // Ledges with torches on the left wall of the shaft (decor behind the cards).
 export const LEDGE_X = [-6.0, -2.2];
-// Sections = floors of the building. Each: a title paper (140vh) → the world re-skinned → the projects → a value paper.
+// Sections = floors of the building. Each: a title paper (140vh) → the world re-skinned → the projects → the value statement,
+// revealed char by char OVER the room (Léo's library statement) so two papers never touch. `deck: true` = the projects live on
+// the screen of one big computer that fills the floor; the camera holds in front of it while the previews slide left.
 export const SECTIONS = [
   { num: '01', title: 'ENGINEERING',          sub: 'product · mechanical · clinical',            theme: 'workshop', pieces: [0, 1, 2],          value: ['T-SHAPED.', 'WIDE ACROSS,', 'DEEP IN', 'ONE STEM.'] },
   { num: '02', title: 'DESIGN & INTERACTION', sub: 'games · apps · motion · vr · stage',         theme: 'bar',      pieces: [3, 4, 5, 6, 7, 8], value: ['{N_UP} MONSTERS.', 'EVERY ONE', 'HAD A', 'DEADLINE.'] },
-  { num: '03', title: 'ANALYTICS & STRATEGY', sub: 'optimization · pricing · market sizing · finance', theme: 'library', pieces: [9, 10, 11, 12], value: ['HALF OF PRICING', 'IS DECIDING', 'WHAT NOT', 'TO COUNT.'] },
+  { num: '03', title: 'ANALYTICS & STRATEGY', sub: 'optimization · pricing · market sizing · finance', theme: 'computer', deck: true, pieces: [9, 10, 11, 12], value: ['HALF OF PRICING', 'IS DECIDING', 'WHAT NOT', 'TO COUNT.'] },
 ];
 export const TITLE_SCREENS = 1.4;                                  // the section title paper is taller than a screen: it hides the floor change
+export const VALUE_SCREENS = 1;                                    // the value statement takes one screen at the end of its window, over the room
 
 // World skins. `ink: 'light'` = pale words and nav over a dark room (Léo flips his nav white over the library).
 export const THEMES = {
@@ -81,11 +84,17 @@ export const THEMES = {
   workshop: { bg: '#CFC9BD', fog: [12, 40], ink: 'dark',  wall: [176, 16, 14], side: [160, 16, 14], key: 0.95, keyColor: 0xFFF1D6, hemi: 1.0, hemiSky: 0xE6E9EC, hemiGround: 0xB8B0A2, torch: 0xFFD9A0, torchI: 5, camLight: 0, camColor: 0xFFFFFF },
   bar:      { bg: '#15121D', fog: [8, 30],  ink: 'light', wall: [58, 16, 10],  side: [48, 16, 10],  key: 0.18, keyColor: 0xC9B8FF, hemi: 0.34, hemiSky: 0x5C4F8A, hemiGround: 0x1A1420, torch: 0xFF8AC4, torchI: 5, camLight: 6.5, camColor: 0xF3E4EC },
   library:  { bg: '#1E1710', fog: [9, 32],  ink: 'light', wall: [70, 14, 12],  side: [60, 14, 12],  key: 0.22, keyColor: 0xFFE0B0, hemi: 0.36, hemiSky: 0x6B5A44, hemiGround: 0x1C1510, torch: 0xFFC978, torchI: 7, camLight: 6.0, camColor: 0xFFE2B8 },
+  computer: { bg: '#12151C', fog: [9, 34],  ink: 'light', wall: [52, 14, 10],  side: [44, 14, 10],  key: 0.2,  keyColor: 0xDCE6F5, hemi: 0.34, hemiSky: 0x4E5A72, hemiGround: 0x14161C, torch: 0xBFD4F5, torchI: 5, camLight: 4.0, camColor: 0xE2EAF6 },
 };
+// The computer (floor 03): the screen is a plane facing the camera; its DOM strip is laid over the projected rectangle every frame.
+// `box` = the screen in NDC [x0, x1, y0, y1] per layout tier; `entry` = screens into the window before the camera holds;
+// the hold lasts (projects − 1) screens: one screen of scroll slides the strip one preview to the left; `exit` = screens of descent
+// past the desk before the value statement. z = 0.7 keeps the body in front of the pier (its face is at z −0.1).
+export const DECK = { z: 0.7, entry: 0.5, exit: 1.5, box: { desktop: [-0.9, 0.28, -0.6, 0.6], mobile: [-0.9, 0.9, -0.05, 0.8] }, bezel: 0.22, depth: 0.55, beige: 0xD8CDB4, dark: 0x2A2A2E };
 export const CARD_ART = 'photo';                                     // 'sil' = ink silhouette cut from the photo · 'photo' = the colour cut-out itself
 export const SCREEN_PER_CARD = 1.0;                                // vh per card inside a window
 export const SHORE_SCREENS = 2.3;                                  // extra screens at the end of the last window (landing, turn, sit)
-export const SHORE_TEXT_AT = 4.55;                                  // shore statement centre, in screens from the top of the last window (+0.5)
+export const SHORE_TEXT_AT = 0.55;                                  // shore statement centre, in screens from the start of the shore (+0.5)
 
 // The rail (Léo): camera position is a LINEAR function of page scroll, everywhere, paper included. Lenis is the only smoothing.
 // Léo's header cameraParams are rangePos (0, 2.4, 4) over the 200vh header: down 2.4, forward 4. We keep those numbers.

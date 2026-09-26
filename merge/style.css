@@ -119,7 +119,52 @@ html.nav-light { --nav-fg: var(--paper); }
 .window .shore-text .sub { margin-top: 18px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .window .shore-text .sayhi { display: inline-block; margin-top: 26px; font-size: 18px; text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
 
-/* ───────── statements (paper): Léo's window text, on paper ───────── */
+/* ───────── value statements: over the room at the end of each window (Léo's library statement) — never paper on paper ───────── */
+.window .value-text { position: absolute; left: calc(var(--gutter) + 1 * (var(--col) + var(--gap))); top: calc(var(--i) * 100vh + 50vh); transform: translateY(-50%); width: min(62.85vw, 900px); pointer-events: none; }
+.window .value-text .big { font-family: var(--display); font-weight: 800; font-size: clamp(44px, 8.19vw, 118px); line-height: .8; letter-spacing: -.035em; text-transform: uppercase; }
+.window .value-text .big .line { display: block; }
+.window .value-text .big .char { display: inline-block; white-space: pre; will-change: opacity; }
+.window .value-text.halo::before { content: ""; position: absolute; left: 40%; top: 50%; width: 70vw; height: 40vw; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(ellipse at center, rgba(241,241,238,.75) 20%, rgba(241,241,238,0) 70%); z-index: -1; pointer-events: none; }
+.window.dark .value-text { color: var(--paper); }
+
+/* ───────── the computer's screen (floor 03): a fixed overlay matched to the 3D glass every frame; sizes in cqw follow the glass ───────── */
+.deck { position: fixed; left: 0; top: 0; z-index: 3; display: none; overflow: hidden; background: #ECEBE4; color: var(--ink); container-type: size; touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab; }
+.deck.on { display: block; }
+.deck:active { cursor: grabbing; }
+.deck .screen { position: absolute; inset: 0; box-shadow: inset 0 0 6cqw rgba(20,20,16,.18); }
+.deck .screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(17,17,17,.045) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+.deck .strip { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--n) * 100%); display: flex; will-change: transform; }
+.deck .slide { width: calc(100% / var(--n)); height: 100%; padding: 5cqw 6cqw 9cqw; }
+.deck .slide .in { height: 100%; border: 1px solid var(--ink); background: var(--paper); display: grid; grid-template-rows: auto 1fr; cursor: pointer; box-shadow: 1.2cqw 1.2cqw 0 rgba(17,17,17,.12); transition: transform .5s cubic-bezier(.4,0,0,1), box-shadow .5s cubic-bezier(.4,0,0,1); }
+.deck .slide .in:hover, .deck .slide .in:focus-visible { transform: translate(-.4cqw, -.4cqw); box-shadow: 1.8cqw 1.8cqw 0 rgba(17,17,17,.16); outline: none; }
+.deck .slide .bar { display: flex; align-items: center; gap: 1.6cqw; padding: 1.1cqw 1.8cqw; border-bottom: 1px solid var(--ink); font-size: 1.35cqw; color: var(--ink); }
+.deck .slide .bar .name { flex: 1; text-transform: none; letter-spacing: .02em; font-size: 1.5cqw; }
+.deck .slide .dots { display: flex; gap: .5cqw; }
+.deck .slide .dots i { width: 1cqw; height: 1cqw; border-radius: 50%; border: 1px solid var(--ink); }
+.deck .slide .body { display: grid; grid-template-columns: 1.1fr 1fr; column-gap: 3cqw; align-items: center; padding: 2.4cqw 3cqw; min-height: 0; }
+.deck .slide figure { margin: 0; width: 100%; aspect-ratio: 200 / 140; position: relative; min-height: 0; }
+.deck .slide figure svg, .deck .slide figure img { width: 100%; height: 100%; display: block; object-fit: contain; fill: var(--ink); filter: drop-shadow(0 1.2cqw 1.4cqw rgba(20,20,16,.2)); }
+.deck .slide figcaption { display: none; }
+.deck .slide .text { color: var(--ink); }
+.deck .slide .eyebrow { display: flex; gap: 1.2cqw; margin: 0 0 1cqw; font-size: 1.15cqw; }
+.deck .slide .eyebrow .n { color: var(--ink); }
+.deck .slide h2 { font-size: 3.1cqw; line-height: 1.05; letter-spacing: -.015em; font-weight: 400; margin: 0 0 1cqw; }
+.deck .slide .desc { margin: 0 0 1cqw; font-size: 1.6cqw; line-height: 1.4; }
+.deck .slide .take { margin: 0; font-size: 1.4cqw; line-height: 1.4; opacity: .78; }
+.deck .slide .more { margin: 1.4cqw 0 0; font-size: 1.15cqw; }
+.deck .hud { position: absolute; left: 6cqw; right: 6cqw; bottom: 3.4cqw; display: flex; align-items: center; gap: 2cqw; font-size: 1.2cqw; color: var(--ink-2); pointer-events: none; }
+.deck .hud .track { flex: 1; height: 1px; background: var(--line); }
+.deck .hud .track i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .5s cubic-bezier(.4,0,0,1); }
+@container (max-width: 560px) {
+  .deck .slide { padding: 5cqw 5cqw 10cqw; }
+  .deck .slide .body { grid-template-columns: 1fr; row-gap: 1.5cqw; align-content: start; padding: 3cqw; }
+  .deck .slide figure { width: 62%; margin: 0 auto; }
+  .deck .slide h2 { font-size: 5cqw; } .deck .slide .desc { font-size: 3cqw; } .deck .slide .take { display: none; }
+  .deck .slide .eyebrow, .deck .slide .more { font-size: 2.3cqw; } .deck .slide .bar { font-size: 2.6cqw; } .deck .slide .bar .name { font-size: 2.8cqw; } .deck .slide .dots i { width: 1.8cqw; height: 1.8cqw; }
+  .deck .hud { font-size: 2.4cqw; }
+}
+
+/* ───────── statements (paper): Léo's section title papers ───────── */
 .st { min-height: 100vh; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--gap); padding-inline: var(--gutter); align-items: center; }
 .st .big { grid-column: 2 / 13; max-width: 62.85vw; font-family: var(--display); font-weight: 800; font-size: clamp(44px, 8.19vw, 118px); line-height: .8; letter-spacing: -.035em; text-transform: uppercase; }
 .st .big .line { display: block; }
@@ -224,6 +269,14 @@ html.nav-light { --nav-fg: var(--paper); }
   .window .shore-text { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 8vh); transform: none !important; }
   .window .shore-text .big { font-size: clamp(40px, 14vw, 84px); }
   .window .shore-text::before { display: none; }
+  /* no halo on phones: the shore words stay paper-coloured in the dark room until the sky flips at the landing */
+  .window.dark .shore-text { color: var(--paper); transition: color .8s ease; }
+  .window.dark .shore-text .sub { color: inherit; opacity: .7; }
+  .window.dark .shore-text .sayhi { border-color: currentColor; }
+  html.landed .window.dark .shore-text { color: var(--ink); }
+  .window .value-text { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 8vh); transform: none !important; }
+  .window .value-text .big { font-size: clamp(40px, 14vw, 84px); }
+  .window .value-text::before { display: none; }
   .st { min-height: 80vh; }
   .st .big { grid-column: 1 / -1; max-width: none; font-size: clamp(38px, 13vw, 80px); }
   .st.title .wrap { grid-column: 1 / -1; }

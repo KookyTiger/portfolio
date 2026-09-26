@@ -7,7 +7,7 @@
 //   The rig below is a procedural placeholder with the same clip grammar, so a skinned GLB can replace it later:
 //   each state is a function of (scroll phase) → pose, exactly like `action.time = f(scroll)`.
 import * as THREE from './vendor/three.module.min.js';
-import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_SCREENS, SHORE_TEXT_AT, RATE, CAMERA, TIGER, LEDGE_X, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
+import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, VALUE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_SCREENS, SHORE_TEXT_AT, RATE, CAMERA, TIGER, LEDGE_X, DECK, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
 
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -40,19 +40,29 @@ $('intro-small').innerHTML = COPY.intro.small.map((t) => `<p class="split">${t}<
 $('intro-reel').textContent = COPY.intro.reel;
 const cardArt = (p) => { const src = CARD_ART === 'photo' ? (p.img || p.silImg) : (p.silImg || p.img); return src ? `<img src="${src}" alt="${p.name}" loading="lazy" decoding="async">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption>`; };
 const body = $('body'); let html = '';
+const deckIdx = SECTIONS.findIndex((x) => x.deck);
+const projText = (p, pi) => `<div class="text"><p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span></p>
+    <h2>${p.name}</h2><p class="desc">${p.desc}</p><p class="take">${p.take}</p><p class="more mono">${COPY.cursor.card} ↗</p></div>`;
 SECTIONS.forEach((sec, w) => {
-  const last = w === SECTIONS.length - 1; const idx = sec.pieces; const n = idx.length * SCREEN_PER_CARD + (last ? SHORE_SCREENS : 0); const dark = THEMES[sec.theme].ink === 'light';
+  const last = w === SECTIONS.length - 1; const idx = sec.pieces; const dark = THEMES[sec.theme].ink === 'light';
+  // screens the projects take: one per floating object, or entry + hold + exit when they live on the computer's screen
+  const span = sec.deck ? DECK.entry + (idx.length - 1) + DECK.exit : idx.length * SCREEN_PER_CARD;
+  const n = span + VALUE_SCREENS + (last ? SHORE_SCREENS : 0);
   html += `<section class="paper st title" id="title${w}" style="--n:${TITLE_SCREENS}"><div class="wrap"><p class="eyebrow mono">${sec.num} / ${String(SECTIONS.length).padStart(2, '0')} · ${idx.length} ${COPY.section.projects}</p><div class="big" id="title-big${w}">${sec.title.split(' & ').map((l, i, a) => `<span class="line">${l}${i < a.length - 1 ? ' &amp;' : ''}</span>`).join('')}</div><p class="sub split">${sec.sub}</p></div></section>`;
   html += `<section class="window${dark ? ' dark' : ''}" id="win${w}" data-theme="${sec.theme}" style="--n:${n}" aria-label="${sec.title}">`;
-  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card${p.wide ? ' wide' : ''}" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}">
-    <figure>${cardArt(p)}</figure>
-    <div class="text"><p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span></p>
-    <h2>${p.name}</h2><p class="desc">${p.desc}</p><p class="take">${p.take}</p><p class="more mono">${COPY.cursor.card} ↗</p></div></div></article>`; });
-  if (last) html += `<div class="shore-text" style="--i:${SHORE_TEXT_AT}"><div class="big" id="shore-big">${COPY.shore.words.map((x) => `<span class="split" style="display:block">${x}</span>`).join('')}</div><div class="sub split">${tpl(COPY.shore.sub)}</div><br><a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.shore.sayhi}</a></div>`;
+  if (!sec.deck) idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card${p.wide ? ' wide' : ''}" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}">
+    <figure>${cardArt(p)}</figure>${projText(p, pi)}</div></article>`; });
+  // the value statement: over the room, char by char (Léo's library statement) — never paper on paper
+  html += `<div class="value-text${dark ? '' : ' halo'}" style="--i:${span}"><div class="big" id="value-big${w}">${sec.value.map((l) => `<span class="line">${tpl(l)}</span>`).join('')}</div></div>`;
+  if (last) html += `<div class="shore-text" style="--i:${span + VALUE_SCREENS + SHORE_TEXT_AT}"><div class="big" id="shore-big">${COPY.shore.words.map((x) => `<span class="split" style="display:block">${x}</span>`).join('')}</div><div class="sub split">${tpl(COPY.shore.sub)}</div><br><a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.shore.sayhi}</a></div>`;
   html += `</section>`;
-  html += `<section class="paper st" id="st${w}"><div class="big" id="st-big${w}">${sec.value.map((l) => `<span class="line">${tpl(l)}</span>`).join('')}</div></section>`;
 });
 body.innerHTML = html;
+// the computer's screen (floor 03): a fixed overlay laid over the projected screen plane every frame; one preview per screen of scroll
+const deckEl = $('deck');
+if (deckIdx >= 0) { const sec = SECTIONS[deckIdx], n = sec.pieces.length;
+  deckEl.innerHTML = `<div class="screen" style="--n:${n}"><div class="strip" id="deck-strip">${sec.pieces.map((pi, j) => { const p = PIECES[pi]; return `<article class="slide" data-p="${pi}" data-j="${j}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}"><div class="bar mono"><span class="dots"><i></i><i></i><i></i></span><span class="name">${p.name}</span><span>${CATS[p.cat].name}</span></div><div class="body"><figure>${cardArt(p)}</figure>${projText(p, pi)}</div></div></article>`; }).join('')}</div>
+    <div class="hud mono"><span id="deck-n">01 / ${String(n).padStart(2, '0')}</span><span class="track"><i id="deck-bar"></i></span><span class="keys">← → · drag</span></div></div>`; }
 $('arch-head').innerHTML = `<span class="split">${COPY.archives.title}</span><span class="mono">${COPY.archives.note}</span>`;
 $('arch-table').innerHTML = ARCHIVE.map((r, i) => `<tr><td>${String(i + 1).padStart(2, '0')}</td><td><b>${r[0]}</b><span>${r[1]}</span></td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
 $('foot-words').innerHTML = COPY.footer.words.map((w) => `<span class="word split">${tpl(w)}</span>`).join('') + `<a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.footer.sayhi}</a>`;
@@ -71,9 +81,23 @@ function openPanel(pi, from) { const p = PIECES[pi], d = p.detail || {}, L = COP
   gsap.fromTo(panelInner.querySelectorAll('.blk'), { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'reveal', stagger: 0.05, delay: 0.12, overwrite: true });
   lenis.stop(); setTimeout(() => $('panel-close').focus({ preventScroll: true }), 50); }
 function closePanel() { if (!panelOpen) return; panelOpen = false; panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true }); }
-document.querySelectorAll('.card .in').forEach((el) => { const pi = +el.closest('.card').dataset.p; el.addEventListener('click', () => openPanel(pi, el)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(pi, el); } }); });
+document.querySelectorAll('.card .in, .slide .in').forEach((el) => { const pi = +el.closest('[data-p]').dataset.p; el.addEventListener('click', () => openPanel(pi, el)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(pi, el); } }); });
 $('panel-close').addEventListener('click', closePanel); panelScrim.addEventListener('click', closePanel);
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
+// the screen's own controls (floor 03): ← → keys, horizontal wheel / trackpad, drag — each maps onto page scroll, which drives the strip
+const deckStrip = deckIdx >= 0 ? $('deck-strip') : null;
+if (deckIdx >= 0) { const lo = () => world.hold.s0 * vh, hi = () => (world.hold.s0 + world.hold.len) * vh;
+  const toSlide = (k) => lenis.scrollTo((world.hold.s0 + clamp(k, 0, world.hold.len)) * vh, { duration: 0.9, easing: (t) => 1 - Math.pow(1 - t, 4) });
+  const cur = () => Math.round(scroll / vh - world.hold.s0);
+  window.addEventListener('keydown', (e) => { if (!T.deckOn || panelOpen) return; if (e.key === 'ArrowRight') { e.preventDefault(); toSlide(cur() + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); toSlide(cur() - 1); } });
+  deckEl.addEventListener('wheel', (e) => { if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || Math.abs(e.deltaX) < 2) return; e.preventDefault(); lenis.scrollTo(clamp((lenis.targetScroll ?? scroll) + e.deltaX * 1.5, lo(), hi())); }, { passive: false });
+  let drag = null;
+  deckEl.addEventListener('pointerdown', (e) => { if (e.button !== 0 || panelOpen) return; drag = { x: e.clientX, s: scroll, moved: false, id: e.pointerId }; });
+  // capture only once it is a drag (capturing on pointerdown would retarget the click away from the preview)
+  deckEl.addEventListener('pointermove', (e) => { if (!drag) return; const dx = e.clientX - drag.x; if (!drag.moved && Math.abs(dx) > 6) { drag.moved = true; deckEl.setPointerCapture(drag.id); } if (drag.moved) lenis.scrollTo(clamp(drag.s - dx / Math.max(deckEl.clientWidth, 1) * vh, lo(), hi()), { immediate: true }); });
+  const endDrag = () => { if (!drag) return; if (drag.moved) { toSlide(cur()); deckEl.dataset.dragged = '1'; setTimeout(() => { delete deckEl.dataset.dragged; }, 60); } drag = null; };
+  deckEl.addEventListener('pointerup', endDrag); deckEl.addEventListener('pointercancel', endDrag);
+  deckEl.addEventListener('click', (e) => { if (deckEl.dataset.dragged) { e.stopPropagation(); e.preventDefault(); } }, true); }
 
 // ───────────────────────── Text grammar (Léo): masked lines; statements char by char ─────────────────────────
 const texts = [];
@@ -86,7 +110,7 @@ function makeText(el, opts = {}) {
 }
 document.querySelectorAll('.split').forEach((el) => makeText(el));
 const chars = [];
-document.querySelectorAll('.st .big').forEach((el) => { const c = { el, shown: false }; SplitText.create(el, { type: 'chars', charsClass: 'char', onSplit(self) { c.chars = self.chars; gsap.set(self.chars, { opacity: c.shown ? 1 : 0 }); } });
+document.querySelectorAll('.st .big, .value-text .big').forEach((el) => { const c = { el, shown: false }; SplitText.create(el, { type: 'chars', charsClass: 'char', onSplit(self) { c.chars = self.chars; gsap.set(self.chars, { opacity: c.shown ? 1 : 0 }); } });
   c.reveal = () => { if (c.shown || !c.chars) return; c.shown = true; gsap.to(c.chars, { opacity: 1, duration: 0.5, stagger: 0.014, ease: 'power2.out', overwrite: true }); };
   c.hide = () => { if (!c.shown || !c.chars) return; c.shown = false; gsap.to(c.chars, { opacity: 0, duration: 0.3, overwrite: true }); }; chars.push(c); });
 const heroWords = [...document.querySelectorAll('.hero .word')];
@@ -229,8 +253,10 @@ function climbTarget(i, c, out) { const b = CLIMB[i]; const u = frac(c - b.ph);
 // ───────────────────────── World built from the layout (after measure) ─────────────────────────
 const texCache = {};
 const themeTex = (name, kind) => { const k = name + kind; if (!texCache[k]) { const t = THEMES[name]; const [b, r, sp] = kind === 'wall' ? t.wall : t.side; texCache[k] = stoneTexture(b, r, sp); } return texCache[k]; };
-const world = { objs: [], ledges: [], groundY: 0, landS: 0, camYMin: 0, floors: [] };
-const camYAt = (s) => -RATE * s;                                                         // the rail: screens → camera y (clamped at the landing)
+const world = { objs: [], ledges: [], groundY: 0, landS: 0, camYMin: 0, floors: [], hold: { s0: 0, len: 0 }, deck: null };
+// the rail: screens → camera y, linear (clamped at the landing) — except the hold in front of the computer's screen, where the
+// camera keeps still for (projects − 1) screens while the previews slide (Léo's camera also holds under his long papers)
+const camYAt = (s) => -RATE * (s - clamp(s - world.hold.s0, 0, world.hold.len));
 const hipsGlued = (s) => camYAt(s) - LAY.glue;
 const mat = (o) => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.9 }, o));
 const bx = (w, h, d, m, x, y, z, g, sh = true) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = sh; o.receiveShadow = true; g.add(o); return o; };
@@ -274,12 +300,58 @@ const PROPS = {
     const lampArm = cyl(0.02, 0.02, 0.5, mat({ color: 0xb58a3c, metalness: 0.7, roughness: 0.3 }), -1.2, floor + 1.08, -1.6, g, 6); const dome = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2f6f4a, side: THREE.DoubleSide })); dome.position.set(-1.2, floor + 1.34, -1.6); g.add(dome); glow(0xfff0c8, 0.05, -1.2, floor + 1.3, -1.6, g); lamp(0xffe0a0, 3.5, -1.2, floor + 1.22, -1.5, g, 6);
     for (let i = 0; i < 3; i++) bx(0.8, 0.55, 0.6, mat({ color: 0xb9a37f }), -6.4 + i * 0.1, floor + 0.28 + i * 0.55, -1.3, g); },
 };
+// the computer's glass at the hold: an NDC box → a world rectangle perpendicular to the view axis (the camera only translates,
+// so its projection stays an axis-aligned rectangle and the DOM strip can sit on it exactly)
+function deckFrame() { world.deck = null; if (deckIdx < 0) return;
+  const s0 = world.hold.s0, P = CAMERA.pitch; const cy = camYAt(s0), cz = CAMERA.z + CAMERA.header.rangeZ * (1 - clamp(s0 / CAMERA.header.screens, 0, 1));
+  const fwd = new THREE.Vector3(0, Math.sin(P), -Math.cos(P)), up = new THREE.Vector3(0, Math.cos(P), Math.sin(P)), right = new THREE.Vector3(1, 0, 0);
+  const d = (cz - DECK.z) / Math.cos(P); const hh = d * Math.tan(THREE.MathUtils.degToRad(LAY.fov) / 2), hw = hh * (vw / vh);
+  const [x0, x1, y0, y1] = DECK.box[LAY.mobile ? 'mobile' : 'desktop'];
+  const mid = new THREE.Vector3(LAY.camX, cy, cz).addScaledVector(fwd, d).addScaledVector(right, (x0 + x1) / 2 * hw).addScaledVector(up, (y0 + y1) / 2 * hh);
+  const w = (x1 - x0) * hw, h = (y1 - y0) * hh; const corner = (sx, sy) => mid.clone().addScaledVector(right, sx * w / 2).addScaledVector(up, sy * h / 2);
+  world.deck = { win: deckIdx, mid, w, h, tl: corner(-1, 1), br: corner(1, -1), n: SECTIONS[deckIdx].pieces.length }; }
+PROPS.computer = function (g, yT, yB) { const D = world.deck; if (!D) return; const X = TIGER.x, G = world.groundY, P = CAMERA.pitch;
+  const beige = mat({ color: DECK.beige, roughness: 0.85 }), beige2 = mat({ color: 0xC8BDA3, roughness: 0.9 }), dark = mat({ color: DECK.dark, roughness: 0.6 }), wood = mat({ color: 0x9C7A52, roughness: 0.8 });
+  const b = DECK.bezel, w = D.w, h = D.h, dep = DECK.depth;
+  // the monitor: glass (the DOM strip sits on it), bezel, a shallow body (the pier's face is right behind), LED, grooves, badge
+  const mon = new THREE.Group(); mon.position.copy(D.mid); mon.rotation.x = P; g.add(mon);
+  mon.add(new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: 0xECEBE4 })));
+  bx(w + 2 * b, b, 0.16, beige, 0, h / 2 + b / 2, -0.03, mon); bx(w + 2 * b, b * 1.7, 0.16, beige, 0, -h / 2 - b * 0.85, -0.03, mon);
+  bx(b, h, 0.16, beige, -w / 2 - b / 2, 0, -0.03, mon); bx(b, h, 0.16, beige, w / 2 + b / 2, 0, -0.03, mon);
+  bx(w + 2 * b + 0.14, h + b * 2.7 + 0.14, dep, beige2, 0, -b * 0.35, -0.11 - dep / 2, mon);
+  glow(0x7CFF9A, 0.022, w / 2 - 0.1, -h / 2 - b * 0.85, 0.06, mon);
+  for (let i = 0; i < 7; i++) bx(0.06, 0.014, 0.02, dark, -w / 2 + 0.14 + i * 0.1, -h / 2 - b * 0.55, 0.06, mon);
+  bx(0.5, 0.05, 0.02, dark, 0, -h / 2 - b * 1.1, 0.06, mon);
+  lamp(0xDCE6F5, 5, 0, 0, 1.3, mon, 11);                                                                                   // the screen lights the room (and the tiger)
+  // the desk (level, in front of the pier): top just under the monitor's foot, on four thin legs down to the grass (the middle of
+  // the frame stays open under it, so the meadow reads at the landing)
+  const cP = Math.cos(P), sP = Math.sin(P); const botY = D.mid.y - (h / 2 + b * 1.7) * cP - 0.06;
+  const deskY = botY - 0.36, zC = D.mid.z + 0.55, x0 = -9.5, x1 = X - 0.6;
+  bx(0.9, 0.34, 0.8, beige2, D.mid.x, botY - 0.19, D.mid.z - 0.1, g);                                                        // the foot
+  bx(x1 - x0, 0.14, 2.6, wood, (x0 + x1) / 2, deskY - 0.07, zC, g); bx(x1 - x0, 0.06, 2.5, mat({ color: 0x6B5236 }), (x0 + x1) / 2, deskY - 0.17, zC, g, false);
+  const legH = Math.max(0.2, deskY - 0.14 - G); for (const px of [x0 + 0.5, x1 - 0.2]) for (const pz of [zC - 1.0, zC + 1.0]) cyl(0.07, 0.09, legH, mat({ color: 0x5A4632, roughness: 0.8 }), px, deskY - 0.14 - legH / 2, pz, g, 8);
+  // keyboard: a slab with instanced keycaps and a spacebar, tilted a little toward you
+  const kb = new THREE.Group(); kb.position.set(D.mid.x - 0.25, deskY + 0.07, D.mid.z + 0.85); kb.rotation.x = 0.07; g.add(kb);
+  const kw = w * 0.92; bx(kw, 0.12, 0.66, beige, 0, 0, 0, kb);
+  const cols = 16, rows = 5, pitch = kw / (cols + 0.6); const caps = new THREE.InstancedMesh(new THREE.BoxGeometry(pitch * 0.78, 0.05, pitch * 0.78), beige2, cols * rows);
+  { const mm = new THREE.Matrix4(), zero = new THREE.Matrix4().makeScale(0, 0, 0); let k = 0; for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { const sp = r === rows - 1 && c >= 5 && c <= 10; caps.setMatrixAt(k++, sp ? zero : mm.makeTranslation(-kw / 2 + pitch * (0.8 + c), 0.085, -0.22 + r * 0.11)); } }
+  caps.castShadow = true; kb.add(caps); bx(pitch * 5.8, 0.05, pitch * 0.78, beige2, -kw / 2 + pitch * 8.3, 0.085, -0.22 + (rows - 1) * 0.11, kb);
+  // mouse + cord, mug, the tower (floppy slots, LEDs, vents) and two floppies, all on the desk left of the keyboard
+  const ms = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10), beige); ms.scale.set(1, 0.55, 1.35); ms.position.set(D.mid.x + kw / 2 + 0.28, deskY + 0.09, D.mid.z + 0.9); ms.castShadow = true; g.add(ms);
+  const cord = cyl(0.008, 0.008, 0.8, dark, ms.position.x - 0.1, deskY + 0.02, ms.position.z - 0.6, g, 4); cord.rotation.x = HALF;
+  cyl(0.12, 0.1, 0.28, mat({ color: 0xF2A93B, roughness: 0.5 }), D.mid.x - kw / 2 - 0.3, deskY + 0.14, D.mid.z + 1.0, g, 14);
+  const tx = D.mid.x - w / 2 - b - 0.55, tz = D.mid.z + 0.5; const tw = new THREE.Group(); tw.position.set(tx, deskY + 0.5, tz); g.add(tw);
+  bx(0.62, 1.0, 1.9, beige2, 0, 0, 0, tw); bx(0.36, 0.05, 0.02, dark, 0, 0.28, 0.96, tw); bx(0.36, 0.05, 0.02, dark, 0, 0.18, 0.96, tw); glow(0xFF9A5C, 0.02, 0.2, -0.2, 0.96, tw); glow(0x7CFF9A, 0.02, 0.12, -0.2, 0.96, tw);
+  for (let i = 0; i < 5; i++) bx(0.3, 0.012, 0.02, dark, -0.05, -0.32 - i * 0.05, 0.96, tw);
+  for (let i = 0; i < 2; i++) bx(0.36, 0.014, 0.36, mat({ color: i ? 0x2A3B6B : 0x1C1C1E, roughness: 0.6 }), tx + 0.05 + i * 0.05, deskY + 0.01 + i * 0.016, tz + 1.35, g, false);
+  cyl(0.012, 0.012, Math.max(0.1, deskY - G), dark, D.mid.x + 0.3, (deskY + G) / 2, D.mid.z - 0.75, g, 4);                   // the monitor's cable, down behind the desk
+};
 function buildWorld() {
   world.objs.forEach((o) => scene.remove(o)); world.objs = []; world.ledges = []; world.floors = []; window.__world = world; window.__scene = scene;
   const X = TIGER.x, L = TIGER.ledgeY;
   const wl = R.windows[R.windows.length - 1]; world.landS = (wl.top + wl.h) / vh - 1.5; world.camYMin = camYAt(world.landS);
   world.groundY = hipsGlued(world.landS) - 1.05;
-  const G = world.groundY;
+  const G = world.groundY; deckFrame();
   // pier: the tiger's tower on the right, platform on top, ladder down its face (it runs through every floor)
   const pier = new THREE.Group(); scene.add(pier); world.objs.push(pier);
   const pierTex = themeTex('stone', 'wall'); const pierMat = new THREE.MeshStandardMaterial({ map: pierTex, roughness: 0.95 });
@@ -318,6 +390,7 @@ function buildWorld() {
     const flame = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), new THREE.MeshStandardMaterial({ color: th.torch, emissive: th.torch, emissiveIntensity: 1.2, roughness: 1 })); flame.position.set(tx, y + 1.36, -2.2); g.add(flame);
     const light = new THREE.PointLight(th.torch, th.torchI, LIGHT.torch.distance, 2); light.position.set(tx, y + 1.5, -1.6); g.add(light);
     world.ledges.push({ s: sC, el, seed: Math.random() * 10, flame, light, base: th.torchI, glanced: false }); });
+  if (world.deck) document.querySelectorAll('#deck .slide').forEach((el, j) => world.ledges.push({ s: world.hold.s0 + j, el, seed: 0, flame: null, light: null, base: 0, glanced: false, slide: true }));
   // the shore (meadow at the bottom)
   const shore = new THREE.Group(); scene.add(shore); world.objs.push(shore);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(90, 60, 60, 40), new THREE.MeshStandardMaterial({ color: 0x86b56a, roughness: 1 }));
@@ -341,6 +414,7 @@ function measure() {
   for (const id of ['header', 'hero', 'intro', 'win0', 'archives', 'footer']) { const el = $(id); const r = el.getBoundingClientRect(); R[id] = { top: r.top + scroll, h: r.height }; }
   R.windows = SECTIONS.map((_, w) => { const r = $('win' + w).getBoundingClientRect(); return { top: r.top + scroll, h: r.height, theme: SECTIONS[w].theme }; });
   R.titles = SECTIONS.map((_, w) => { const r = $('title' + w).getBoundingClientRect(); return { top: r.top + scroll, h: r.height }; });
+  world.hold = deckIdx >= 0 ? { s0: R.windows[deckIdx].top / vh + DECK.entry, len: SECTIONS[deckIdx].pieces.length - 1 } : { s0: 0, len: 0 };
   texts.forEach((t) => { const r = t.el.getBoundingClientRect(); t.top = r.top + scroll; t.h = r.height; });
   chars.forEach((c) => { const r = c.el.getBoundingClientRect(); c.top = r.top + scroll; c.h = r.height; });
   tune(); renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.fov = LAY.fov; camera.updateProjectionMatrix();
@@ -353,7 +427,7 @@ const mx = { x: -100, y: -100, cx: -100, cy: -100 };
 window.addEventListener('pointermove', (e) => { mx.x = e.clientX; mx.y = e.clientY; mouse.x = (e.clientX / vw) * 2 - 1; mouse.y = (e.clientY / vh) * 2 - 1; });
 function setPill(text) { if (text === pillText) return; pillText = text; if (text) { pill.textContent = text; if (!pillShown) { pillShown = true; gsap.to(pill, { '--reveal': 1, duration: MOTION.cursor.inDuration, ease: MOTION.cursor.inEase, overwrite: true }); } } else if (pillShown) { pillShown = false; gsap.to(pill, { '--reveal': 0, duration: MOTION.cursor.outDuration, ease: MOTION.cursor.outEase, overwrite: true }); } }
 const quipEl = $('quip'); const v3 = new THREE.Vector3();
-const T = { navLight: false, blinkAt: 2.5, blink: false, earAt: 3, ear: 0, quipT: 0, quip: '', sit: 0, waveAt: 2.5, wave: 0, glance: { y: 0, p: 0 }, hover: { y: 0, p: 0 }, headY: 0, headP: 0, tailV: 0 };
+const T = { deckOn: false, deckK: -1, landedCls: false, navLight: false, blinkAt: 2.5, blink: false, earAt: 3, ear: 0, quipT: 0, quip: '', sit: 0, waveAt: 2.5, wave: 0, glance: { y: 0, p: 0 }, hover: { y: 0, p: 0 }, headY: 0, headP: 0, tailV: 0 };
 function say(text, dur = 2.6, who = 'KOOKYTIGER') { T.quip = text; T.quipT = dur; quipEl.textContent = text; quipEl.dataset.who = who + '  '; }
 function glance(yaw, pitch) { const g = TIGER.glance; gsap.killTweensOf(T.glance); gsap.timeline().to(T.glance, { y: yaw, p: pitch, duration: g.turn, ease: 'power2.out' }).to(T.glance, { y: 0, p: 0, duration: g.back, ease: 'power2.inOut' }, `+=${g.hold}`); }
 const ray = new THREE.Raycaster(); let hoverTiger = false;
@@ -428,7 +502,7 @@ function stSit(t, dt) { const X = TIGER.x, G = world.groundY, k = smooth(T.sit);
 
 // ───────────────────────── Frame ─────────────────────────
 let last = performance.now(), shoreMix = 0, vel = 0, lastScroll = 0, saidShore = false, state = '';
-const tiltEls = [document.querySelector('.hero .words'), document.querySelector('.shore-text')];
+const tiltEls = [document.querySelector('.hero .words'), document.querySelector('.shore-text'), ...document.querySelectorAll('.value-text')];
 const skyTarget = new THREE.Color(SKY.bottom);
 function frame(now) {
   const dt = SNAP ? 0.2 : Math.min(0.05, (now - last) / 1000); last = now;
@@ -449,7 +523,7 @@ function frame(now) {
   if (!heroShown && scroll + vh > R.hero.top + vh * 0.35) { heroShown = true; gsap.to(heroWords.map((w) => w.querySelector('.main')), { yPercent: 0, duration: MOTION.reveal.duration, ease: 'reveal', stagger: MOTION.reveal.heroStagger }); }
 
   // ── the rail (Léo): camera = linear in scroll, everywhere; clamped when the tiger has landed
-  const landed = s >= world.landS;
+  const landed = s >= world.landS; if (landed !== T.landedCls) { T.landedCls = landed; document.documentElement.classList.toggle('landed', landed); }
   const camY = Math.max(camYAt(s), world.camYMin);
   camera.position.set(LAY.camX, camY, CAMERA.z + CAMERA.header.rangeZ * (1 - clamp(s / CAMERA.header.screens, 0, 1)));
   key.position.set(5, camY + 9, 9); key.target.position.set(1, camY - 3, -1); key.target.updateMatrixWorld();
@@ -473,9 +547,10 @@ function frame(now) {
   let nearestA = 9, activeCat = null;
   for (const L of world.ledges) { const a = L.s - s;
     if (Math.abs(a) < Math.abs(nearestA)) { nearestA = a; activeCat = PIECES[+L.el.dataset.p].cat; }
-    if (Math.abs(a) < 0.75) { const u = clamp(0.5 - a, 0, 1); L.el.style.transform = `translate3d(0, ${(lerp(MOTION.drift.from, MOTION.drift.to, u) * LAY.drift).toFixed(2)}vh, 0)`; }
+    if (!L.slide && Math.abs(a) < 0.75) { const u = clamp(0.5 - a, 0, 1); L.el.style.transform = `translate3d(0, ${(lerp(MOTION.drift.from, MOTION.drift.to, u) * LAY.drift).toFixed(2)}vh, 0)`; }
     if (a < 0.14 && a > -0.5 && !L.glanced && state === 'climb') { L.glanced = true; glance(TIGER.glance.yaw, TIGER.glance.pitch); }
     if (a > 0.3 || a < -0.6) L.glanced = false;
+    if (!L.flame) continue;
     const flick = 1 + 0.08 * Math.sin(t * 9.3 + L.seed) + 0.05 * Math.sin(t * 17.1 + L.seed * 2); L.light.intensity = L.base * flick * (1 - shoreMix * 0.7); L.flame.scale.setScalar(0.9 + 0.15 * flick); }
   if (Math.abs(nearestA) > 0.5) activeCat = null;
 
@@ -507,6 +582,15 @@ function frame(now) {
   const navWin = R.windows.find((w) => scroll + 50 >= w.top && scroll + 50 < w.top + w.h); const navLight = !!navWin && THEMES[navWin.theme].ink === 'light' && !landed;
   if (navLight !== T.navLight) { T.navLight = navLight; document.documentElement.classList.toggle('nav-light', navLight); }
 
+  // ── the computer's screen: the DOM strip is laid over the projected glass; during the hold, page scroll slides the previews
+  if (world.deck) { const D = world.deck, W = R.windows[D.win]; let on = false;
+    if (scroll + vh > W.top && scroll < W.top + W.h && !landed) { v3.copy(D.tl).project(camera); const x = (v3.x + 1) / 2 * vw, y = (1 - v3.y) / 2 * vh; v3.copy(D.br).project(camera); const w = (v3.x + 1) / 2 * vw - x, h = (1 - v3.y) / 2 * vh - y;
+      on = y < vh && y + h > 0;
+      if (on) { deckEl.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`; deckEl.style.width = w.toFixed(1) + 'px'; deckEl.style.height = h.toFixed(1) + 'px';
+        const u = clamp((s - world.hold.s0) / Math.max(world.hold.len, 1e-3), 0, 1); deckStrip.style.transform = `translate3d(${(-u * (D.n - 1) * 100 / D.n).toFixed(3)}%, 0, 0)`;
+        const k = Math.round(u * (D.n - 1)); if (k !== T.deckK) { T.deckK = k; $('deck-n').textContent = `${String(k + 1).padStart(2, '0')} / ${String(D.n).padStart(2, '0')}`; $('deck-bar').style.width = ((k + 1) / D.n * 100).toFixed(1) + '%'; } } }
+    if (on !== T.deckOn) { T.deckOn = on; deckEl.classList.toggle('on', on); } }
+
   // ── quip bubble above the head
   T.quipT -= dt; if (T.quipT <= 0 && T.quip) T.quip = '';
   quipEl.classList.toggle('on', !!T.quip && inWorld);
@@ -515,13 +599,13 @@ function frame(now) {
   // ── headline tilt (Laurens) on the DOM statements only; the camera itself never turns (Léo)
   mouse.hx += (mouse.x - mouse.hx) * MOUSE.headline.damping; mouse.hy += (mouse.y - mouse.hy) * MOUSE.headline.damping;
   const tilt = `translate3d(${(mouse.hx * MOUSE.headline.x).toFixed(2)}px, ${(mouse.hy * MOUSE.headline.y).toFixed(2)}px, 0) rotateY(${(mouse.hx * MOUSE.headline.rotY).toFixed(3)}deg) rotateX(${(-mouse.hy * MOUSE.headline.rotX).toFixed(3)}deg)`;
-  tiltEls.forEach((el) => { if (el) el.style.transform = (el.classList.contains('shore-text') ? 'translateY(-50%) ' : '') + tilt; });
+  tiltEls.forEach((el) => { if (el) el.style.transform = (el.classList.contains('shore-text') || el.classList.contains('value-text') ? 'translateY(-50%) ' : '') + tilt; });
 
   // ── cursor
   mx.cx += (mx.x - mx.cx) * 0.25; mx.cy += (mx.y - mx.cy) * 0.25;
   cursor.style.transform = `translate3d(${mx.cx.toFixed(1)}px, ${mx.cy.toFixed(1)}px, 0)`;
   ray.setFromCamera(new THREE.Vector2(mouse.x, -mouse.y), camera); hoverTiger = inWorld && ray.intersectObject(tigerHit).length > 0;
-  const under = document.elementFromPoint(mx.x, mx.y); const overCard = !panelOpen && under?.closest?.('.card .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close');
+  const under = document.elementFromPoint(mx.x, mx.y); const overCard = !panelOpen && under?.closest?.('.card .in, .slide .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close');
   setPill(overClose ? COPY.panel.close : hoverTiger && !panelOpen ? COPY.cursor.tiger : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
 
   window.__dbg = { s: +s.toFixed(3), state, landed, aN: +nearestA.toFixed(3), inWindow, cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };
