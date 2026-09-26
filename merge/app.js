@@ -7,7 +7,7 @@
 //   The rig below is a procedural placeholder with the same clip grammar, so a skinned GLB can replace it later:
 //   each state is a function of (scroll phase) → pose, exactly like `action.time = f(scroll)`.
 import * as THREE from './vendor/three.module.min.js';
-import { CATS, SIL, PIECES, WINDOWS, CARD_ART, SCREEN_PER_CARD, SHORE_SCREENS, SHORE_TEXT_AT, RATE, CAMERA, TIGER, LEDGE_X, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
+import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_SCREENS, SHORE_TEXT_AT, RATE, CAMERA, TIGER, LEDGE_X, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
 
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -24,10 +24,13 @@ CustomEase.create('reveal', MOTION.reveal.ease);
 CustomEase.create('hide', MOTION.hide.ease);
 
 // ───────────────────────── DOM: build the page from content ─────────────────────────
+const NWORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen'][NP] || String(NP);
+const tpl = (t) => t.replace(/\{N_UP\}/g, NWORD.toUpperCase()).replace(/\{N_CAP\}/g, NWORD[0].toUpperCase() + NWORD.slice(1)).replace(/\{N\}/g, NWORD);
+$('ld-sub').textContent = tpl(COPY.loader.sub);
 $('nav-brand').innerHTML = `${COPY.nav.name}<span>${COPY.nav.sub}</span>`;
 $('nav-links').textContent = 'Product, film, games, analytics';
-$('nav-right').innerHTML = COPY.nav.links.map((l, i) => `<a href="#" data-to="${['win0', 'intro', 'archives'][i]}">${l}</a>`).join('');
-$('h-statement').innerHTML = COPY.header.statement.join('<br>');
+$('nav-right').innerHTML = COPY.nav.links.map((l, i) => `<a href="#" data-to="${['title0', 'intro', 'archives'][i]}">${l}</a>`).join('');
+$('h-statement').innerHTML = COPY.header.statement.map(tpl).join('<br>');
 $('h-scroll').textContent = COPY.header.scroll;
 $('hero-words').innerHTML = COPY.hero.words.map((w, i) => `<span class="word"><span class="main">${w}</span><span class="alt">${COPY.hero.reveal[i]}</span></span>`).join('') + `<div class="ind">${COPY.hero.indication}</div>`;
 $('hero-l').innerHTML = `Raised in Wuhan<br>Designing anywhere`;
@@ -37,21 +40,22 @@ $('intro-small').innerHTML = COPY.intro.small.map((t) => `<p class="split">${t}<
 $('intro-reel').textContent = COPY.intro.reel;
 const cardArt = (p) => { const src = CARD_ART === 'photo' ? (p.img || p.silImg) : (p.silImg || p.img); return src ? `<img src="${src}" alt="${p.name}" loading="lazy" decoding="async">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption>`; };
 const body = $('body'); let html = '';
-WINDOWS.forEach((idx, w) => {
-  const last = w === WINDOWS.length - 1; const n = idx.length * SCREEN_PER_CARD + (last ? SHORE_SCREENS : 0);
-  html += `<section class="window" id="win${w}" style="--n:${n}" aria-label="Projects ${idx[0] + 1}–${idx[idx.length - 1] + 1}">`;
-  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}">
+SECTIONS.forEach((sec, w) => {
+  const last = w === SECTIONS.length - 1; const idx = sec.pieces; const n = idx.length * SCREEN_PER_CARD + (last ? SHORE_SCREENS : 0); const dark = THEMES[sec.theme].ink === 'light';
+  html += `<section class="paper st title" id="title${w}" style="--n:${TITLE_SCREENS}"><div class="wrap"><p class="eyebrow mono">${sec.num} / ${String(SECTIONS.length).padStart(2, '0')} · ${idx.length} ${COPY.section.projects}</p><div class="big" id="title-big${w}">${sec.title.split(' & ').map((l, i, a) => `<span class="line">${l}${i < a.length - 1 ? ' &amp;' : ''}</span>`).join('')}</div><p class="sub split">${sec.sub}</p></div></section>`;
+  html += `<section class="window${dark ? ' dark' : ''}" id="win${w}" data-theme="${sec.theme}" style="--n:${n}" aria-label="${sec.title}">`;
+  idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card${p.wide ? ' wide' : ''}" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}">
     <figure>${cardArt(p)}</figure>
     <div class="text"><p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span></p>
     <h2>${p.name}</h2><p class="desc">${p.desc}</p><p class="take">${p.take}</p><p class="more mono">${COPY.cursor.card} ↗</p></div></div></article>`; });
-  if (last) html += `<div class="shore-text" style="--i:${SHORE_TEXT_AT}"><div class="big" id="shore-big">${COPY.shore.words.map((x) => `<span class="split" style="display:block">${x}</span>`).join('')}</div><div class="sub split">${COPY.shore.sub}</div><br><a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.shore.sayhi}</a></div>`;
+  if (last) html += `<div class="shore-text" style="--i:${SHORE_TEXT_AT}"><div class="big" id="shore-big">${COPY.shore.words.map((x) => `<span class="split" style="display:block">${x}</span>`).join('')}</div><div class="sub split">${tpl(COPY.shore.sub)}</div><br><a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.shore.sayhi}</a></div>`;
   html += `</section>`;
-  if (!last) html += `<section class="paper st" id="st${w}"><div class="big" id="st-big${w}">${COPY.statements[w].map((l) => `<span class="line">${l}</span>`).join('')}</div></section>`;
+  html += `<section class="paper st" id="st${w}"><div class="big" id="st-big${w}">${sec.value.map((l) => `<span class="line">${tpl(l)}</span>`).join('')}</div></section>`;
 });
 body.innerHTML = html;
 $('arch-head').innerHTML = `<span class="split">${COPY.archives.title}</span><span class="mono">${COPY.archives.note}</span>`;
 $('arch-table').innerHTML = ARCHIVE.map((r, i) => `<tr><td>${String(i + 1).padStart(2, '0')}</td><td><b>${r[0]}</b><span>${r[1]}</span></td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
-$('foot-words').innerHTML = COPY.footer.words.map((w) => `<span class="word split">${w}</span>`).join('') + `<a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.footer.sayhi}</a>`;
+$('foot-words').innerHTML = COPY.footer.words.map((w) => `<span class="word split">${tpl(w)}</span>`).join('') + `<a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.footer.sayhi}</a>`;
 $('foot-bottom').innerHTML = `<span>${COPY.footer.bottom[0]} · ${COPY.footer.bottom[1]}</span><a href="mailto:${COPY.footer.email}">${COPY.footer.email}</a><span>${COPY.footer.bottom[2]}</span>`;
 
 // ───────────────────────── Project detail panel (slides in from the left; the tiger keeps hanging on the right) ─────────────────────────
@@ -113,6 +117,8 @@ const tmpC = new THREE.Color();
 const key = new THREE.DirectionalLight(LIGHT.key.color, LIGHT.key.intensity); key.position.set(5, 10, 9); key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048); key.shadow.camera.left = -12; key.shadow.camera.right = 12; key.shadow.camera.top = 12; key.shadow.camera.bottom = -12; key.shadow.camera.near = 1; key.shadow.camera.far = 50; key.shadow.bias = -0.0006; key.shadow.radius = 6; scene.add(key, key.target);
 const hemi = new THREE.HemisphereLight(LIGHT.hemi.sky, LIGHT.hemi.ground, LIGHT.hemi.intensity); scene.add(hemi);
+const camLight = new THREE.PointLight(0xffffff, 0, 14, 2); camLight.position.set(1.4, 0.4, 1.2); camera.add(camLight); scene.add(camera);   // the viewer's lamp, only in dark rooms
+const T0 = THEMES.stone; const TH = { bg: new THREE.Color(T0.bg), fogNear: T0.fog[0], fogFar: T0.fog[1], key: T0.key, keyC: new THREE.Color(T0.keyColor), hemi: T0.hemi, hemiS: new THREE.Color(T0.hemiSky), hemiG: new THREE.Color(T0.hemiGround), cam: 0, camC: new THREE.Color(T0.camColor) };
 
 function stoneTexture(base = 150, rows = 8, spread = 30) { const c = document.createElement('canvas'); c.width = 512; c.height = 512; const g = c.getContext('2d'); g.fillStyle = `rgb(${base - 24},${base - 26},${base - 32})`; g.fillRect(0, 0, 512, 512);
   const h = 512 / rows; for (let r = 0; r < rows; r++) { const off = (r % 2) * 64; let x = -off; while (x < 512) { const w = 96 + Math.floor(Math.random() * 64); const v = base + Math.floor(Math.random() * spread); g.fillStyle = `rgb(${v + 6},${v + 2},${v - 6})`; g.fillRect(x + 2, r * h + 2, w - 4, h - 4); x += w; } }
@@ -221,26 +227,66 @@ function climbTarget(i, c, out) { const b = CLIMB[i]; const u = frac(c - b.ph);
   return out; }
 
 // ───────────────────────── World built from the layout (after measure) ─────────────────────────
-const stoneTex = stoneTexture(168, 12, 18); const sideTex = stoneTexture(150, 12, 18); const pierTex = stoneTexture(182, 14, 16);
-const wallMat = new THREE.MeshStandardMaterial({ map: stoneTex, roughness: 0.95 });
-const sideMat = new THREE.MeshStandardMaterial({ map: sideTex, roughness: 0.95 });
-const pierMat = new THREE.MeshStandardMaterial({ map: pierTex, roughness: 0.95 });
-const world = { objs: [], ledges: [], groundY: 0, landS: 0, camYMin: 0 };
+const texCache = {};
+const themeTex = (name, kind) => { const k = name + kind; if (!texCache[k]) { const t = THEMES[name]; const [b, r, sp] = kind === 'wall' ? t.wall : t.side; texCache[k] = stoneTexture(b, r, sp); } return texCache[k]; };
+const world = { objs: [], ledges: [], groundY: 0, landS: 0, camYMin: 0, floors: [] };
 const camYAt = (s) => -RATE * s;                                                         // the rail: screens → camera y (clamped at the landing)
 const hipsGlued = (s) => camYAt(s) - LAY.glue;
+const mat = (o) => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.9 }, o));
+const bx = (w, h, d, m, x, y, z, g, sh = true) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = sh; o.receiveShadow = true; g.add(o); return o; };
+const cyl = (r1, r2, h, m, x, y, z, g, seg = 10) => { const o = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, h, seg), m); o.position.set(x, y, z); o.castShadow = true; g.add(o); return o; };
+const lamp = (color, intensity, x, y, z, g, dist = 9) => { const l = new THREE.PointLight(color, intensity, dist, 2); l.position.set(x, y, z); g.add(l); return l; };
+const glow = (color, r, x, y, z, g) => { const o = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.4, roughness: 1 })); o.position.set(x, y, z); g.add(o); return o; };
+const rnd = (seed) => { let x = Math.sin(seed * 999.1) * 10000; return () => { x = Math.sin(x) * 10000; return x - Math.floor(x); }; };
+// ── props per skin: (group, yTop, yBottom) — the floor of a room is the slab under it
+const PROPS = {
+  stone(g, yT, yB) {},
+  workshop(g, yT, yB) { const R = rnd(yT); const floor = yB + 0.15; const wood = mat({ color: 0xa88a62, roughness: 0.85 }), dark = mat({ color: 0x3a3632 }), red = mat({ color: 0xc0392b, roughness: 0.6 }), steel = mat({ color: 0x9aa0a6, roughness: 0.4, metalness: 0.6 });
+    for (let y = yT - 2.2; y > floor + 1.6; y -= 3.2) {                                    // pegboards with tools, every few metres of wall
+      const pb = bx(4.2, 2.2, 0.06, mat({ color: 0xd7c9a8, roughness: 0.95 }), -4.4, y, -2.74, g, false);
+      for (let i = 0; i < 26; i++) { const o = new THREE.Mesh(new THREE.CircleGeometry(0.025, 6), dark); o.position.set(-6.3 + (i % 13) * 0.32, y + 0.7 - Math.floor(i / 13) * 1.4, -2.7); g.add(o); }
+      bx(0.16, 1.1, 0.05, dark, -5.8, y + 0.1, -2.68, g); bx(0.5, 0.2, 0.05, steel, -5.8, y + 0.7, -2.68, g);        // hammer
+      bx(0.12, 1.2, 0.05, steel, -4.9, y, -2.68, g); bx(0.4, 0.3, 0.05, steel, -4.9, y + 0.65, -2.68, g);           // wrench
+      bx(1.1, 0.3, 0.05, steel, -3.6, y + 0.4, -2.68, g); bx(0.35, 0.3, 0.05, wood, -2.95, y + 0.4, -2.68, g);     // saw
+      for (let i = 0; i < 5; i++) cyl(0.035, 0.035, 0.7, steel, -4.2 + i * 0.28, y - 0.55, -2.66, g, 6);            // screwdrivers
+      const bulbY = y + 1.5; cyl(0.01, 0.01, 1.2, dark, -3.2, bulbY + 0.6, -1.6, g, 4); glow(0xffe0a8, 0.13, -3.2, bulbY, -1.6, g); lamp(0xffd9a0, 4, -3.2, bulbY - 0.15, -1.4, g, 7); }
+    bx(4.4, 0.16, 1.3, wood, -4.2, floor + 0.9, -1.7, g); for (const dx of [-2, 2]) for (const dz of [-0.5, 0.5]) bx(0.12, 0.9, 0.12, dark, -4.2 + dx, floor + 0.45, -1.7 + dz, g);   // workbench
+    bx(0.5, 0.35, 0.4, steel, -5.6, floor + 1.16, -1.7, g); bx(0.7, 0.3, 0.32, red, -3.2, floor + 1.13, -1.8, g);                                                                    // vise + toolbox
+    cyl(0.16, 0.16, 0.8, red, -7.2, floor + 0.4, -2.2, g, 12); cyl(0.05, 0.05, 0.16, dark, -7.2, floor + 0.88, -2.2, g, 8);                                                        // extinguisher
+    for (let i = 0; i < 3; i++) bx(0.9, 0.6, 0.7, mat({ color: 0xb9925f }), -6.6 + (i % 2) * 0.2, floor + 0.3 + i * 0.6, -1.6, g); },
+  bar(g, yT, yB) { const R = rnd(yT); const floor = yB + 0.15; const dark = mat({ color: 0x1b1520, roughness: 0.7 }), wood = mat({ color: 0x3a2418, roughness: 0.55 }), brass = mat({ color: 0xb58a3c, roughness: 0.35, metalness: 0.7 });
+    const cols = [0x7ac8b0, 0xf2a93b, 0xd94f8a, 0x8fb3ff, 0xf6f1e6, 0x5ec8e8];
+    for (let y = yT - 1.6; y > floor + 1.9; y -= 1.05) {                                                                                 // back-bar shelves, lit from below
+      bx(5.2, 0.06, 0.5, wood, -4.2, y, -2.5, g); const strip = bx(5.0, 0.03, 0.08, new THREE.MeshStandardMaterial({ color: 0xff7fc2, emissive: 0xff5fb0, emissiveIntensity: 1.6 }), -4.2, y - 0.05, -2.3, g, false); lamp(0xff6fb5, 2.2, -4.2, y - 0.2, -2.2, g, 5);
+      for (let i = 0; i < 9; i++) { const h = 0.35 + R() * 0.35, r = 0.06 + R() * 0.04; const c = cols[Math.floor(R() * cols.length)]; cyl(r, r, h, new THREE.MeshStandardMaterial({ color: c, roughness: 0.2, transparent: true, opacity: 0.85 }), -6.5 + i * 0.56 + R() * 0.1, y + 0.03 + h / 2, -2.5, g, 10); } }
+    const neonY = yT - 1.0; const neon = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.045, 8, 32), new THREE.MeshStandardMaterial({ color: 0xff7fc2, emissive: 0xff5fb0, emissiveIntensity: 2.2 })); neon.position.set(-1.8, neonY, -2.6); g.add(neon);
+    bx(1.6, 0.06, 0.06, new THREE.MeshStandardMaterial({ color: 0x8ff0ff, emissive: 0x4fd8f0, emissiveIntensity: 2.2 }), -1.8, neonY - 0.85, -2.6, g, false); lamp(0xff6fb5, 6, -1.8, neonY, -2.0, g, 8); lamp(0x4fd8f0, 3, -1.8, neonY - 0.9, -2.0, g, 6);
+    bx(6.0, 1.05, 0.8, dark, -4.0, floor + 0.53, -1.2, g); bx(6.2, 0.08, 0.95, wood, -4.0, floor + 1.09, -1.2, g);                     // the counter
+    for (let i = 0; i < 3; i++) { cyl(0.05, 0.05, 0.7, brass, -5.6 + i * 1.5, floor + 0.35, -0.5, g, 8); cyl(0.22, 0.22, 0.08, mat({ color: 0x7a2038, roughness: 0.6 }), -5.6 + i * 1.5, floor + 0.74, -0.5, g, 14); }
+    for (const x of [-5.4, -2.6]) { cyl(0.01, 0.01, 1.4, brass, x, floor + 2.6, -1.2, g, 4); const cone = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.3, 14, 1, true), new THREE.MeshStandardMaterial({ color: 0x2a1c14, side: THREE.DoubleSide })); cone.position.set(x, floor + 1.9, -1.2); g.add(cone); glow(0xffd28a, 0.07, x, floor + 1.84, -1.2, g); lamp(0xffc978, 3.5, x, floor + 1.78, -1.1, g, 6); } },
+  library(g, yT, yB) { const R = rnd(yT); const floor = yB + 0.15; const wood = mat({ color: 0x4a2f1e, roughness: 0.7 }), paperM = mat({ color: 0xd9cfb8, roughness: 1 });
+    const cols = [0x8c3b2f, 0x2f4a6e, 0x6b7a3a, 0xc9a961, 0x3e2b4e, 0xa85a2a, 0xe8e0cc, 0x2a4a3e];
+    for (const x0 of [-7.2, -3.4]) { const w = 3.4; bx(w, yT - floor - 0.3, 0.06, wood, x0 + w / 2, (yT + floor) / 2, -2.78, g, false); for (const dx of [0, w]) bx(0.1, yT - floor - 0.3, 0.55, wood, x0 + dx, (yT + floor) / 2, -2.5, g);   // shelf units
+      for (let y = floor + 0.4; y < yT - 0.6; y += 0.62) { bx(w, 0.05, 0.55, wood, x0 + w / 2, y, -2.5, g); let x = x0 + 0.12; while (x < x0 + w - 0.15) { const bw = 0.06 + R() * 0.07, bh = 0.32 + R() * 0.22; const b = bx(bw, bh, 0.42, mat({ color: cols[Math.floor(R() * cols.length)], roughness: 0.85 }), x + bw / 2, y + bh / 2 + 0.03, -2.5, g, false); if (R() < 0.08) b.rotation.z = 0.12; x += bw + 0.012; } } }
+    for (let y = yT - 2.0; y > floor + 1.5; y -= 3.4) { cyl(0.012, 0.012, 1.0, mat({ color: 0x2a2320 }), -5.3, y + 0.5, -1.5, g, 4); const shade = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.22, 16, 1, true), new THREE.MeshStandardMaterial({ color: 0x2f5f3a, side: THREE.DoubleSide })); shade.position.set(-5.3, y, -1.5); g.add(shade); glow(0xffe6b8, 0.07, -5.3, y - 0.06, -1.5, g); lamp(0xffc978, 4.5, -5.3, y - 0.2, -1.3, g, 7); }
+    bx(2.2, 0.08, 1.0, wood, -1.9, floor + 0.78, -1.5, g); for (const dx of [-1.0, 1.0]) bx(0.08, 0.78, 0.9, wood, -1.9 + dx, floor + 0.39, -1.5, g);        // desk
+    for (let i = 0; i < 4; i++) bx(0.5 - i * 0.04, 0.09, 0.36, paperM, -2.4 + i * 0.05, floor + 0.87 + i * 0.09, -1.5, g, false);
+    const lampArm = cyl(0.02, 0.02, 0.5, mat({ color: 0xb58a3c, metalness: 0.7, roughness: 0.3 }), -1.2, floor + 1.08, -1.6, g, 6); const dome = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2f6f4a, side: THREE.DoubleSide })); dome.position.set(-1.2, floor + 1.34, -1.6); g.add(dome); glow(0xfff0c8, 0.05, -1.2, floor + 1.3, -1.6, g); lamp(0xffe0a0, 3.5, -1.2, floor + 1.22, -1.5, g, 6);
+    for (let i = 0; i < 3; i++) bx(0.8, 0.55, 0.6, mat({ color: 0xb9a37f }), -6.4 + i * 0.1, floor + 0.28 + i * 0.55, -1.3, g); },
+};
 function buildWorld() {
-  world.objs.forEach((o) => scene.remove(o)); world.objs = []; world.ledges = []; window.__world = world; window.__scene = scene;
+  world.objs.forEach((o) => scene.remove(o)); world.objs = []; world.ledges = []; world.floors = []; window.__world = world; window.__scene = scene;
   const X = TIGER.x, L = TIGER.ledgeY;
-  // the landing: the last window's bottom minus 1.5 screens = the feet touch the ground; the camera stops there
   const wl = R.windows[R.windows.length - 1]; world.landS = (wl.top + wl.h) / vh - 1.5; world.camYMin = camYAt(world.landS);
   world.groundY = hipsGlued(world.landS) - 1.05;
   const G = world.groundY;
-  // pier: the tiger's tower on the right, platform on top, ladder down its face
+  // pier: the tiger's tower on the right, platform on top, ladder down its face (it runs through every floor)
   const pier = new THREE.Group(); scene.add(pier); world.objs.push(pier);
+  const pierTex = themeTex('stone', 'wall'); const pierMat = new THREE.MeshStandardMaterial({ map: pierTex, roughness: 0.95 });
   const pH = L - (G - 2); pierTex.repeat.set(2.4, pH / 2.6);
   const block = new THREE.Mesh(new THREE.BoxGeometry(6, pH, 2.5), pierMat); block.position.set(X + 1.5, (L + G - 2) / 2, -1.35); block.castShadow = true; block.receiveShadow = true; pier.add(block);
   const lip = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.18, 2.7), slabTop); lip.position.set(X + 1.5, L - 0.09, -1.35); lip.receiveShadow = true; lip.castShadow = true; pier.add(lip);
-  const railTop = L + 1.25, railH = railTop - (G + 0.05);      // the ladder pokes up past the platform edge, like a real one
+  const railTop = L + 1.25, railH = railTop - (G + 0.05);
   for (const sx of [-0.5, 0.5]) { const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, railH, 8), woodMat); rail.position.set(X + sx, (railTop + G + 0.05) / 2, TIGER.ladderZ); rail.castShadow = true; pier.add(rail);
     const bar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.4), woodMat); bar.position.set(X + sx, L + 1.0, TIGER.ladderZ - 0.16); pier.add(bar); }
   const rungGeo = new THREE.CylinderGeometry(0.035, 0.035, 1.0, 8); rungGeo.rotateZ(HALF);
@@ -248,21 +294,30 @@ function buildWorld() {
   const nR = Math.floor((topRung - (G + 0.25)) / TIGER.rung) + 1; const rungs = new THREE.InstancedMesh(rungGeo, rungMat, nR); rungs.castShadow = true;
   { const mm = new THREE.Matrix4(); for (let j = 0; j < nR; j++) { mm.makeTranslation(X, topRung - j * TIGER.rung, TIGER.ladderZ); rungs.setMatrixAt(j, mm); } }
   pier.add(rungs);
-  // shaft walls
-  const yTop = L + 14, yBottom = G - 2, Hh = yTop - yBottom; stoneTex.repeat.set(10, Hh / 4); sideTex.repeat.set(3, Hh / 4);
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(40, Hh), wallMat); back.position.set(0, (yTop + yBottom) / 2, -2.8); back.receiveShadow = true; scene.add(back); world.objs.push(back);
-  const side = new THREE.Mesh(new THREE.PlaneGeometry(12, Hh), sideMat); side.position.set(-11, (yTop + yBottom) / 2, 3.2); side.rotation.y = HALF; side.receiveShadow = true; scene.add(side); world.objs.push(side);
-  // ledges with torches on the left wall, one per card, at the tiger's feet when that card is centred
+  // floors: the rooms are stacked; the camera passes each slab while that section's title paper covers the screen
+  const bounds = [L + 14]; const skins = ['stone'];
+  SECTIONS.forEach((sec, i) => { bounds.push(camYAt(R.titles[i].top / vh + 0.2)); skins.push(sec.theme); }); bounds.push(G - 2);
+  world.floors = bounds.slice(1, -1);
+  for (let i = 0; i < skins.length; i++) { const name = skins[i], yTop = bounds[i], yBot = bounds[i + 1], Hh = yTop - yBot; const th = THEMES[name];
+    const g = new THREE.Group(); scene.add(g); world.objs.push(g);
+    const wt = themeTex(name, 'wall').clone(); wt.needsUpdate = true; wt.repeat.set(10, Hh / 4); const back = new THREE.Mesh(new THREE.PlaneGeometry(40, Hh), new THREE.MeshStandardMaterial({ map: wt, roughness: 0.95 })); back.position.set(0, (yTop + yBot) / 2, -2.8); back.receiveShadow = true; g.add(back);
+    const st = themeTex(name, 'side').clone(); st.needsUpdate = true; st.repeat.set(3, Hh / 4); const side = new THREE.Mesh(new THREE.PlaneGeometry(12, Hh), new THREE.MeshStandardMaterial({ map: st, roughness: 0.95 })); side.position.set(-11, (yTop + yBot) / 2, 3.2); side.rotation.y = HALF; side.receiveShadow = true; g.add(side);
+    if (i > 0) { const yS = yTop; const slabM = new THREE.MeshStandardMaterial({ color: th.ink === 'light' ? 0x2a2622 : 0xb8b2a4, roughness: 0.95 });   // the slab above this room (its ceiling), with a hatch for the ladder
+      for (const [x0, x1] of [[-16, X - 1.2], [X + 1.2, 16]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, 0.3, 7.6), slabM); m.position.set((x0 + x1) / 2, yS, 1.0); m.receiveShadow = true; m.castShadow = true; g.add(m); }
+      const rim = new THREE.Mesh(new THREE.BoxGeometry(2.4 + 0.3, 0.3, 0.1), new THREE.MeshStandardMaterial({ color: 0x6b5a3e, roughness: 0.6 })); rim.position.set(X, yS, 0.45); g.add(rim); }
+    PROPS[name] && PROPS[name](g, yTop - (i > 0 ? 0.15 : 0), yBot + (i < skins.length - 1 ? 0.15 : 0)); }
+  // ledges with lamps on the left wall, one per card, at the tiger's feet when that card is centred
   document.querySelectorAll('.card').forEach((el) => { const r = el.getBoundingClientRect(); const top = r.top + scroll; const sC = (top - vh / 2) / vh; const y = hipsGlued(sC) - 0.9; el.dataset.s = sC;
+    const th = THEMES[el.closest('.window').dataset.theme] || THEMES.stone;
     const g = new THREE.Group(); scene.add(g); world.objs.push(g);
     const w = LEDGE_X[1] - LEDGE_X[0], cx = (LEDGE_X[0] + LEDGE_X[1]) / 2;
     const slab = new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, 2.2), slabMat); slab.position.set(cx, y - 0.25, -1.7); slab.castShadow = true; slab.receiveShadow = true; g.add(slab);
     const t2 = new THREE.Mesh(new THREE.BoxGeometry(w - 0.2, 0.05, 2.1), slabTop); t2.position.set(cx, y + 0.02, -1.7); t2.receiveShadow = true; g.add(t2);
     const tx = LEDGE_X[1] - 0.7;
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 1.3, 6), postMat); post.position.set(tx, y + 0.65, -2.2); post.castShadow = true; g.add(post);
-    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffe2b8, emissive: 0xffc46a, emissiveIntensity: 1.2, roughness: 1 })); flame.position.set(tx, y + 1.36, -2.2); g.add(flame);
-    const light = new THREE.PointLight(LIGHT.torch.color, LIGHT.torch.intensity, LIGHT.torch.distance, 2); light.position.set(tx, y + 1.5, -1.6); g.add(light);
-    world.ledges.push({ s: sC, el, seed: Math.random() * 10, flame, light, glanced: false }); });
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), new THREE.MeshStandardMaterial({ color: th.torch, emissive: th.torch, emissiveIntensity: 1.2, roughness: 1 })); flame.position.set(tx, y + 1.36, -2.2); g.add(flame);
+    const light = new THREE.PointLight(th.torch, th.torchI, LIGHT.torch.distance, 2); light.position.set(tx, y + 1.5, -1.6); g.add(light);
+    world.ledges.push({ s: sC, el, seed: Math.random() * 10, flame, light, base: th.torchI, glanced: false }); });
   // the shore (meadow at the bottom)
   const shore = new THREE.Group(); scene.add(shore); world.objs.push(shore);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(90, 60, 60, 40), new THREE.MeshStandardMaterial({ color: 0x86b56a, roughness: 1 }));
@@ -284,7 +339,8 @@ const R = {};
 function measure() {
   vh = innerHeight; vw = innerWidth;
   for (const id of ['header', 'hero', 'intro', 'win0', 'archives', 'footer']) { const el = $(id); const r = el.getBoundingClientRect(); R[id] = { top: r.top + scroll, h: r.height }; }
-  R.windows = WINDOWS.map((_, w) => { const r = $('win' + w).getBoundingClientRect(); return { top: r.top + scroll, h: r.height }; });
+  R.windows = SECTIONS.map((_, w) => { const r = $('win' + w).getBoundingClientRect(); return { top: r.top + scroll, h: r.height, theme: SECTIONS[w].theme }; });
+  R.titles = SECTIONS.map((_, w) => { const r = $('title' + w).getBoundingClientRect(); return { top: r.top + scroll, h: r.height }; });
   texts.forEach((t) => { const r = t.el.getBoundingClientRect(); t.top = r.top + scroll; t.h = r.height; });
   chars.forEach((c) => { const r = c.el.getBoundingClientRect(); c.top = r.top + scroll; c.h = r.height; });
   tune(); renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.fov = LAY.fov; camera.updateProjectionMatrix();
@@ -297,7 +353,7 @@ const mx = { x: -100, y: -100, cx: -100, cy: -100 };
 window.addEventListener('pointermove', (e) => { mx.x = e.clientX; mx.y = e.clientY; mouse.x = (e.clientX / vw) * 2 - 1; mouse.y = (e.clientY / vh) * 2 - 1; });
 function setPill(text) { if (text === pillText) return; pillText = text; if (text) { pill.textContent = text; if (!pillShown) { pillShown = true; gsap.to(pill, { '--reveal': 1, duration: MOTION.cursor.inDuration, ease: MOTION.cursor.inEase, overwrite: true }); } } else if (pillShown) { pillShown = false; gsap.to(pill, { '--reveal': 0, duration: MOTION.cursor.outDuration, ease: MOTION.cursor.outEase, overwrite: true }); } }
 const quipEl = $('quip'); const v3 = new THREE.Vector3();
-const T = { blinkAt: 2.5, blink: false, earAt: 3, ear: 0, quipT: 0, quip: '', sit: 0, waveAt: 2.5, wave: 0, glance: { y: 0, p: 0 }, hover: { y: 0, p: 0 }, headY: 0, headP: 0, tailV: 0 };
+const T = { navLight: false, blinkAt: 2.5, blink: false, earAt: 3, ear: 0, quipT: 0, quip: '', sit: 0, waveAt: 2.5, wave: 0, glance: { y: 0, p: 0 }, hover: { y: 0, p: 0 }, headY: 0, headP: 0, tailV: 0 };
 function say(text, dur = 2.6, who = 'KOOKYTIGER') { T.quip = text; T.quipT = dur; quipEl.textContent = text; quipEl.dataset.who = who + '  '; }
 function glance(yaw, pitch) { const g = TIGER.glance; gsap.killTweensOf(T.glance); gsap.timeline().to(T.glance, { y: yaw, p: pitch, duration: g.turn, ease: 'power2.out' }).to(T.glance, { y: 0, p: 0, duration: g.back, ease: 'power2.inOut' }, `+=${g.hold}`); }
 const ray = new THREE.Raycaster(); let hoverTiger = false;
@@ -420,7 +476,7 @@ function frame(now) {
     if (Math.abs(a) < 0.75) { const u = clamp(0.5 - a, 0, 1); L.el.style.transform = `translate3d(0, ${(lerp(MOTION.drift.from, MOTION.drift.to, u) * LAY.drift).toFixed(2)}vh, 0)`; }
     if (a < 0.14 && a > -0.5 && !L.glanced && state === 'climb') { L.glanced = true; glance(TIGER.glance.yaw, TIGER.glance.pitch); }
     if (a > 0.3 || a < -0.6) L.glanced = false;
-    const flick = 1 + 0.08 * Math.sin(t * 9.3 + L.seed) + 0.05 * Math.sin(t * 17.1 + L.seed * 2); L.light.intensity = LIGHT.torch.intensity * flick * (1 - shoreMix * 0.7); L.flame.scale.setScalar(0.9 + 0.15 * flick); }
+    const flick = 1 + 0.08 * Math.sin(t * 9.3 + L.seed) + 0.05 * Math.sin(t * 17.1 + L.seed * 2); L.light.intensity = L.base * flick * (1 - shoreMix * 0.7); L.flame.scale.setScalar(0.9 + 0.15 * flick); }
   if (Math.abs(nearestA) > 0.5) activeCat = null;
 
   // ── head layers: glance (Laurens timing) + hover look-back + idle bits
@@ -436,14 +492,20 @@ function frame(now) {
   rig.apply();
   tigerHit.position.copy(rig.root.position).y += (state === 'climb' || state === 'edge') ? 0.1 : 0.4;
 
-  // ── sky: light everywhere; in a window, lean 25% toward the active category's tint; the shore flips lighter (800ms)
-  skyTarget.set(landed ? SKY.shore : SKY.bottom); if (!landed && inWindow >= 0 && activeCat) skyTarget.lerp(tmpC.set(CATS[activeCat].tint), SKY.windowMix);
+  // ── the room's skin (theme): switches while the section title paper covers the screen; the shore flips lighter (800ms)
+  let themeName = 'stone'; for (let i = 0; i < SECTIONS.length; i++) if (s >= R.titles[i].top / vh + 0.2) themeName = SECTIONS[i].theme;
+  const th = THEMES[themeName];
   const lk = 1 - Math.pow(0.001, dt / (SKY.flipMs / 1000));
+  skyTarget.set(landed ? SKY.shore : th.bg); if (!landed && inWindow >= 0 && activeCat && th.ink === 'dark') skyTarget.lerp(tmpC.set(CATS[activeCat].tint), SKY.windowMix);
   shoreMix = lerp(shoreMix, landed ? 1 : 0, lk);
   skyColor.lerp(skyTarget, lk); scene.fog.color.copy(skyColor);
-  key.intensity = lerp(key.intensity, landed ? LIGHT.key.intensityShore : LIGHT.key.intensity, lk);
-  hemi.intensity = lerp(hemi.intensity, landed ? LIGHT.hemi.intensityShore : LIGHT.hemi.intensity, lk); hemi.color.lerp(tmpC.set(landed ? LIGHT.hemi.skyShore : LIGHT.hemi.sky), lk); hemi.groundColor.lerp(tmpC.set(landed ? LIGHT.hemi.groundShore : LIGHT.hemi.ground), lk);
-  scene.fog.near = lerp(scene.fog.near, landed ? 24 : 14, lk); scene.fog.far = lerp(scene.fog.far, landed ? 110 : 46, lk);
+  key.intensity = lerp(key.intensity, landed ? LIGHT.key.intensityShore : th.key, lk); key.color.lerp(tmpC.set(landed ? LIGHT.key.color : th.keyColor), lk);
+  hemi.intensity = lerp(hemi.intensity, landed ? LIGHT.hemi.intensityShore : th.hemi, lk); hemi.color.lerp(tmpC.set(landed ? LIGHT.hemi.skyShore : th.hemiSky), lk); hemi.groundColor.lerp(tmpC.set(landed ? LIGHT.hemi.groundShore : th.hemiGround), lk);
+  camLight.intensity = lerp(camLight.intensity, landed ? 0 : th.camLight, lk); camLight.color.lerp(tmpC.set(th.camColor), lk);
+  scene.fog.near = lerp(scene.fog.near, landed ? 24 : th.fog[0], lk); scene.fog.far = lerp(scene.fog.far, landed ? 110 : th.fog[1], lk);
+  // nav ink flips only while the nav sits inside a dark window (Léo's toggleColor rule)
+  const navWin = R.windows.find((w) => scroll + 50 >= w.top && scroll + 50 < w.top + w.h); const navLight = !!navWin && THEMES[navWin.theme].ink === 'light' && !landed;
+  if (navLight !== T.navLight) { T.navLight = navLight; document.documentElement.classList.toggle('nav-light', navLight); }
 
   // ── quip bubble above the head
   T.quipT -= dt; if (T.quipT <= 0 && T.quip) T.quip = '';
