@@ -9,12 +9,14 @@ done  gamejam         Game Jam — player VS grandma (front views from the turna
 done  neighbors       Neighbors — the mouse, cut from the still
 done  scenic          隐藏的宝藏 — the lit reveal wall keyed off the black stage (reads best in the dark bar section)
 
-todo  giftme          GiftMe — a phone screenshot (the wishlist screen) or the app icon
-todo  plu             People Like Us — a frame of the finished GIF (or the GIF itself)
-todo  onebirth        One Birth Too Many — a Twine screenshot (the dinner table)
-todo  austin          Austin Vaccine Siting — the cluster map (SVI_heatmap.png / map.png from Drive)
-todo  alv             CASE × Ama La Vida — a chart from the deck (churn or pricing)
-todo  yello           CASE × Yello — a chart from the deck (ATS market share)
-todo  amg             AMG-786 — the pricing table or the revenue forecast chart
+done  giftme          GiftMe — the App Store icon (400px, transparent corners kept; --flat)
+done  plu             People Like Us — the Lulu label (587px source; --flat). Note: the card copy talks about the two-lobed logo animation; a frame of that GIF would match it better
+done  austin          Austin Vaccine Siting — the two cluster maps (512×225 source: soft; a bigger export would be sharper; --flat)
+done  alv             CASE × Ama La Vida — the "members switch into lower frequency plans" slide (--flat)
+done  yello           CASE × Yello — the "SaaS growth has largely kept pace" slide (--flat)
+done  amg             AMG-786 — the "current state of development" slide (--flat)
 
+todo  onebirth        One Birth Too Many — a Twine screenshot (the dinner table)
+
+--flat keeps a picture whole (icons, screenshots, slides, labels): no background removal, no silhouette. Use it for anything that is already a flat graphic.
 Claude runs merge/cutout.py on each and wires it into content.js (img: 'assets/projects/<slug>.webp').
