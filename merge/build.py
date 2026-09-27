@@ -26,6 +26,19 @@ for item in m.group(1).split(','):
     pairs.append(f'{b}:{a}')
 three_iife = 'const THREE=(()=>{' + body + '\nreturn {' + ','.join(pairs) + '};})();'
 
+# 1b) ES-module vendors (GLTFLoader + the one BufferGeometryUtils function it needs) → scoped blocks that read from the global THREE
+def esm_block(src, provides):
+    def imp(m):
+        names = ', '.join(n.strip().replace(' as ', ': ') for n in m.group(1).split(',') if n.strip())
+        return 'const { ' + names + ' } = THREE;'
+    src = re.sub(r"import\s*\{([^}]*)\}\s*from\s*'\./three\.module\.min\.js';", imp, src)
+    src = re.sub(r"import\s*\{[^}]*\}\s*from\s*'\./BufferGeometryUtils\.js';", '', src)
+    src = re.sub(r"^export\s*\{[^}]*\};?", '', src, flags=re.M)
+    src = re.sub(r"^export\s+", '', src, flags=re.M)
+    assert 'import ' not in re.sub(r"//[^\n]*", '', src).split('\n')[0], 'unconverted import'
+    return 'const { ' + ', '.join(provides) + ' } = (() => {\n' + src + '\nreturn { ' + ', '.join(provides) + ' };\n})();'
+gltf = esm_block(read('vendor/BufferGeometryUtils.js'), ['toTrianglesDrawMode']) + '\n' + esm_block(read('vendor/GLTFLoader.js'), ['GLTFLoader'])
+
 # 2) classic vendor scripts as-is
 vendors = '\n'.join(read(f'vendor/{n}') for n in ['gsap.min.js', 'SplitText.min.js', 'CustomEase.min.js', 'lenis.min.js'])
 
@@ -45,7 +58,7 @@ head = '\n'.join(head_lines) + '\n<style>\n' + css + '\n</style>'
 body = '\n'.join(body_lines).strip()
 scripts = ('<script>\n' + vendors + '\n</script>\n'
            '<script>\n' + three_iife + '\n</script>\n'
-           '<script>\n(() => {\n"use strict";\n' + content + '\n' + app + '\n})();\n</script>')
+           '<script>\n(() => {\n"use strict";\n' + gltf + '\n' + content + '\n' + app + '\n})();\n</script>')
 
 full = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n'
         + head + '\n</head>\n<body>\n' + body + '\n' + scripts + '\n</body>\n</html>\n')

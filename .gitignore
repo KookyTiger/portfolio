@@ -9,3 +9,6 @@ package-lock.json
 logs/
 .codex/
 merge/shots/
+assets/src/
+
+merge/writeups-private/

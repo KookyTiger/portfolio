@@ -9,7 +9,8 @@ const { chromium } = require('playwright');
   const p = await b.newPage({ viewport: { width: +(process.env.VW || 1440), height: +(process.env.VH || 900) } });
   const errs = []; p.on('pageerror', e => errs.push('PAGEERROR ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('CONSOLE ' + m.text().slice(0, 200)); });
   const file = (process.env.DIR || 'merge') === 'dist' ? path.join(root, 'dist', 'index.html') : path.join(root, 'preview.html');
-  await p.goto('file://' + file + '?snap=1'); await p.waitForTimeout(3000); await p.evaluate(() => gsap.ticker.lagSmoothing(0));
+  await p.goto(process.env.BASE ? process.env.BASE + (process.env.BASE.includes('?') ? '&' : '?') + 'snap=1' : 'file://' + file + '?snap=1');   // BASE=http://localhost:8000/preview.html: the GLB tiger only loads over http
+  if (process.env.BASE && !process.env.BASE.includes('rig')) await p.waitForFunction(() => window.__dbg && window.__dbg.glb, null, { timeout: 30000 }).catch(() => console.log('GLB tiger not ready, shooting the procedural one')); await p.waitForTimeout(3000); await p.evaluate(() => gsap.ticker.lagSmoothing(0));
   await p.mouse.move(1300, 60);
   const R = await p.evaluate(() => { const o = {}; document.querySelectorAll('section, footer').forEach(el => { if (!el.id) return; const r = el.getBoundingClientRect(); o[el.id] = [+((r.top + scrollY) / innerHeight).toFixed(2), +(r.height / innerHeight).toFixed(2)]; }); o.landS = window.__world.landS; return o; });
   console.log(JSON.stringify(R));

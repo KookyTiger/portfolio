@@ -75,7 +75,10 @@ export const SECTIONS = [
   { num: '02', title: 'DESIGN & INTERACTION', sub: 'games · apps · motion · vr · stage',         theme: 'bar',      pieces: [3, 4, 5, 6, 7, 8], value: ['{N_UP} MONSTERS.', 'EVERY ONE', 'HAD A', 'DEADLINE.'] },
   { num: '03', title: 'ANALYTICS & STRATEGY', sub: 'optimization · pricing · market sizing · finance', theme: 'computer', deck: true, pieces: [9, 10, 11, 12], value: ['HALF OF PRICING', 'IS DECIDING', 'WHAT NOT', 'TO COUNT.'] },
 ];
-export const TITLE_SCREENS = 1.4;                                  // the section title paper is taller than a screen: it hides the floor change
+export const TITLE_SCREENS = 0.6;                                  // the section title band (Kay, 2026-09-27: half a screen is enough); the floor change shows around it
+export const INTRO_SCREENS = 2.4;                                  // the intro window after the hero: the tiger leans off the ladder and talks (a game dialogue bubble)
+export const MEADOW_SCREENS = 3.4;                                 // the meadow window after the archives: landing, turn, sit, the talent show
+export const LAND_AT = 0.45;                                       // the landing, in screens after the meadow window's top reaches the top of the screen
 export const VALUE_SCREENS = 1;                                    // the value statement takes one screen at the end of its window, over the room
 
 // World skins. `ink: 'light'` = pale words and nav over a dark room (Léo flips his nav white over the library).
@@ -93,8 +96,7 @@ export const THEMES = {
 export const DECK = { z: 0.7, entry: 0.5, exit: 1.5, box: { desktop: [-0.9, 0.28, -0.6, 0.6], mobile: [-0.9, 0.9, -0.05, 0.8] }, bezel: 0.22, depth: 0.55, beige: 0xD8CDB4, dark: 0x2A2A2E };
 export const CARD_ART = 'photo';                                     // 'sil' = ink silhouette cut from the photo · 'photo' = the colour cut-out itself
 export const SCREEN_PER_CARD = 1.0;                                // vh per card inside a window
-export const SHORE_SCREENS = 2.3;                                  // extra screens at the end of the last window (landing, turn, sit)
-export const SHORE_TEXT_AT = 0.8;                                   // shore statement centre, in screens from the start of the shore: = the landing (shore − 1.5 + 2.3), so the words arrive with the tiger
+export const SHORE_TEXT_AT = LAND_AT;                               // shore statement centre, in screens into the meadow window: = the landing, so the words arrive with the tiger
 
 // The rail (Léo): camera position is a LINEAR function of page scroll, everywhere, paper included. Lenis is the only smoothing.
 // Léo's header cameraParams are rangePos (0, 2.4, 4) over the 200vh header: down 2.4, forward 4. We keep those numbers.
@@ -113,14 +115,27 @@ export const TIGER = {
   // scroll phases in screens (s = scroll / 100vh): idle → turnToWall → overEdge → climb → (landing) land → turnAround → sit
   idleEnd: 0.3, turnEnd: 0.7, edgeEnd: 1.3, landLen: 0.35, turnBackLen: 0.4,   // the edge is done before the hero paper covers the tiger
   glance: { yaw: 1.19, pitch: -0.32, turn: 0.15, hold: 0.4, back: 0.35 },   // Laurens headGlance: 68°, 28°, .15 s / .4 / .35
+  // Kay's tiger (Tripo model, rigged in Mixamo), built by merge/tools/tiger_anim.py: one clip per state (idle, turn, mount, climb, sit, wave).
+  // height = standing height in world units; lift = how much lower than the procedural rig its hips hang, so the chibi (big head, low hips)
+  // keeps the same place in the frame; z* = where it stands on the platform, at the edge, on the grass; xGround = the step left it takes
+  // off the ladder onto the grass (the stage for the talent show, clear of the pier and the rails); settle = how much further the camera
+  // sinks after the landing so the grass and the whole sitting tiger are in frame (phones need more). fallback = fractions of its height
+  // measured in Blender on the clips (ladder climb rise per cycle, rail half-width, hips in front of the ladder, left toe below the hips at the
+  // start phase, hips height at rest and at the start and top of the mount clip); the GLB's own samples replace them once it has loaded.
+  glb: { url: 'assets/tiger/tiger.glb', height: 1.9, lift: 0.55, liftMobile: 0.95, zStand: -1.0, zEdge: -0.3, zGround: 0.7, xGround: -0.45, settle: 0.45, settleMobile: 1.1,
+         fallback: { rise: 0.1359, rail: 0.149, depth: 0.107, relToe: -0.137, hipsRest: 0.207, mountStart: 0.172, mountEnd: 0.44 } },
 };
 
 export const COPY = {
   nav:    { name: 'KookyTiger', sub: 'Zishu Kay Tu', links: ['Work', 'About', 'Archives'] },
-  loader: { title: 'KookyTiger', sub: '{N} floors' },
+  entry:  { hint: 'Click the tiger', hintTouch: 'Tap the tiger', sub: 'or scroll' },            // the opening: the tiger alone on paper; a click, a wave, then the world
   header: { statement: ['{N_CAP} floors down.', 'A monster on each.'], scroll: 'Scroll to descend' },
   hero:   { words: ['KOOKY', 'T-SHAPED', 'TIGER'], reveal: ['MADE + RTVF', 'NORTHWESTERN ’27', 'WUHAN → EVANSTON'], indication: '(Click the tiger)' },
-  intro:  { big: ['你好.', 'I make products, films, games and spreadsheets — which is either four things or one thing, depending on which floor you catch me on.'], small: ['T-shaped, as in wide across and deep in one stem.', 'Also as in Tu. Also as in: every project below was a monster once. I went down and dealt with it.'], reel: 'Watch reel' },
+  // the intro is the tiger talking from the ladder, page by page (Kay's own words, unchanged); photo = a picture of Kay shown on hover (none yet)
+  intro:  { who: 'KOOKYTIGER', pages: [['你好.', 'I make products, films, games and spreadsheets — which is either four things or one thing, depending on which floor you catch me on.'],
+                                      ['T-shaped, as in wide across and deep in one stem.'],
+                                      ['Also as in Tu. Also as in: every project below was a monster once. I went down and dealt with it.']], photo: null },
+  talents: { hint: 'psst — click me', trigger: 'Ask for a trick', title: 'Talent show', close: 'Close', acts: [['dance', 'Dance', 'watch this.'], ['zombie', 'Zombie', 'braaains.'], ['catwalk', 'Catwalk', 'serving.']] },
   shore:  { words: ['THE OTHER', 'SHORE'], sub: '{N} floors down · grass, finally', sayhi: 'Say hi ↗', tiger: 'peace. for now.' },
   archives: { title: 'Archives', note: 'monsters too small to mention' },
   section:  { projects: 'projects' },

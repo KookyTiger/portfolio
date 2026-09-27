@@ -7,7 +7,8 @@
 //   The rig below is a procedural placeholder with the same clip grammar, so a skinned GLB can replace it later:
 //   each state is a function of (scroll phase) → pose, exactly like `action.time = f(scroll)`.
 import * as THREE from './vendor/three.module.min.js';
-import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, VALUE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_SCREENS, SHORE_TEXT_AT, RATE, CAMERA, TIGER, LEDGE_X, DECK, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
+import { GLTFLoader } from './vendor/GLTFLoader.js';
+import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, VALUE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_TEXT_AT, INTRO_SCREENS, MEADOW_SCREENS, LAND_AT, RATE, CAMERA, TIGER, LEDGE_X, DECK, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
 
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -17,6 +18,9 @@ const seg = (v, [a, b]) => clamp((v - a) / (b - a), 0, 1);
 const frac = (v) => v - Math.floor(v);
 const NP = PIECES.length;
 const PARAMS = new URLSearchParams(location.search); const SNAP = PARAMS.has('snap');
+// the opening is the top of the page: never restore a mid-page scroll on reload (it would open on blank paper with no tiger)
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+if (!SNAP || PARAMS.has('entry')) scrollTo(0, 0);
 const HALF = Math.PI / 2;
 
 gsap.registerPlugin(SplitText, CustomEase);
@@ -26,7 +30,9 @@ CustomEase.create('hide', MOTION.hide.ease);
 // ───────────────────────── DOM: build the page from content ─────────────────────────
 const NWORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen'][NP] || String(NP);
 const tpl = (t) => t.replace(/\{N_UP\}/g, NWORD.toUpperCase()).replace(/\{N_CAP\}/g, NWORD[0].toUpperCase() + NWORD.slice(1)).replace(/\{N\}/g, NWORD);
-$('ld-sub').textContent = tpl(COPY.loader.sub);
+$('vh-a').textContent = matchMedia('(hover: none)').matches ? COPY.entry.hintTouch : COPY.entry.hint; $('vh-b').textContent = COPY.entry.sub;
+$('bubble-who').textContent = COPY.intro.who; $('intro').style.setProperty('--n', INTRO_SCREENS);
+$('intro').innerHTML = `<div class="sr-only">${COPY.intro.pages.map((pg) => `<p>${pg.join(' ')}</p>`).join('')}</div>`;
 $('nav-brand').innerHTML = `${COPY.nav.name}<span>${COPY.nav.sub}</span>`;
 $('nav-links').textContent = 'Product, film, games, analytics';
 $('nav-right').innerHTML = COPY.nav.links.map((l, i) => `<a href="#" data-to="${['title0', 'intro', 'archives'][i]}">${l}</a>`).join('');
@@ -35,9 +41,6 @@ $('h-scroll').textContent = COPY.header.scroll;
 $('hero-words').innerHTML = COPY.hero.words.map((w, i) => `<span class="word"><span class="main">${w}</span><span class="alt">${COPY.hero.reveal[i]}</span></span>`).join('') + `<div class="ind">${COPY.hero.indication}</div>`;
 $('hero-l').innerHTML = `Raised in Wuhan<br>Designing anywhere`;
 $('hero-r').innerHTML = `Northwestern ’27<br>MaDE + RTVF`;
-$('intro-big').innerHTML = COPY.intro.big.map((t) => `<p class="split">${t}</p>`).join('');
-$('intro-small').innerHTML = COPY.intro.small.map((t) => `<p class="split">${t}</p>`).join('');
-$('intro-reel').textContent = COPY.intro.reel;
 const cardArt = (p) => { const src = CARD_ART === 'photo' ? (p.img || p.silImg) : (p.silImg || p.img); return src ? `<img src="${src}" alt="${p.name}" loading="lazy" decoding="async">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption>`; };
 const body = $('body'); let html = '';
 const deckIdx = SECTIONS.findIndex((x) => x.deck);
@@ -47,17 +50,19 @@ SECTIONS.forEach((sec, w) => {
   const last = w === SECTIONS.length - 1; const idx = sec.pieces; const dark = THEMES[sec.theme].ink === 'light';
   // screens the projects take: one per floating object, or entry + hold + exit when they live on the computer's screen
   const span = sec.deck ? DECK.entry + (idx.length - 1) + DECK.exit : idx.length * SCREEN_PER_CARD;
-  const n = span + VALUE_SCREENS + (last ? SHORE_SCREENS : 0);
+  const n = span + VALUE_SCREENS;
   html += `<section class="paper st title" id="title${w}" style="--n:${TITLE_SCREENS}"><div class="wrap"><p class="eyebrow mono">${sec.num} / ${String(SECTIONS.length).padStart(2, '0')} · ${idx.length} ${COPY.section.projects}</p><div class="big" id="title-big${w}">${sec.title.split(' & ').map((l, i, a) => `<span class="line">${l}${i < a.length - 1 ? ' &amp;' : ''}</span>`).join('')}</div><p class="sub split">${sec.sub}</p></div></section>`;
   html += `<section class="window${dark ? ' dark' : ''}" id="win${w}" data-theme="${sec.theme}" style="--n:${n}" aria-label="${sec.title}">`;
   if (!sec.deck) idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card${p.wide ? ' wide' : ''}" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}">
     <figure>${cardArt(p)}</figure>${projText(p, pi)}</div></article>`; });
   // the value statement: over the room, char by char (Léo's library statement) — never paper on paper
   html += `<div class="value-text${dark ? '' : ' halo'}" style="--i:${span}"><div class="big" id="value-big${w}">${sec.value.map((l) => `<span class="line">${tpl(l)}</span>`).join('')}</div></div>`;
-  if (last) html += `<div class="shore-text" style="--i:${span + VALUE_SCREENS + SHORE_TEXT_AT}"><div class="big" id="shore-big">${COPY.shore.words.map((x) => `<span class="split" style="display:block">${x}</span>`).join('')}</div><div class="sub split">${tpl(COPY.shore.sub)}</div><br><a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.shore.sayhi}</a></div>`;
   html += `</section>`;
 });
 body.innerHTML = html;
+// the meadow comes after the archives (Kay, 2026-09-27): landing, THE OTHER SHORE, turn, sit, the talent show; then the footer paper
+const meadowEl = $('meadow'); meadowEl.style.setProperty('--n', MEADOW_SCREENS); meadowEl.dataset.theme = SECTIONS[SECTIONS.length - 1].theme;
+meadowEl.innerHTML = `<div class="shore-text" style="--i:${SHORE_TEXT_AT}"><div class="big" id="shore-big">${COPY.shore.words.map((x) => `<span class="split" style="display:block">${x}</span>`).join('')}</div><div class="sub split">${tpl(COPY.shore.sub)}</div><br><a class="sayhi" href="mailto:${COPY.footer.email}">${COPY.shore.sayhi}</a><button class="trick mono" id="trick" type="button" disabled></button></div>`;
 // the computer's screen (floor 03): a fixed overlay laid over the projected screen plane every frame; one preview per screen of scroll
 const deckEl = $('deck');
 if (deckIdx >= 0) { const sec = SECTIONS[deckIdx], n = sec.pieces.length;
@@ -77,12 +82,12 @@ function openPanel(pi, from) { const p = PIECES[pi], d = p.detail || {}, L = COP
     ${sec(L.role, d.role)}${sec(L.tools, d.tools)}${sec(L.numbers, d.numbers)}${sec(L.one, d.one || p.take, 'one')}
     <figure class="blk">${p.img ? `<img src="${p.img}" alt="${p.name}">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg>`}</figure>
     <a class="ask blk" href="mailto:${COPY.footer.email}?subject=${encodeURIComponent(p.name)}">${L.ask}</a>`;
-  panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); panelScrim.classList.add('on'); panelOpen = true; panel.scrollTop = 0;
+  panel.classList.add('open'); panel.inert = false; panel.setAttribute('aria-hidden', 'false'); panelScrim.classList.add('on'); panelOpen = true; panel.scrollTop = 0;
   gsap.fromTo(panelInner.querySelectorAll('.blk'), { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'reveal', stagger: 0.05, delay: 0.12, overwrite: true });
   lenis.stop(); setTimeout(() => $('panel-close').focus({ preventScroll: true }), 50); }
-function closePanel() { if (!panelOpen) return; panelOpen = false; panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true }); }
+function closePanel() { if (!panelOpen) return; panelOpen = false; panel.classList.remove('open'); panel.inert = true; panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true }); }
 document.querySelectorAll('.card .in, .slide .in').forEach((el) => { const pi = +el.closest('[data-p]').dataset.p; el.addEventListener('click', () => openPanel(pi, el)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(pi, el); } }); });
-$('panel-close').addEventListener('click', closePanel); panelScrim.addEventListener('click', closePanel);
+panel.inert = true; $('panel-close').addEventListener('click', closePanel); panelScrim.addEventListener('click', closePanel);
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
 // the screen's own controls (floor 03): ← → keys, horizontal wheel / trackpad, drag — each maps onto page scroll, which drives the strip
 const deckStrip = deckIdx >= 0 ? $('deck-strip') : null;
@@ -238,8 +243,8 @@ const CLIMB = [ { ph: 0.25, lo: 0.67, planted: 0.6, z: -0.22 }, { ph: 0.75, lo: 
 CLIMB.forEach((b) => { b.hi = b.lo + TIGER.step * b.planted; });
 // layout tiers: phones get a narrower frame, so the camera shifts right, opens up, and the tiger hangs lower
 const LAY = { mobile: false, camX: CAMERA.x, fov: CAMERA.fov, glue: TIGER.glue, H0: 0, RUNG0: 0, drift: 1 };
-function tune() { LAY.mobile = vw < 820 || (vh > vw && vw < 1024);
-  LAY.camX = LAY.mobile ? 1.15 : CAMERA.x; LAY.fov = LAY.mobile ? 40 : CAMERA.fov; LAY.glue = LAY.mobile ? 1.55 : TIGER.glue; LAY.drift = LAY.mobile ? 0.5 : 1;
+function tune() { LAY.mobile = matchMedia('(max-width: 820px), (orientation: portrait) and (max-width: 1024px)').matches;   // the CSS phone tier
+  LAY.camX = LAY.mobile ? 1.15 : CAMERA.x; LAY.fov = LAY.mobile ? 40 : CAMERA.fov; LAY.glue = (LAY.mobile ? 1.55 : TIGER.glue) + (TIGER.glb && GT.ready ? (LAY.mobile ? TIGER.glb.liftMobile : TIGER.glb.lift) : 0); LAY.drift = LAY.mobile ? 0.5 : 1;
   LAY.H0 = -RATE * TIGER.edgeEnd - LAY.glue;                                                // hips y when the climb cycle is at c = 0
   LAY.RUNG0 = LAY.H0 + CLIMB[3].lo;                                                         // the rung the right foot lands on at c = 0; rungs every TIGER.rung
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, LAY.mobile ? 1.25 : 1.5)); key.shadow.mapSize.set(LAY.mobile ? 1024 : 2048, LAY.mobile ? 1024 : 2048); if (key.shadow.map) { key.shadow.map.dispose(); key.shadow.map = null; } }
@@ -257,6 +262,19 @@ const world = { objs: [], ledges: [], groundY: 0, landS: 0, camYMin: 0, floors: 
 // the rail: screens → camera y, linear (clamped at the landing) — except the hold in front of the computer's screen, where the
 // camera keeps still for (projects − 1) screens while the previews slide (Léo's camera also holds under his long papers)
 const camYAt = (s) => -RATE * (s - clamp(s - world.hold.s0, 0, world.hold.len));
+// where the camera passes each floor slab: when the section title band is centred on the screen (the band is half a screen now; the
+// slab going by around it is the floor change, seen like an elevator shot — Kay, 2026-09-27)
+const crossS = (i) => (R.titles[i].top + R.titles[i].h / 2) / vh - 0.5;
+// the room's skin, blended across each slab as the camera passes it (scroll-driven, so the colour change is continuous)
+const SKINS = ['stone', ...SECTIONS.map((x) => x.theme)], THB = { bg: new THREE.Color(), keyColor: new THREE.Color(), hemiSky: new THREE.Color(), hemiGround: new THREE.Color(), camColor: new THREE.Color(), fog: [0, 0] }, _ca = new THREE.Color(), _cb = new THREE.Color();
+function themeAt(s) {
+  let i = -1; for (let k = 0; k < SECTIONS.length; k++) if (s >= crossS(k) - 0.35) i = k;
+  const A = THEMES[SKINS[Math.max(0, i)]], B = THEMES[SKINS[i + 1] || SKINS[0]], m = i < 0 ? 0 : smooth(seg(s, [crossS(i) - 0.35, crossS(i) + 0.35])), P = i < 0 ? A : B;
+  const mix = (k, out) => out.copy(_ca.set(A[k])).lerp(_cb.set(P[k]), m);
+  mix('bg', THB.bg); mix('keyColor', THB.keyColor); mix('hemiSky', THB.hemiSky); mix('hemiGround', THB.hemiGround); mix('camColor', THB.camColor);
+  THB.key = lerp(A.key, P.key, m); THB.hemi = lerp(A.hemi, P.hemi, m); THB.camLight = lerp(A.camLight, P.camLight, m); THB.fog[0] = lerp(A.fog[0], P.fog[0], m); THB.fog[1] = lerp(A.fog[1], P.fog[1], m);
+  THB.ink = m < 0.5 ? A.ink : P.ink; return THB;
+}
 const hipsGlued = (s) => camYAt(s) - LAY.glue;
 const mat = (o) => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.9 }, o));
 const bx = (w, h, d, m, x, y, z, g, sh = true) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = sh; o.receiveShadow = true; g.add(o); return o; };
@@ -275,7 +293,7 @@ const PROPS = {
       bx(0.12, 1.2, 0.05, steel, -4.9, y, -2.68, g); bx(0.4, 0.3, 0.05, steel, -4.9, y + 0.65, -2.68, g);           // wrench
       bx(1.1, 0.3, 0.05, steel, -3.6, y + 0.4, -2.68, g); bx(0.35, 0.3, 0.05, wood, -2.95, y + 0.4, -2.68, g);     // saw
       for (let i = 0; i < 5; i++) cyl(0.035, 0.035, 0.7, steel, -4.2 + i * 0.28, y - 0.55, -2.66, g, 6);            // screwdrivers
-      const bulbY = y + 1.5; cyl(0.01, 0.01, 1.2, dark, -3.2, bulbY + 0.6, -1.6, g, 4); glow(0xffe0a8, 0.13, -3.2, bulbY, -1.6, g); lamp(0xffd9a0, 4, -3.2, bulbY - 0.15, -1.4, g, 7); }
+      const bulbY = y + 1.5, cord = Math.max(0.1, Math.min(1.2, yT - 0.05 - bulbY)); cyl(0.01, 0.01, cord, dark, -3.2, bulbY + cord / 2, -1.6, g, 4); glow(0xffe0a8, 0.13, -3.2, bulbY, -1.6, g); lamp(0xffd9a0, 4, -3.2, bulbY - 0.15, -1.4, g, 7); }
     bx(4.4, 0.16, 1.3, wood, -4.2, floor + 0.9, -1.7, g); for (const dx of [-2, 2]) for (const dz of [-0.5, 0.5]) bx(0.12, 0.9, 0.12, dark, -4.2 + dx, floor + 0.45, -1.7 + dz, g);   // workbench
     bx(0.5, 0.35, 0.4, steel, -5.6, floor + 1.16, -1.7, g); bx(0.7, 0.3, 0.32, red, -3.2, floor + 1.13, -1.8, g);                                                                    // vise + toolbox
     cyl(0.16, 0.16, 0.8, red, -7.2, floor + 0.4, -2.2, g, 12); cyl(0.05, 0.05, 0.16, dark, -7.2, floor + 0.88, -2.2, g, 8);                                                        // extinguisher
@@ -323,13 +341,15 @@ PROPS.computer = function (g, yT, yB) { const D = world.deck; if (!D) return; co
   for (let i = 0; i < 7; i++) bx(0.06, 0.014, 0.02, dark, -w / 2 + 0.14 + i * 0.1, -h / 2 - b * 0.55, 0.06, mon);
   bx(0.5, 0.05, 0.02, dark, 0, -h / 2 - b * 1.1, 0.06, mon);
   lamp(0xDCE6F5, 5, 0, 0, 1.3, mon, 11);                                                                                   // the screen lights the room (and the tiger)
-  // the desk (level, in front of the pier): top just under the monitor's foot, on four thin legs down to the grass (the middle of
-  // the frame stays open under it, so the meadow reads at the landing)
+  // the desk (level, in front of the pier): top just under the monitor's foot, on two thin back legs down to the grass (the frame stays
+  // open under it, so the meadow reads at the landing)
   const cP = Math.cos(P), sP = Math.sin(P); const botY = D.mid.y - (h / 2 + b * 1.7) * cP - 0.06;
   const deskY = botY - 0.36, zC = D.mid.z + 0.55, x0 = -9.5, x1 = X - 0.6;
   bx(0.9, 0.34, 0.8, beige2, D.mid.x, botY - 0.19, D.mid.z - 0.1, g);                                                        // the foot
   bx(x1 - x0, 0.14, 2.6, wood, (x0 + x1) / 2, deskY - 0.07, zC, g); bx(x1 - x0, 0.06, 2.5, mat({ color: 0x6B5236 }), (x0 + x1) / 2, deskY - 0.17, zC, g, false);
-  const legH = Math.max(0.2, deskY - 0.14 - G); for (const px of [x0 + 0.5, x1 - 0.2]) for (const pz of [zC - 1.0, zC + 1.0]) cyl(0.07, 0.09, legH, mat({ color: 0x5A4632, roughness: 0.8 }), px, deskY - 0.14 - legH / 2, pz, g, 8);
+  // one back leg, far left and out of the meadow shot; the desk's right end rests against the pier. At the landing the camera looks under
+  // the desk, and any leg near the ladder stood between it and the tiger (or in the talent show's way)
+  const legH = Math.max(0.2, deskY - 0.14 - G); for (const px of [x0 + 0.5]) cyl(0.07, 0.09, legH, mat({ color: 0x5A4632, roughness: 0.8 }), px, deskY - 0.14 - legH / 2, zC - 1.15, g, 8);
   // keyboard: a slab with instanced keycaps and a spacebar, tilted a little toward you
   const kb = new THREE.Group(); kb.position.set(D.mid.x - 0.25, deskY + 0.07, D.mid.z + 0.85); kb.rotation.x = 0.07; g.add(kb);
   const kw = w * 0.92; bx(kw, 0.12, 0.66, beige, 0, 0, 0, kb);
@@ -344,13 +364,15 @@ PROPS.computer = function (g, yT, yB) { const D = world.deck; if (!D) return; co
   bx(0.62, 1.0, 1.9, beige2, 0, 0, 0, tw); bx(0.36, 0.05, 0.02, dark, 0, 0.28, 0.96, tw); bx(0.36, 0.05, 0.02, dark, 0, 0.18, 0.96, tw); glow(0xFF9A5C, 0.02, 0.2, -0.2, 0.96, tw); glow(0x7CFF9A, 0.02, 0.12, -0.2, 0.96, tw);
   for (let i = 0; i < 5; i++) bx(0.3, 0.012, 0.02, dark, -0.05, -0.32 - i * 0.05, 0.96, tw);
   for (let i = 0; i < 2; i++) bx(0.36, 0.014, 0.36, mat({ color: i ? 0x2A3B6B : 0x1C1C1E, roughness: 0.6 }), tx + 0.05 + i * 0.05, deskY + 0.01 + i * 0.016, tz + 1.35, g, false);
-  cyl(0.012, 0.012, Math.max(0.1, deskY - G), dark, D.mid.x + 0.3, (deskY + G) / 2, D.mid.z - 0.75, g, 4);                   // the monitor's cable, down behind the desk
 };
 function buildWorld() {
   world.objs.forEach((o) => scene.remove(o)); world.objs = []; world.ledges = []; world.floors = []; window.__world = world; window.__scene = scene;
   const X = TIGER.x, L = TIGER.ledgeY;
-  const wl = R.windows[R.windows.length - 1]; world.landS = (wl.top + wl.h) / vh - 1.5; world.camYMin = camYAt(world.landS);
-  world.groundY = hipsGlued(world.landS) - 1.05;
+  // the landing: just after the meadow window arrives; the camera then settles a little lower so the grass and the whole tiger are in frame
+  world.landS = R.meadow.top / vh + LAND_AT; world.camYMin = camYAt(world.landS) - (GT.ready ? (LAY.mobile ? GB.settleMobile : GB.settle) : 0);
+  // the grass is just under the tiger's feet on its last rung: at the landing it only has to put its feet down, stand (hips at the mount
+  // clip's first pose) and turn — and it stays in the lower right of the clamped frame, like the rig did
+  const rigMode = !GT.ready, LM = ladderMetrics(); world.groundY = hipsGlued(world.landS) - (rigMode ? 1.05 : LM.mountStart + 0.03);   // the rig keeps its own numbers
   const G = world.groundY; deckFrame();
   // pier: the tiger's tower on the right, platform on top, ladder down its face (it runs through every floor)
   const pier = new THREE.Group(); scene.add(pier); world.objs.push(pier);
@@ -358,28 +380,31 @@ function buildWorld() {
   const pH = L - (G - 2); pierTex.repeat.set(2.4, pH / 2.6);
   const block = new THREE.Mesh(new THREE.BoxGeometry(6, pH, 2.5), pierMat); block.position.set(X + 1.5, (L + G - 2) / 2, -1.35); block.castShadow = true; block.receiveShadow = true; pier.add(block);
   const lip = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.18, 2.7), slabTop); lip.position.set(X + 1.5, L - 0.09, -1.35); lip.receiveShadow = true; lip.castShadow = true; pier.add(lip);
-  const railTop = L + 1.25, railH = railTop - (G + 0.05);
-  for (const sx of [-0.5, 0.5]) { const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, railH, 8), woodMat); rail.position.set(X + sx, (railTop + G + 0.05) / 2, TIGER.ladderZ); rail.castShadow = true; pier.add(rail);
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.4), woodMat); bar.position.set(X + sx, L + 1.0, TIGER.ladderZ - 0.16); pier.add(bar); }
-  const rungGeo = new THREE.CylinderGeometry(0.035, 0.035, 1.0, 8); rungGeo.rotateZ(HALF);
-  const topRung = LAY.RUNG0 + TIGER.rung * Math.floor((railTop - 0.15 - LAY.RUNG0) / TIGER.rung);
-  const nR = Math.floor((topRung - (G + 0.25)) / TIGER.rung) + 1; const rungs = new THREE.InstancedMesh(rungGeo, rungMat, nR); rungs.castShadow = true;
-  { const mm = new THREE.Matrix4(); for (let j = 0; j < nR; j++) { mm.makeTranslation(X, topRung - j * TIGER.rung, TIGER.ladderZ); rungs.setMatrixAt(j, mm); } }
+  // the ladder is sized by the tiger's climb clip: rails where its hands slide, rungs half a climb cycle apart (its feet step two rungs at a
+  // time, alternating), one rung under the left toe when the climb begins — so every planted foot is on a rung
+  // the GLB's ladder only pokes up a hand's height past the platform, so the standing tiger is not behind it
+  const railTop = L + (rigMode ? 1.25 : 0.45), railH = railTop - (G + 0.05), railX = rigMode ? 0.5 : LM.rail + 0.03, RUNG = rigMode ? TIGER.rung : LM.rung; if (!rigMode) LAY.RUNG0 = hipsGlued(TIGER.edgeEnd) + LM.relToe;
+  for (const sx of [-railX, railX]) { const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, railH, 8), woodMat); rail.position.set(X + sx, (railTop + G + 0.05) / 2, TIGER.ladderZ); rail.castShadow = true; pier.add(rail);
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.4), woodMat); bar.position.set(X + sx, L + (rigMode ? 1.0 : 0.3), TIGER.ladderZ - 0.16); pier.add(bar); }
+  const rungGeo = new THREE.CylinderGeometry(0.024, 0.024, 2 * railX, 8); rungGeo.rotateZ(HALF);
+  const topRung = LAY.RUNG0 + RUNG * Math.floor((railTop - 0.15 - LAY.RUNG0) / RUNG);
+  const nR = Math.floor((topRung - (G + 0.1)) / RUNG) + 1; const rungs = new THREE.InstancedMesh(rungGeo, rungMat, nR); rungs.castShadow = true;
+  { const mm = new THREE.Matrix4(); for (let j = 0; j < nR; j++) { mm.makeTranslation(X, topRung - j * RUNG, TIGER.ladderZ); rungs.setMatrixAt(j, mm); } }
   pier.add(rungs);
-  // floors: the rooms are stacked; the camera passes each slab while that section's title paper covers the screen
+  // floors: the rooms are stacked; the camera passes each slab when that section's title band is centred (crossS), in view, like an elevator
   const bounds = [L + 14]; const skins = ['stone'];
-  SECTIONS.forEach((sec, i) => { bounds.push(camYAt(R.titles[i].top / vh + 0.2)); skins.push(sec.theme); }); bounds.push(G - 2);
+  SECTIONS.forEach((sec, i) => { bounds.push(camYAt(crossS(i))); skins.push(sec.theme); }); bounds.push(G - 2);
   world.floors = bounds.slice(1, -1);
   for (let i = 0; i < skins.length; i++) { const name = skins[i], yTop = bounds[i], yBot = bounds[i + 1], Hh = yTop - yBot; const th = THEMES[name];
     const g = new THREE.Group(); scene.add(g); world.objs.push(g);
     const wt = themeTex(name, 'wall').clone(); wt.needsUpdate = true; wt.repeat.set(10, Hh / 4); const back = new THREE.Mesh(new THREE.PlaneGeometry(40, Hh), new THREE.MeshStandardMaterial({ map: wt, roughness: 0.95 })); back.position.set(0, (yTop + yBot) / 2, -2.8); back.receiveShadow = true; g.add(back);
     const st = themeTex(name, 'side').clone(); st.needsUpdate = true; st.repeat.set(3, Hh / 4); const side = new THREE.Mesh(new THREE.PlaneGeometry(12, Hh), new THREE.MeshStandardMaterial({ map: st, roughness: 0.95 })); side.position.set(-11, (yTop + yBot) / 2, 3.2); side.rotation.y = HALF; side.receiveShadow = true; g.add(side);
     if (i > 0) { const yS = yTop; const slabM = new THREE.MeshStandardMaterial({ color: th.ink === 'light' ? 0x2a2622 : 0xb8b2a4, roughness: 0.95 });   // the slab above this room (its ceiling), with a hatch for the ladder
-      for (const [x0, x1] of [[-16, X - 1.2], [X + 1.2, 16]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, 0.3, 7.6), slabM); m.position.set((x0 + x1) / 2, yS, 1.0); m.receiveShadow = true; m.castShadow = true; g.add(m); }
-      const rim = new THREE.Mesh(new THREE.BoxGeometry(2.4 + 0.3, 0.3, 0.1), new THREE.MeshStandardMaterial({ color: 0x6b5a3e, roughness: 0.6 })); rim.position.set(X, yS, 0.45); g.add(rim); }
+      for (const [x0, x1] of [[-16, X - 1.2], [X + 1.2, 16]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, 0.3, 5.3), slabM); m.position.set((x0 + x1) / 2, yS, -0.15); m.receiveShadow = true; m.castShadow = true; g.add(m); }
+}   // (no rim board at the hatch: now that the slab is seen, it cut across the tiger climbing through)
     PROPS[name] && PROPS[name](g, yTop - (i > 0 ? 0.15 : 0), yBot + (i < skins.length - 1 ? 0.15 : 0)); }
   // ledges with lamps on the left wall, one per card, at the tiger's feet when that card is centred
-  document.querySelectorAll('.card').forEach((el) => { const r = el.getBoundingClientRect(); const top = r.top + scroll; const sC = (top - vh / 2) / vh; const y = hipsGlued(sC) - 0.9; el.dataset.s = sC;
+  document.querySelectorAll('.card').forEach((el) => { const r = el.getBoundingClientRect(); const top = r.top + window.scrollY; const sC = (top - vh / 2) / vh; const y = hipsGlued(sC) - 0.9; el.dataset.s = sC;
     const th = THEMES[el.closest('.window').dataset.theme] || THEMES.stone;
     const g = new THREE.Group(); scene.add(g); world.objs.push(g);
     const w = LEDGE_X[1] - LEDGE_X[0], cx = (LEDGE_X[0] + LEDGE_X[1]) / 2;
@@ -400,23 +425,24 @@ function buildWorld() {
   const bank = new THREE.Mesh(new THREE.BoxGeometry(90, 0.5, 2.4), new THREE.MeshStandardMaterial({ color: 0xa08f6a, roughness: 1 })); bank.position.set(0, G - 0.3, 12); shore.add(bank);
   const gN = LAY.mobile ? 400 : 900; const grass = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07, 0.42, 0.07), new THREE.MeshStandardMaterial({ color: 0x93c979, roughness: 1 }), gN);
   const mm = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
-  for (let i = 0; i < gN; i++) { let x = (Math.random() - 0.5) * 30, z = 11 - Math.random() * 24; if (x > X - 1.6 && z < -0.1) x -= 6; e.set((Math.random() - 0.5) * 0.4, Math.random() * Math.PI, (Math.random() - 0.5) * 0.4); q.setFromEuler(e); p.set(x, G + 0.16, z); sc.set(1, 0.6 + Math.random() * 0.9, 1); mm.compose(p, q, sc); grass.setMatrixAt(i, mm); }
+  for (let i = 0; i < gN; i++) { let x = (Math.random() - 0.5) * 30, z = 11 - Math.random() * 24; if (x > X - 1.6 && z < -0.1) x -= 6; if (x > X - 2.9 && x < X + 0.8 && z > -0.1 && z < 2.8) x -= 4.4; e.set((Math.random() - 0.5) * 0.4, Math.random() * Math.PI, (Math.random() - 0.5) * 0.4); q.setFromEuler(e); p.set(x, G + 0.16, z); sc.set(1, 0.6 + Math.random() * 0.9, 1); mm.compose(p, q, sc); grass.setMatrixAt(i, mm); }
   grass.castShadow = true; shore.add(grass);
   const petalCols = [0xf6c1cf, 0xffe28a, 0xffffff, 0xf2a93b, 0xc7b8ff];
-  for (let i = 0; i < 60; i++) { let x = (Math.random() - 0.5) * 26, z = 10 - Math.random() * 20; if (x > X - 1.6 && z < -0.1) x -= 6; const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.45, 4), new THREE.MeshStandardMaterial({ color: 0x5fa04a })); stem.position.set(x, G + 0.22, z); shore.add(stem); const hd = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshStandardMaterial({ color: petalCols[i % petalCols.length], roughness: 0.8 })); hd.position.set(x, G + 0.46, z); shore.add(hd); }
+  for (let i = 0; i < 60; i++) { let x = (Math.random() - 0.5) * 26, z = 10 - Math.random() * 20; if (x > X - 1.6 && z < -0.1) x -= 6; if (x > X - 2.9 && x < X + 0.8 && z > -0.1 && z < 2.8) x -= 4.4; const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.45, 4), new THREE.MeshStandardMaterial({ color: 0x5fa04a })); stem.position.set(x, G + 0.22, z); shore.add(stem); const hd = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshStandardMaterial({ color: petalCols[i % petalCols.length], roughness: 0.8 })); hd.position.set(x, G + 0.46, z); shore.add(hd); }
   for (const [x, z, s] of [[-7, -1.2, 1.2], [-11, 4, 1.5], [10, 6, 1.1], [-4, 8, 0.9]]) { const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2 * s, 0.28 * s, 1.5 * s, 7), new THREE.MeshStandardMaterial({ color: 0x6a4d38 })); trunk.position.set(x, G + 0.75 * s, z); trunk.castShadow = true; shore.add(trunk); const crown = new THREE.Mesh(new THREE.SphereGeometry(1.3 * s, 12, 10), new THREE.MeshStandardMaterial({ color: 0x74b25a, roughness: 1 })); crown.position.set(x, G + 2.2 * s, z); crown.castShadow = true; shore.add(crown); }
 }
 
 // ───────────────────────── Layout ─────────────────────────
 const R = {};
 function measure() {
-  vh = innerHeight; vw = innerWidth;
-  for (const id of ['header', 'hero', 'intro', 'win0', 'archives', 'footer']) { const el = $(id); const r = el.getBoundingClientRect(); R[id] = { top: r.top + scroll, h: r.height }; }
-  R.windows = SECTIONS.map((_, w) => { const r = $('win' + w).getBoundingClientRect(); return { top: r.top + scroll, h: r.height, theme: SECTIONS[w].theme }; });
-  R.titles = SECTIONS.map((_, w) => { const r = $('title' + w).getBoundingClientRect(); return { top: r.top + scroll, h: r.height }; });
+  vh = innerHeight; vw = innerWidth; if (lenis.resize) lenis.resize(); const sy = window.scrollY;
+  for (const id of ['header', 'hero', 'intro', 'win0', 'archives', 'meadow', 'footer']) { const el = $(id); const r = el.getBoundingClientRect(); R[id] = { top: r.top + sy, h: r.height }; }
+  R.windows = SECTIONS.map((_, w) => { const r = $('win' + w).getBoundingClientRect(); return { top: r.top + sy, h: r.height, theme: SECTIONS[w].theme }; });
+  R.titles = SECTIONS.map((_, w) => { const r = $('title' + w).getBoundingClientRect(); return { top: r.top + sy, h: r.height }; });
+  R.worlds = [{ top: R.intro.top, h: R.intro.h, theme: 'stone' }, ...R.windows, { top: R.meadow.top, h: R.meadow.h, theme: SECTIONS[SECTIONS.length - 1].theme }];
   world.hold = deckIdx >= 0 ? { s0: R.windows[deckIdx].top / vh + DECK.entry, len: SECTIONS[deckIdx].pieces.length - 1 } : { s0: 0, len: 0 };
-  texts.forEach((t) => { const r = t.el.getBoundingClientRect(); t.top = r.top + scroll; t.h = r.height; });
-  chars.forEach((c) => { const r = c.el.getBoundingClientRect(); c.top = r.top + scroll; c.h = r.height; });
+  texts.forEach((t) => { const r = t.el.getBoundingClientRect(); t.top = r.top + sy; t.h = r.height; });
+  chars.forEach((c) => { const r = c.el.getBoundingClientRect(); c.top = r.top + sy; c.h = r.height; });
   tune(); renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.fov = LAY.fov; camera.updateProjectionMatrix();
   buildWorld();
 }
@@ -427,27 +453,24 @@ const mx = { x: -100, y: -100, cx: -100, cy: -100 };
 window.addEventListener('pointermove', (e) => { mx.x = e.clientX; mx.y = e.clientY; mouse.x = (e.clientX / vw) * 2 - 1; mouse.y = (e.clientY / vh) * 2 - 1; });
 function setPill(text) { if (text === pillText) return; pillText = text; if (text) { pill.textContent = text; if (!pillShown) { pillShown = true; gsap.to(pill, { '--reveal': 1, duration: MOTION.cursor.inDuration, ease: MOTION.cursor.inEase, overwrite: true }); } } else if (pillShown) { pillShown = false; gsap.to(pill, { '--reveal': 0, duration: MOTION.cursor.outDuration, ease: MOTION.cursor.outEase, overwrite: true }); } }
 const quipEl = $('quip'); const v3 = new THREE.Vector3();
-const T = { deckOn: false, deckK: -1, landedCls: false, inWorld: false, navLight: false, blinkAt: 2.5, blink: false, earAt: 3, ear: 0, quipT: 0, quip: '', sit: 0, waveAt: 2.5, wave: 0, glance: { y: 0, p: 0 }, hover: { y: 0, p: 0 }, headY: 0, headP: 0, tailV: 0 };
+const T = { peek: 0, menu: false, perf: null, hinted: false, deckOn: false, deckK: -1, landedCls: false, inWorld: false, navLight: false, blinkAt: 2.5, blink: false, earAt: 3, ear: 0, quipT: 0, quip: '', sit: 0, waveAt: 2.5, wave: 0, glance: { y: 0, p: 0 }, hover: { y: 0, p: 0 }, headY: 0, headP: 0, tailV: 0 };
 function say(text, dur = 2.6, who = 'KOOKYTIGER') { T.quip = text; T.quipT = dur; quipEl.textContent = text; quipEl.dataset.who = who + '  '; }
 function glance(yaw, pitch) { const g = TIGER.glance; gsap.killTweensOf(T.glance); gsap.timeline().to(T.glance, { y: yaw, p: pitch, duration: g.turn, ease: 'power2.out' }).to(T.glance, { y: 0, p: 0, duration: g.back, ease: 'power2.inOut' }, `+=${g.hold}`); }
 const ray = new THREE.Raycaster(); let hoverTiger = false; const clickNdc = new THREE.Vector2();
 // click the tiger: the paper and window sections sit over the canvas, so listen on the window and cast from the click itself
 // (this also makes a tap work on phones, where there is no hover to rely on)
-const pokeTiger = (e) => { if (panelOpen || !T.inWorld) return; if (e.target?.closest?.('a, button, .card .in, .slide .in, .nav, .panel, #deck')) return;
-  clickNdc.set((e.clientX / vw) * 2 - 1, -((e.clientY / vh) * 2 - 1)); ray.setFromCamera(clickNdc, camera); if (!ray.intersectObject(tigerHit).length) return;
-  glance(1.9, 0.6); T.waveAt = 0; say(['kooky.', 'again?', 'which floor is this.', 'that tickles.'][Math.floor(Math.random() * 4)]); };
+const pokeTiger = (e) => { if (ENTRY.phase === 'void') { entryGo(); return; } if (ENTRY.phase !== 'done' || panelOpen || !T.inWorld) return;
+  if (e.target?.closest?.('a, button, .card .in, .slide .in, .nav, .panel, #deck, #talents')) return;
+  clickNdc.set((e.clientX / vw) * 2 - 1, -((e.clientY / vh) * 2 - 1)); ray.setFromCamera(clickNdc, camera); if (!ray.intersectObject(tigerHit).length) { if (T.menu) talents(false); return; }
+  if (GT.ready && state === 'sit' && T.sit > 0.8) { talents(!T.menu); return; }                    // on the meadow: the talent show
+  if (state === 'idle') T.wave = 1.6; glance(1.9, 0.6); T.waveAt = 0; say(['kooky.', 'again?', 'which floor is this.', 'that tickles.'][Math.floor(Math.random() * 4)]); };
 window.addEventListener('click', pokeTiger);
 let booted = false;
-(async () => {
-  const t0 = performance.now(); let p = 0;
-  const tick = () => { const el = performance.now() - t0; p = Math.min(0.92, el / 1400); $('ld-pct').textContent = String(Math.round(p * 100)).padStart(3, '0'); $('ld-bar').style.width = (p * 100).toFixed(1) + '%'; if (!booted) requestAnimationFrame(tick); };
-  tick();
+(async () => {                                                // no loader any more: the opening (paper + the tiger) is the first screen
   await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]);
-  await new Promise((r) => setTimeout(r, Math.max(0, 1400 - (performance.now() - t0))));
-  booted = true; $('ld-pct').textContent = '100'; $('ld-bar').style.width = '100%';
-  measure();
-  setTimeout(() => { $('loader').classList.add('off'); lenis.start(); }, 250);
-  setTimeout(() => { const st = texts.find((t) => t.el.id === 'h-statement'); const sc = texts.find((t) => t.el.id === 'h-scroll'); st && (st.stagger = MOTION.reveal.heroStagger, st.reveal()); sc && setTimeout(() => sc.reveal(), 500); }, 250 + 900);
+  booted = true; measure(); if (ENTRY.phase === 'done') entryDone();
+  await Promise.race([tigerLoad, new Promise((r) => setTimeout(r, 6000))]);
+  document.documentElement.classList.add('entry-ready');
 })();
 
 // ───────────────────────── Character states (each a function of the scroll phase → pose) ─────────────────────────
@@ -505,8 +528,208 @@ function stSit(t, dt) { const X = TIGER.x, G = world.groundY, k = smooth(T.sit);
   if (wv > 0) wp[1].lerp(_a.set(X + 0.36 + 0.05 * Math.sin(t * 14), G + 0.92 + 0.04 * Math.sin(t * 14 + 1), 0.95 - 0.25), wv);
   for (let i = 0; i < 4; i++) { P.targets[i].copy(wp[i]); P.world[i] = true; } }
 
+// ───────────────────────── The tiger GLB: Kay's Tripo model rigged in Mixamo, one clip per state ─────────────────────────
+// assets/tiger/tiger.glb (merge/tools/tiger_anim.py): clips idle, turn, mount (Start Climbing Ladder), climb (Climbing Ladder), sit, wave.
+// Every locomotion clip's time is a function of the scroll phase (Laurens: action.time = f(scroll)); idle, sit and wave run on time. Root
+// motion is stripped where the site moves the tiger itself: the climb is glued to the camera, the mount keeps only its up-and-down. Until
+// the GLB loads, and if it fails (or with ?rig), the procedural Rig above plays.
+const GB = TIGER.glb, HS = GB.height, UP = new THREE.Vector3(0, 1, 0);
+const GT = { ready: false, failed: false, root: new THREE.Group(), model: null, mixer: null, act: {}, dur: {}, bone: {}, hipsRest: 0, climb: null, mount: null, turnYaw0: 0 };
+const gv = [V(), V(), V(), V()], gq = [new THREE.Quaternion(), new THREE.Quaternion(), new THREE.Quaternion(), new THREE.Quaternion()];
+function ladderMetrics() {                                   // world units: sampled from the GLB once it is in, Blender-measured fractions before
+  const C = GT.climb, F = GB.fallback;
+  return C ? { rise: C.rise, rung: C.rise / 2, rail: C.rail, depth: C.depth, relToe: C.relToe, hipsRest: GT.hipsRest, mountStart: GT.mount.h0, mountEnd: GT.mount.hEnd }
+           : { rise: F.rise * HS, rung: F.rise * HS / 2, rail: F.rail * HS, depth: F.depth * HS, relToe: F.relToe * HS, hipsRest: F.hipsRest * HS, mountStart: F.mountStart * HS, mountEnd: F.mountEnd * HS };
+}
+function loadTiger() { return new Promise((res) => {
+  if (!GB || PARAMS.has('rig')) { GT.failed = true; return res(false); }
+  new GLTFLoader().load(GB.url, (g) => { try { setupTiger(g); res(true); } catch (e) { console.error('tiger.glb setup failed, keeping the procedural tiger', e); GT.failed = true; GT.ready = false; GT.root.visible = false; rig.root.visible = true; res(false); } },
+    undefined, (e) => { console.warn('tiger.glb did not load, keeping the procedural tiger', e); GT.failed = true; res(false); }); }); }
+function setupTiger(gltf) {
+  const model = gltf.scene; GT.model = model; GT.root.add(model); scene.add(GT.root); GT.root.visible = false;
+  let skin = null;
+  model.traverse((o) => { if (o.isSkinnedMesh) skin = o; if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false; if (o.material) { o.material.roughness = 0.85; o.material.metalness = 0; o.material.side = THREE.FrontSide; } } });
+  for (const n of ['Hips', 'Spine', 'Spine1', 'Spine2', 'Neck', 'Head', 'LeftUpLeg', 'RightUpLeg', 'LeftToeBase', 'RightToeBase', 'LeftHand', 'RightHand']) { GT.bone[n] = model.getObjectByName('mixamorig' + n); if (!GT.bone[n]) throw new Error('missing bone ' + n); }
+  // size: the bind pose's height → HS; feet on y = 0, hips over the origin
+  const bbox = () => { model.updateMatrixWorld(true); skin.computeBoundingBox(); return skin.boundingBox.clone().applyMatrix4(skin.matrixWorld); };
+  let bb = bbox(); model.scale.multiplyScalar(HS / (bb.max.y - bb.min.y)); bb = bbox();
+  GT.bone.Hips.getWorldPosition(gv[0]); model.position.set(-gv[0].x, -bb.min.y, -gv[0].z); model.updateMatrixWorld(true);
+  GT.hipsRest = GT.bone.Hips.getWorldPosition(gv[0]).y;
+  const hipsRestLocal = GT.bone.Hips.position.clone(); GT.bone.Hips.parent.getWorldQuaternion(gq[0]); const upL = UP.clone().applyQuaternion(gq[0].invert()).normalize();
+  const clips = {}; for (const c of gltf.animations) clips[c.name] = c;
+  for (const n of ['idle', 'turn', 'mount', 'climb', 'sit', 'wave']) if (!clips[n]) throw new Error('missing clip ' + n);
+  const mixer = new THREE.AnimationMixer(model); GT.mixer = mixer; const acts = {};
+  const poseAt = (clip, time) => { const a = acts[clip.name] || (acts[clip.name] = mixer.clipAction(clip)); a.play();
+    for (const k in acts) { acts[k].enabled = acts[k] === a; acts[k].setEffectiveWeight(acts[k] === a ? 1 : 0); } a.time = time; mixer.update(0); model.updateMatrixWorld(true); };
+  const wp = (n, out) => GT.bone[n].getWorldPosition(out);
+  const facing = () => { wp('RightUpLeg', gv[0]); wp('LeftUpLeg', gv[1]); gv[2].crossVectors(UP, gv[0].sub(gv[1])); return Math.atan2(gv[2].x, gv[2].z); };   // 0 = facing the camera (+z)
+  const strip = (clip, keepVertical) => { const tr = clip.tracks.find((t) => t.name === GT.bone.Hips.name + '.position'); if (!tr) return; const v = tr.values;
+    for (let i = 0; i < v.length; i += 3) { gv[0].set(v[i], v[i + 1], v[i + 2]).sub(hipsRestLocal); const k = keepVertical ? gv[0].dot(upL) : 0; gv[1].copy(hipsRestLocal).addScaledVector(upL, k); v[i] = gv[1].x; v[i + 1] = gv[1].y; v[i + 2] = gv[1].z; } };
+  // climb (with its root motion): how far one cycle rises, when the left foot is planted, where the hands and feet are
+  { const c = clips.climb, N = 60, hy = [], hx = [], hz = [], tl = [], tr = [], tz = [], hl = [], hr = [];
+    for (let i = 0; i <= N; i++) { poseAt(c, c.duration * i / N); wp('Hips', gv[0]); hy.push(gv[0].y); hx.push(gv[0].x); hz.push(gv[0].z);
+      wp('LeftToeBase', gv[1]); tl.push(gv[1].y); tz.push(gv[1].z); wp('RightToeBase', gv[2]); tr.push(gv[2].y); wp('LeftHand', gv[3]); hl.push(gv[3].x - gv[0].x); wp('RightHand', gv[3]); hr.push(gv[3].x - gv[0].x); }
+    const rise = hy[N] - hy[0], m = []; for (let i = 0; i <= N; i++) m.push(Math.min(rise, Math.max(i ? m[i - 1] : 0, hy[i] - hy[0])));
+    let best = [0, 0], run = 0; for (let i = 1; i <= N; i++) { run = Math.abs(tl[i] - tl[i - 1]) < 0.004 * HS ? run + 1 : 0; if (run > best[1]) best = [i - Math.floor(run / 2), run]; }
+    const i0 = best[0]; let pr = 0, prn = 0; for (let i = 1; i <= N; i++) if (Math.abs(tr[i] - tr[i - 1]) < 0.004 * HS) { pr += tr[i] - (hy[i] - hy[i0]); prn++; }
+    const tOf = (r) => { let i = 0; while (i < N - 1 && m[i + 1] < r) i++; const d = m[i + 1] - m[i]; return c.duration * (i + (d > 1e-6 ? clamp((r - m[i]) / d, 0, 1) : 0)) / N; };
+    GT.climb = { rise, r0: m[i0], tOf, relToe: tl[i0] - hy[i0], rail: (hl.reduce((a, b) => a + Math.abs(b), 0) + hr.reduce((a, b) => a + Math.abs(b), 0)) / (2 * (N + 1)),
+                 depth: hz.reduce((a, b, i) => a + (b - tz[i]), 0) / (N + 1), rightVsLeft: prn ? (pr / prn - tl[i0]) : null };
+    strip(c, false); }
+  strip(clips.mount, true); strip(clips.sit, true);          // the sit keeps its drop to the grass, not its drift sideways
+  { const c = clips.mount, N = 60, h = [], f = []; for (let i = 0; i <= N; i++) { poseAt(c, c.duration * i / N); h.push(wp('Hips', gv[0]).y); f.push(facing()); }
+    let ia = N; for (let i = 0; i <= N; i++) if (Math.abs(Math.atan2(Math.sin(f[i] - Math.PI), Math.cos(f[i] - Math.PI))) < 0.3) { ia = i; break; }
+    const H = (t) => { const x = clamp(t / c.duration, 0, 1) * N, i = Math.min(N - 1, Math.floor(x)); return lerp(h[i], h[i + 1], x - i); };
+    GT.mount = { h: H, ta: c.duration * ia / N, hEnd: h[N], h0: h[0] }; }
+  poseAt(clips.turn, 0); GT.turnYaw0 = facing();
+  const RARM = /^mixamorigRight(Shoulder|Arm|ForeArm|Hand)/;
+  const sub = (clip, name, keep) => new THREE.AnimationClip(name, clip.duration, clip.tracks.filter((t) => keep(t.name.split('.')[0])));
+  // the right arm is its own layer on the idle and the sit, so the wave can take it over while the body keeps the base clip
+  const use = { idleBody: sub(clips.idle, 'idleBody', (n) => !RARM.test(n)), idleArm: sub(clips.idle, 'idleArm', (n) => RARM.test(n)), turn: clips.turn, mount: clips.mount, climb: clips.climb,
+                sitBody: sub(clips.sit, 'sitBody', (n) => !RARM.test(n)), sitArm: sub(clips.sit, 'sitArm', (n) => RARM.test(n)), waveArm: sub(clips.wave, 'waveArm', (n) => RARM.test(n)) };
+  for (const n of ['dance', 'zidle', 'zscream', 'zattack', 'catwalk']) if (clips[n]) use[n] = clips[n];      // the meadow's talent show
+  if (clips.catwalk) {                                       // the catwalk's hips path on the ground (model frame, yaw 0), for planWalk()
+    const c = clips.catwalk, N = 30; GT.walkPath = []; poseAt(c, 0); const a = wp('Hips', gv[0]).clone();
+    for (let i = 0; i <= N; i++) { poseAt(c, c.duration * i / N); wp('Hips', gv[1]); GT.walkPath.push([gv[1].x - a.x, gv[1].z - a.z]); } }
+  for (const n in use) { const a = acts[use[n].name] || mixer.clipAction(use[n]); a.play(); a.setEffectiveWeight(0); GT.act[n] = a; GT.dur[n] = use[n].duration; }
+  GT.look = ['Spine', 'Spine1', 'Spine2', 'Neck', 'Head'].map((n) => [GT.bone[n], new THREE.Quaternion()]); GT.lookSaved = false;
+  model.traverse((o) => { if (o.isMesh && o.material) { o.material.fog = ENTRY.phase === 'done'; o.material.needsUpdate = true; } });
+  GT.ready = true; rig.root.visible = false; GT.root.visible = true;
+  window.__tiger = { hipsRest: GT.hipsRest, climb: { rise: GT.climb.rise, rung: GT.climb.rise / 2, relToe: GT.climb.relToe, rail: GT.climb.rail, depth: GT.climb.depth, rightVsLeft: GT.climb.rightVsLeft }, mount: { ta: GT.mount.ta, h0: GT.mount.h0, hEnd: GT.mount.hEnd }, turnYaw0: GT.turnYaw0, dur: GT.dur, walkPath: GT.walkPath };
+  if (R.win0) measure();                                     // rebuild the ladder and the ground from the GLB's own numbers
+}
+const climbTime = (s) => { const C = GT.climb, D = hipsGlued(TIGER.edgeEnd) - hipsGlued(s); return C.tOf((((C.r0 - D) % C.rise) + C.rise) % C.rise); };   // descending = the climb-up clip backwards
+function glbFrame(s, t) {
+  const state = T.perf && T.perf.fadeAt != null ? 'sit' : stateNow();   // an act easing out keeps the sit spot until it has faded
+  const X = TIGER.x, L = TIGER.ledgeY, sl = world.landS, M = ladderMetrics(), zHang = TIGER.ladderZ + M.depth, Rt = GT.root, W = {}; let yaw = 0;
+  if (state === 'idle') { const wv = T.waveK || 0, ti = t % GT.dur.idleBody; W.idleBody = [ti, 1]; W.idleArm = [ti, 1 - wv]; W.waveArm = [t % GT.dur.waveArm, wv]; Rt.position.set(X, L, GB.zStand); }
+  else if (state === 'turn') { const u = seg(s, [TIGER.idleEnd, TIGER.turnEnd]); W.turn = [u * GT.dur.turn, 1]; yaw = -GT.turnYaw0; Rt.position.set(X, L, GB.zStand); }
+  else if (state === 'edge') {                                // back up to the edge, then down over it onto the ladder; hand over to the climb
+    const u = seg(s, [TIGER.turnEnd, TIGER.edgeEnd]), tm = lerp(GT.mount.ta, GT.dur.mount, u), kc = smooth(seg(u, [0.75, 1]));
+    W.mount = [tm, 1 - kc]; W.climb = [climbTime(TIGER.edgeEnd), kc];
+    const yHang = hipsGlued(TIGER.edgeEnd) - lerp(GT.mount.h(tm), M.hipsRest, kc);
+    Rt.position.set(X, lerp(L, yHang, smooth(seg(u, [0.3, 1]))), lerp(lerp(GB.zStand, GB.zEdge, smooth(seg(u, [0, 0.35]))), zHang, smooth(seg(u, [0.35, 0.85])))); }
+  else if (state === 'climb') { W.climb = [climbTime(s), 1]; Rt.position.set(X - 0.16 * (T.peek || 0), hipsGlued(s) - M.hipsRest, zHang); }   // leans off the ladder in the intro
+  else if (state === 'land' || state === 'turnBack') {       // the mount clip backwards: off the ladder, down to the grass, turn to face you
+    const U = seg(s, [sl, sl + TIGER.landLen + TIGER.turnBackLen]), tm = GT.dur.mount * (1 - U), kc = 1 - smooth(seg(U, [0, 0.12]));
+    W.mount = [tm, 1 - kc]; W.climb = [climbTime(sl), kc];
+    const hips = lerp(hipsGlued(sl), world.groundY + GT.mount.h0, smooth(seg(U, [0.05, 0.6])));     // the hips barely drop; the clip lowers the feet
+    const mv = smooth(seg(U, [0.08, 0.7])); Rt.position.set(X + GB.xGround * mv, lerp(hips - GT.mount.h(tm), hipsGlued(sl) - M.hipsRest, kc), lerp(zHang, GB.zGround, mv)); }
+  else {                                                      // sit (time-driven once landed and turned), the right arm waves now and then; the talent show on top
+    const k = smooth(T.sit), wv = T.waveK || 0, ts = t % GT.dur.sitBody, q = T.perf ? perfPose(T.perf) : null, wS = q ? 1 - q.w : 1;
+    W.mount = [0, (1 - k) * wS]; W.sitBody = [ts, k * wS]; W.sitArm = [ts, k * (1 - wv) * wS]; W.waveArm = [t % GT.dur.waveArm, k * wv * wS];
+    if (q) for (const [n, tm, w] of q.clips) W[n] = [tm, w * q.w];
+    Rt.position.set(X + GB.xGround + (q ? q.dx : 0), world.groundY, GB.zGround + (q ? q.dz : 0)); yaw = q ? q.yaw : 0; }
+  for (const n in GT.act) { const a = GT.act[n], v = W[n], w = v ? v[1] : 0; a.enabled = w > 1e-4; a.setEffectiveWeight(w); if (v) a.time = v[0]; }
+  // the mixer only writes a bone when its value changes: when the clip time stands still (the panel open, the page not scrolling) the head
+  // would keep last frame's look rotation and spin as it is added again — so put the clean clip pose back before every update
+  if (GT.lookSaved) for (const [b, q] of GT.look) b.quaternion.copy(q);
+  Rt.rotation.y = yaw; GT.mixer.update(0); for (const [b, q] of GT.look) q.copy(b.quaternion); GT.lookSaved = true; Rt.updateMatrixWorld(true);
+}
+// the head layer on top of the clip: glance at a project / look back over the shoulder, as extra world rotation on the neck and head
+function headLook(yaw, pitch, spine = 0) {
+  if (Math.abs(yaw) + Math.abs(pitch) < 1e-4) return;
+  GT.bone.RightUpLeg.getWorldPosition(gv[0]); GT.bone.LeftUpLeg.getWorldPosition(gv[1]); const right = gv[0].sub(gv[1]).normalize();
+  const parts = [[GT.bone.Spine, spine / 3, 0], [GT.bone.Spine1, spine / 3, 0], [GT.bone.Spine2, spine / 3, 0], [GT.bone.Neck, (1 - spine) * 0.35, 0.35], [GT.bone.Head, (1 - spine) * 0.65, 0.65]];
+  for (const [b, k, kp] of parts) { if (k < 1e-4 && kp * Math.abs(pitch) < 1e-4) continue;
+    b.parent.getWorldQuaternion(gq[0]); b.getWorldQuaternion(gq[1]);
+    gq[2].setFromAxisAngle(UP, yaw * k).multiply(gq[3].setFromAxisAngle(right, pitch * kp));
+    b.quaternion.copy(gq[0].invert().multiply(gq[1].premultiply(gq[2]))); b.updateMatrixWorld(true); }
+}
+// the tiger's head on screen, px: centre, left edge, top (to keep the bubble and the menu off its face)
+function headBox() { if (GT.ready) GT.bone.Head.getWorldPosition(gv[2]).add(gv[3].set(0, HS * 0.2, 0)); else tigerPoint(gv[2], true).add(gv[3].set(0, -0.3, 0));
+  v3.copy(gv[2]).project(camera); const x = (v3.x + 1) / 2 * vw, y = (1 - v3.y) / 2 * vh; const r = GT.ready ? HS * 0.25 : 0.35;
+  v3.copy(gv[2]).add(gv[3].set(-r, 0, 0)).project(camera); const left = (v3.x + 1) / 2 * vw; v3.copy(gv[2]).add(gv[3].set(0, r, 0)).project(camera);
+  return { x, y, left: Math.min(left, x - 10), top: (1 - v3.y) / 2 * vh }; }
+const tigerPoint = (out, top) => GT.ready ? (top ? GT.bone.Head.getWorldPosition(out).add(gv[3].set(0, HS * 0.42, 0)) : GT.bone.Hips.getWorldPosition(out))
+  : out.copy(rig.root.position).add(gv[3].set(0, (state === 'climb' || state === 'edge') ? (top ? 1.2 : 0.1) : (top ? 1.35 : 0.4), 0));
+// ───────────────────────── The meadow's talent show (Kay, 2026-09-27): click the tiger after it sits, pick an act ─────────────────────────
+// segments [clip, from, to (null = its end)] play back to back, 0.25 s crossfades; the catwalk walks one wide 180° turn out and the same
+// clip back (root turned half round), so it ends where it started
+const PERF = { dance: [['dance', 0, 9.5]], zombie: [['zidle', 0, 1.6], ['zscream', 0, null], ['zattack', 0, null]], catwalk: [['catwalk', 0, null], ['catwalk', 0, null]] };
+function perfPose(P) {
+  const segs = PERF[P.kind], lens = segs.map(([n, a, b]) => (b ?? GT.dur[n]) - a), total = lens.reduce((x, y) => x + y, 0);
+  if (P.t >= total + 0.5 || (P.fadeAt != null && P.t - P.fadeAt >= 0.4)) { T.perf = null; return null; }
+  let j = 0, acc = 0; while (j < segs.length - 1 && P.t >= acc + lens[j]) { acc += lens[j]; j++; }
+  const tt = Math.min(P.t - acc, lens[j]), [n, a] = segs[j], clips = [[n, a + tt, 1]];
+  if (j > 0 && segs[j - 1][0] !== n && tt < 0.25) { const x = smooth(tt / 0.25); clips[0][2] = x; clips.push([segs[j - 1][0], segs[j - 1][1] + lens[j - 1], 1 - x]); }
+  const w = smooth(Math.min(1, P.t / 0.4)) * (1 - smooth(clamp((P.t - total) / 0.5, 0, 1))) * (P.fadeAt != null ? 1 - smooth((P.t - P.fadeAt) / 0.4) : 1);   // fadeAt: scrolled away mid-act
+  let yaw = 0, dx = 0, dz = 0;
+  if (P.kind === 'catwalk' && GT.walk) {                      // walk out across the open grass (planWalk's heading), turn, walk back
+    const Wk = GT.walk, yl = j === 0 ? Wk.y : Wk.y + Math.PI; yaw = yl * w; if (j > 0) { dx = Wk.ex * w; dz = Wk.ez * w; }
+    if (Wk.k < 1) { const f = Math.min(tt / lens[j], 1), i = f * (GT.walkPath.length - 1), i0 = Math.floor(i), i1 = Math.min(i0 + 1, GT.walkPath.length - 1), u = i - i0;
+      const px = lerp(GT.walkPath[i0][0], GT.walkPath[i1][0], u) * (Wk.k - 1), pz = lerp(GT.walkPath[i0][1], GT.walkPath[i1][1], u) * (Wk.k - 1), c = Math.cos(yl), sn = Math.sin(yl);
+      dx += (px * c + pz * sn) * w; dz += (-px * sn + pz * c) * w; } }
+  return { clips, w, yaw, dx, dz };
+}
+const talentsEl = $('talents');
+talentsEl.innerHTML = `<p class="who mono">${COPY.talents.title}</p><div class="acts">${COPY.talents.acts.map(([k, label]) => `<button type="button" data-act="${k}">${label}</button>`).join('')}</div>`;
+function talents(open) { const was = T.menu; T.menu = open; talentsEl.classList.toggle('on', open); talentsEl.inert = !open; talentsEl.setAttribute('aria-hidden', open ? 'false' : 'true');
+  if (open && !was) { T.menuFrom = document.activeElement; setTimeout(() => talentsEl.querySelector('button')?.focus({ preventScroll: true }), 30); }
+  else if (!open && talentsEl.contains(document.activeElement)) { const f = T.menuFrom; T.menuFrom = null; if (f && f.focus && f !== document.body) f.focus({ preventScroll: true }); else document.activeElement.blur(); } }
+talentsEl.inert = true;
+const trickEl = $('trick'); if (trickEl) { trickEl.textContent = COPY.talents.trigger; trickEl.addEventListener('click', (e) => { e.stopPropagation(); if (GT.ready && state === 'sit') talents(!T.menu); }); }
+// the catwalk's heading, planned when it starts (with this frame's camera): out along the clip's own curve and back, clear of the pier
+// face and the rails (z > 0.5 for the hips; the body is about 0.45 deep), the whole tiger in frame, off the shore words on a wide screen,
+// and as far across the frame as that allows without walking into the lens. On a phone the tiger fills the frame, so the walk is shortened
+// (scale < 1: the root slides back a little under the steps) rather than leave it.
+function planWalk() { const path = GT.walkPath; if (!path) return null; const N = path.length - 1, gy = world.groundY, sx = TIGER.x + GB.xGround, sz = GB.zGround;
+  const V = gv[4] || (gv[4] = new THREE.Vector3()), scr = (x, y, z) => { V.set(x, y, z).project(camera); return [(V.x + 1) / 2, (1 - V.y) / 2]; };
+  const xMin = LAY.mobile ? 0.02 : 0.52, xMax = 0.98, hw = LAY.mobile ? 0.6 : 0.45; let best = null;   // hw: half the body's width (a head in profile is wider)                        // the body's edges (the chibi head is ~0.9 wide)
+  for (const k of LAY.mobile ? [1, 0.75, 0.55, 0.4, 0.3, 0.2] : [1, 0.8, 0.6, 0.45]) {
+    const dx = path[N][0] * k, dz = path[N][1] * k;
+    for (let d = -180; d < 180; d += 4) { const y = d * Math.PI / 180, c1 = Math.cos(y), s1 = Math.sin(y), ex = dx * c1 + dz * s1, ez = -dx * s1 + dz * c1; let bad = 0, left = 1, near = -9;
+      for (let i = 0; i <= N; i += 2) for (const leg of [0, 1]) { const px = path[i][0] * k, pz = path[i][1] * k, cc = leg ? -c1 : c1, ss = leg ? -s1 : s1;
+        const x = sx + (leg ? ex : 0) + px * cc + pz * ss, z = sz + (leg ? ez : 0) - px * ss + pz * cc;
+        const bx = scr(x, gy + HS * 0.4, z)[0], el = scr(x - hw, gy + HS * 0.7, z)[0], er = scr(x + hw, gy + HS * 0.7, z)[0], foot = scr(x, gy, z)[1], head = scr(x, gy + HS, z)[1];
+        bad += Math.max(0, 0.5 - z) * 4 + Math.max(0, xMin - el) + Math.max(0, er - xMax) + Math.max(0, foot - 0.985) + Math.max(0, 0.04 - head);
+        left = Math.min(left, bx); near = Math.max(near, z); }
+      const score = bad > 0 ? -bad * 100 : (1 - left) - 0.8 * Math.max(0, near - sz - 0.25) - (1 - k) * 0.3;
+      if (!best || score > best.score) best = { score, y, ex, ez, k }; }
+    if (best && best.score > 0 && best.k === k) break; }
+  return best; }
+function perform(kind) { if (!GT.ready || !PERF[kind]) return; talents(false); if (kind === 'catwalk') GT.walk = planWalk(); T.perf = { kind, t: 0 }; const a = COPY.talents.acts.find((x) => x[0] === kind); if (a) say(a[2], 2.2); }
+talentsEl.addEventListener('click', (e) => { const b = e.target.closest('button[data-act]'); if (!b) return; e.stopPropagation(); perform(b.dataset.act); });
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && T.menu) talents(false); });
+
+// ───────────────────────── The opening (Kay, 2026-09-27): the tiger alone on paper; click → it waves → the world appears around it ─────────────────────────
+// Before any scroll: phase void (paper, only the tiger, a hint) → wave (1.9 s) → enter (2.2 s: the camera backs out to the rail's first
+// position while the fog lifts from paper, so the world materialises from near to far) → done (scroll starts). ?snap skips it unless ?entry.
+const ENTRY = { phase: SNAP && !PARAMS.has('entry') ? 'done' : 'void', t: 0, k: SNAP && !PARAMS.has('entry') ? 1 : 0 }, PAPER = new THREE.Color('#F1F1EE');
+function entryGo() { if (ENTRY.phase !== 'void') return; ENTRY.t = 0; document.documentElement.classList.add('entering'); lockPage(false);
+  const start = () => { ENTRY.t = 0; if (GT.ready) { ENTRY.phase = 'wave'; T.wave = 1.9; } else ENTRY.phase = 'enter'; };
+  if (GT.ready || GT.failed) start(); else { ENTRY.phase = 'waiting'; tigerLoad.then(start); } }   // a click before the model is in waits for it
+function lockPage(on) { for (const el of [$('page'), document.querySelector('.nav')]) if (el) el.inert = on; }
+if (ENTRY.phase !== 'done') lockPage(true);
+function entryDone() { ENTRY.phase = 'done'; ENTRY.k = 1; document.documentElement.classList.add('entering', 'entered'); lenis.start();
+  const fog = (o) => { if (o.isMesh && o.material && !o.material.fog) { o.material.fog = true; o.material.needsUpdate = true; } }; if (GT.model) GT.model.traverse(fog); rig.root.traverse(fog);
+  const st = texts.find((x) => x.el.id === 'h-statement'); const sc = texts.find((x) => x.el.id === 'h-scroll'); st && (st.stagger = MOTION.reveal.heroStagger, st.reveal()); sc && setTimeout(() => sc.reveal(), 500); }
+rig.root.traverse((o) => { if (o.isMesh && o.material && ENTRY.phase !== 'done') { o.material.fog = false; o.material.needsUpdate = true; } });
+window.addEventListener('wheel', () => { if (ENTRY.phase === 'void') entryGo(); }, { passive: true });
+window.addEventListener('touchmove', () => { if (ENTRY.phase === 'void') entryGo(); }, { passive: true });
+window.addEventListener('keydown', (e) => { if (ENTRY.phase !== 'done' && e.key === 'Tab') e.preventDefault(); });
+window.addEventListener('keydown', (e) => { if (ENTRY.phase === 'void' && ['Enter', ' ', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); entryGo(); } });
+
+// ───────────────────────── The intro (Kay, 2026-09-27): no paper; the tiger leans off the ladder and talks in a game dialogue bubble ─────────────────────────
+// pages follow the scroll through the intro window; each page types itself out on time
+const bubbleEl = $('bubble'), bubblePage = $('bubble-page'), photoEl = $('photo'), BUB = { page: -1, t: 0, n: -1, full: '' };
+const esc = (x) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function bubbleFrame(on, page, dt) {
+  bubbleEl.classList.toggle('on', on); if (!on) { BUB.page = -1; photoEl.classList.remove('on'); return; }
+  if (page !== BUB.page) { BUB.page = page; BUB.t = 0; BUB.n = -1; BUB.full = COPY.intro.pages[page].join('\n'); bubbleEl.classList.toggle('last', page === COPY.intro.pages.length - 1); }
+  BUB.t += dt; const n = Math.min(BUB.full.length, Math.floor(BUB.t * 55));
+  if (n !== BUB.n) { BUB.n = n; bubblePage.innerHTML = esc(BUB.full.slice(0, n)) + '<span class="rest">' + esc(BUB.full.slice(n)) + '</span>'; bubbleEl.classList.toggle('done', n >= BUB.full.length); }
+  const H = headBox(), hx = H.x, hy = H.y, bw = bubbleEl.offsetWidth, bh = bubbleEl.offsetHeight;
+  if (LAY.mobile) { bubbleEl.style.left = '16px'; bubbleEl.style.top = clamp(H.top - bh - 22, 70, vh - bh - 16).toFixed(0) + 'px'; }
+  else { bubbleEl.style.left = clamp(H.left - bw - 26, 24, vw - bw - 24).toFixed(0) + 'px'; bubbleEl.style.top = clamp(hy - bh * 0.4, 80, vh - bh - 24).toFixed(0) + 'px'; }
+  const ph = COPY.intro.photo && hoverTiger;                  // a photo of Kay on hover (none yet)
+  photoEl.classList.toggle('on', !!ph); if (ph) { photoEl.style.backgroundImage = `url(${COPY.intro.photo})`; photoEl.style.left = clamp(hx - 90, 16, vw - 196).toFixed(0) + 'px'; photoEl.style.top = clamp(hy + 30, 16, vh - 236).toFixed(0) + 'px'; }
+}
+const tigerLoad = loadTiger();
+
 // ───────────────────────── Frame ─────────────────────────
 let last = performance.now(), shoreMix = 0, vel = 0, lastScroll = 0, saidShore = false, state = '';
+function stateNow() { return state; }                          // the scroll state, for code that shadows the name
 const tiltEls = [document.querySelector('.hero .words'), document.querySelector('.shore-text'), ...document.querySelectorAll('.value-text')];
 const shoreEl = document.querySelector('.shore-text');
 const skyTarget = new THREE.Color(SKY.bottom);
@@ -534,10 +757,22 @@ function frame(now) {
   const camY = Math.max(camYAt(s), world.camYMin);
   camera.position.set(LAY.camX, camY, CAMERA.z + CAMERA.header.rangeZ * (1 - clamp(s / CAMERA.header.screens, 0, 1)));
   key.position.set(5, camY + 9, 9); key.target.position.set(1, camY - 3, -1); key.target.updateMatrixWorld();
+  if (ENTRY.phase !== 'done') {                               // the opening: a close shot of the tiger on paper that backs out to the rail's first position
+    if (ENTRY.phase === 'wave' && (ENTRY.t += dt) > 1.9) { ENTRY.phase = 'enter'; ENTRY.t = 0; }
+    else if (ENTRY.phase === 'enter') { ENTRY.t += dt; ENTRY.k = smooth(clamp(ENTRY.t / 2.2, 0, 1)); if (ENTRY.t >= 2.2) entryDone(); }
+    const D = LAY.mobile ? 7.4 : 5.4, cy = TIGER.ledgeY + HS * 0.52;
+    camera.position.lerp(_a.set(TIGER.x, cy + D * Math.sin(-CAMERA.pitch), GB.zStand + D * Math.cos(CAMERA.pitch)), 1 - ENTRY.k); }
+  { const show = ENTRY.phase === 'enter' || ENTRY.phase === 'done'; for (const o of world.objs) o.visible = show;
+    if (!GT.ready) rig.root.visible = show || GT.failed === true; }            // the opening shows Kay's tiger, never the placeholder while it loads
+  camera.updateMatrixWorld();                                   // overlays and the hover ray below use this frame's camera
 
   // ── which window are we in? (for the sky tint + the cards)
   let inWindow = -1; R.windows.forEach((w, i) => { if (scroll + vh * 0.5 >= w.top && scroll + vh * 0.5 < w.top + w.h) inWindow = i; });
-  const inWorld = scroll < R.hero.top - vh * 0.1 || inWindow >= 0; T.inWorld = inWorld;
+  const mid = scroll + vh * 0.5, inR = (r) => !!r && mid >= r.top && mid < r.top + r.h;
+  const inWorld = scroll < R.hero.top - vh * 0.1 || inWindow >= 0 || inR(R.intro) || inR(R.archives) || inR(R.meadow); T.inWorld = inWorld;
+  // the intro: the tiger leans off the ladder toward you while the bubble talks
+  const ia = R.intro.top / vh - 0.2, ib = (R.intro.top + R.intro.h) / vh - 0.8;               // the hero has gone; out before the first title band
+  T.peek = ENTRY.phase === 'done' ? smooth(seg(s, [ia - 0.15, ia + 0.2])) * (1 - smooth(seg(s, [ib - 0.1, ib + 0.25]))) : 0;
 
   // ── the character state (Laurens): scrubbed by scroll; only the idle bits run on time
   const sl = world.landS; let next;
@@ -545,9 +780,14 @@ function frame(now) {
   else if (s < sl + TIGER.landLen) next = 'land'; else if (s < sl + TIGER.landLen + TIGER.turnBackLen) next = 'turnBack'; else next = 'sit';
   if (next !== state) { state = next; if (state === 'land' && !saidShore) { saidShore = true; say(COPY.shore.tiger, 5); } if (state === 'climb') saidShore = false; }
   T.sit += ((state === 'sit' ? 1 : 0) - T.sit) * Math.min(1, dt * 3.5);
-  if (state === 'sit') { T.waveAt -= dt; if (T.waveAt < 0) { T.waveAt = 6 + Math.random() * 5; T.wave = 1.6; } } else T.wave = 0;
+  if (state === 'sit' && !T.perf) { T.waveAt -= dt; if (T.waveAt < 0) { T.waveAt = 6 + Math.random() * 5; T.wave = 1.6; } } else if (state !== 'idle') T.wave = 0;
+  if (T.perf) { T.perf.t += dt; if (state !== 'sit' && T.perf.fadeAt == null) T.perf.fadeAt = T.perf.t; }   // scrolled off the meadow spot: the act eases out (0.4 s), no jump
+  if (GT.ready && state === 'sit' && T.sit > 0.95 && !T.hinted && !T.perf && !T.menu) { T.hinted = true; if (!(LAY.mobile && trickEl)) say(COPY.talents.hint, 4); }   // on a phone the trick button says it (the quip sat on it)
+  if (T.menu && (state !== 'sit' || !inWorld)) talents(false);
+  if (trickEl) trickEl.disabled = !(GT.ready && state === 'sit' && T.sit > 0.8);
   T.wave = Math.max(0, T.wave - dt); T.waveK = T.wave > 0 ? smooth(Math.min(1, T.wave / 0.3)) * smooth(Math.min(1, (1.6 - T.wave) / 0.25)) : 0;
-  if (state === 'idle') stIdle(t); else if (state === 'turn') stTurn(seg(s, [TIGER.idleEnd, TIGER.turnEnd]), t); else if (state === 'edge') stEdge(seg(s, [TIGER.turnEnd, TIGER.edgeEnd]), s);
+  if (GT.ready) glbFrame(s, t);
+  else if (state === 'idle') stIdle(t); else if (state === 'turn') stTurn(seg(s, [TIGER.idleEnd, TIGER.turnEnd]), t); else if (state === 'edge') stEdge(seg(s, [TIGER.turnEnd, TIGER.edgeEnd]), s);
   else if (state === 'climb') stClimb(s, t); else if (state === 'land') stLand(seg(s, [sl, sl + TIGER.landLen])); else if (state === 'turnBack') stTurnBack(seg(s, [sl + TIGER.landLen, sl + TIGER.landLen + TIGER.turnBackLen])); else stSit(t, dt);
 
   // ── cards: alignment a = (card centre − viewport centre) in screens → drift (Laurens), the torches, the tiger's glance at each card
@@ -563,6 +803,9 @@ function frame(now) {
 
   // ── head layers: glance (Laurens timing) + hover look-back + idle bits
   const hoverLook = (hoverTiger || panelOpen) && state === 'climb' ? 1 : 0; T.hover.y += ((hoverLook ? 1.8 : 0) - T.hover.y) * Math.min(1, dt * 6); T.hover.p += ((hoverLook ? 0.55 : 0) - T.hover.p) * Math.min(1, dt * 6);
+  if (GT.ready) { const pk = T.peek, gz = state === 'sit' && !T.perf ? smooth(T.sit) : 0;
+    headLook((T.glance.y + T.hover.y) * (1 - pk) + 2.2 * pk + mouse.hx * 0.6 * gz, (T.glance.p + T.hover.p) * (1 - pk) + 0.25 * pk - mouse.hy * 0.3 * gz, 0.42 * pk);          // the GLB's breathing lives in its idle clips; it has no blink, ear or tail rig
+    GT.bone.Spine2.getWorldPosition(tigerHit.position); tigerHit.scale.set(HS * 0.5 / 1.5, HS * 0.95 / 1.7, HS * 0.45 / 1.5); } else {
   P.headYaw += T.glance.y + T.hover.y; P.headPitch += T.glance.p + T.hover.p;
   T.blinkAt -= dt; if (T.blinkAt < 0) { T.blink = !T.blink; T.blinkAt = T.blink ? 0.12 : 2.2 + Math.random() * 3; }
   rig.eyes.scale.y += ((T.blink ? 0.08 : 1) - rig.eyes.scale.y) * Math.min(1, dt * 30);
@@ -572,11 +815,10 @@ function frame(now) {
   T.tailV += (clamp(Math.abs(vel) / 900, 0, 1) - T.tailV) * Math.min(1, dt * 3);
   rig.tail.forEach((g, i) => { g.rotation.z = P.tailCurl * (1 - i * 0.15); g.rotation.y = Math.sin(t * 2.6 + i * 0.8) * (0.22 + 0.25 * T.tailV) * (P.poleMix > 0.5 ? 1 : 0.6) + (P.poleMix > 0.5 ? 0 : 0.1 * Math.sin(t * 1.3)); });
   rig.apply();
-  tigerHit.position.copy(rig.root.position).y += (state === 'climb' || state === 'edge') ? 0.1 : 0.4;
+  tigerHit.position.copy(rig.root.position).y += (state === 'climb' || state === 'edge') ? 0.1 : 0.4; }
 
-  // ── the room's skin (theme): switches while the section title paper covers the screen; the shore flips lighter (800ms)
-  let themeName = 'stone'; for (let i = 0; i < SECTIONS.length; i++) if (s >= R.titles[i].top / vh + 0.2) themeName = SECTIONS[i].theme;
-  const th = THEMES[themeName];
+  // ── the room's skin: blended across each floor slab by scroll (themeAt); the shore flips lighter (800ms)
+  const th = themeAt(s);
   const lk = 1 - Math.pow(0.001, dt / (SKY.flipMs / 1000));
   skyTarget.set(landed ? SKY.shore : th.bg); if (!landed && inWindow >= 0 && activeCat && th.ink === 'dark') skyTarget.lerp(tmpC.set(CATS[activeCat].tint), SKY.windowMix);
   shoreMix = lerp(shoreMix, landed ? 1 : 0, lk);
@@ -585,9 +827,11 @@ function frame(now) {
   hemi.intensity = lerp(hemi.intensity, landed ? LIGHT.hemi.intensityShore : th.hemi, lk); hemi.color.lerp(tmpC.set(landed ? LIGHT.hemi.skyShore : th.hemiSky), lk); hemi.groundColor.lerp(tmpC.set(landed ? LIGHT.hemi.groundShore : th.hemiGround), lk);
   camLight.intensity = lerp(camLight.intensity, landed ? 0 : th.camLight, lk); camLight.color.lerp(tmpC.set(th.camColor), lk);
   scene.fog.near = lerp(scene.fog.near, landed ? 24 : th.fog[0], lk); scene.fog.far = lerp(scene.fog.far, landed ? 110 : th.fog[1], lk);
+  if (ENTRY.phase !== 'done') { const k = ENTRY.k; skyColor.copy(PAPER).lerp(skyTarget, k); scene.fog.color.copy(skyColor); scene.fog.near = lerp(0.05, th.fog[0], k * k); scene.fog.far = lerp(0.1, th.fog[1], k); }
   // nav ink flips only while the nav sits inside a dark window (Léo's toggleColor rule)
-  const navWin = R.windows.find((w) => scroll + 50 >= w.top && scroll + 50 < w.top + w.h); const navLight = !!navWin && THEMES[navWin.theme].ink === 'light' && !landed;
-  if (navLight !== T.navLight) { T.navLight = navLight; document.documentElement.classList.toggle('nav-light', navLight); }
+  const navWin = R.worlds.find((w) => scroll + 50 >= w.top && scroll + 50 < w.top + w.h), meadowNav = !!navWin && navWin.top === R.meadow.top;
+  const navMode = !navWin ? '' : landed && meadowNav ? 'split' : THEMES[navWin.theme].ink === 'light' && !landed ? 'light' : '';
+  if (navMode !== T.navMode) { T.navMode = navMode; document.documentElement.classList.toggle('nav-light', navMode === 'light'); document.documentElement.classList.toggle('nav-split', navMode === 'split'); }
 
   // ── the computer's screen: the DOM strip is laid over the projected glass; during the hold, page scroll slides the previews
   if (world.deck) { const D = world.deck, W = R.windows[D.win]; let on = false;
@@ -601,7 +845,14 @@ function frame(now) {
   // ── quip bubble above the head
   T.quipT -= dt; if (T.quipT <= 0 && T.quip) T.quip = '';
   quipEl.classList.toggle('on', !!T.quip && inWorld);
-  if (T.quip) { v3.copy(rig.root.position).y += (state === 'climb' || state === 'edge') ? 1.2 : 1.35; v3.project(camera); quipEl.style.transform = `translate(${((v3.x + 1) / 2 * vw).toFixed(0)}px, ${((1 - v3.y) / 2 * vh - 8).toFixed(0)}px) translate(-50%, -100%)`; }
+  if (T.quip) { tigerPoint(v3, true); v3.project(camera); const qw = quipEl.offsetWidth / 2 + 12; quipEl.style.transform = `translate(${clamp((v3.x + 1) / 2 * vw, qw, vw - qw).toFixed(0)}px, ${((1 - v3.y) / 2 * vh - 8).toFixed(0)}px) translate(-50%, -100%)`; }
+
+  // ── the intro bubble; the talent menu beside the tiger
+  const np = COPY.intro.pages.length; bubbleFrame(ENTRY.phase === 'done' && T.peek > 0.3 && s < ib + 0.05, Math.min(np - 1, Math.floor(seg(s, [ia, ib]) * np)), dt);
+  if (T.menu) { const H = headBox(), w = talentsEl.offsetWidth, h = talentsEl.offsetHeight, side = H.left - w - 18 >= 16;   // beside the head, or above it on a phone
+    const L = side ? H.left - w - 18 : clamp(H.x - w / 2, 16, vw - w - 16), Tp = side ? clamp(H.y - h * 0.5, 70, vh - h - 16) : clamp(H.top - h - 14, 70, vh - h - 16);    // placed beside the tiger, and held still (only follows a real move)
+    if (!T.menuAt || Math.abs(T.menuAt[0] - L) + Math.abs(T.menuAt[1] - Tp) > 40) { T.menuAt = [L, Tp]; talentsEl.style.left = L.toFixed(0) + 'px'; talentsEl.style.top = Tp.toFixed(0) + 'px'; } }
+  else T.menuAt = null;
 
   // ── headline tilt (Laurens) on the DOM statements only; the camera itself never turns (Léo)
   mouse.hx += (mouse.x - mouse.hx) * MOUSE.headline.damping; mouse.hy += (mouse.y - mouse.hy) * MOUSE.headline.damping;
@@ -613,10 +864,10 @@ function frame(now) {
   cursor.style.transform = `translate3d(${mx.cx.toFixed(1)}px, ${mx.cy.toFixed(1)}px, 0)`;
   ray.setFromCamera(new THREE.Vector2(mouse.x, -mouse.y), camera); hoverTiger = inWorld && ray.intersectObject(tigerHit).length > 0;
   const under = document.elementFromPoint(mx.x, mx.y); const overCard = !panelOpen && under?.closest?.('.card .in, .slide .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close');
-  setPill(overClose ? COPY.panel.close : hoverTiger && !panelOpen ? COPY.cursor.tiger : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
+  setPill(ENTRY.phase !== 'done' ? (ENTRY.phase === 'void' && hoverTiger ? 'say hi' : '') : overClose ? COPY.panel.close : hoverTiger && !panelOpen ? (GT.ready && state === 'sit' ? 'talent show' : COPY.cursor.tiger) : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
 
-  v3.copy(rig.root.position).y += (state === 'climb' || state === 'edge') ? 0.1 : 0.4; v3.project(camera);
-  window.__dbg = { s: +s.toFixed(3), state, landed, aN: +nearestA.toFixed(3), inWindow, tiger: [+v3.x.toFixed(3), +v3.y.toFixed(3)], quipT: +T.quipT.toFixed(2), cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };
+  tigerPoint(v3, false); v3.project(camera);
+  window.__dbg = { s: +s.toFixed(3), state, glb: GT.ready, entry: ENTRY.phase, peek: +T.peek.toFixed(2), perf: T.perf ? T.perf.kind : null, walk: GT.walk ? [+GT.walk.y.toFixed(2), GT.walk.k, +GT.walk.score.toFixed(3)] : null, menu: T.menu, landed, aN: +nearestA.toFixed(3), inWindow, tiger: [+v3.x.toFixed(3), +v3.y.toFixed(3)], quipT: +T.quipT.toFixed(2), cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };
   renderer.render(scene, camera);
   if (!document.hidden) requestAnimationFrame(frame);
 }

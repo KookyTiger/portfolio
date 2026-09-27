@@ -20,10 +20,7 @@
 <canvas id="gl" aria-hidden="true"></canvas>
 <div id="grain" aria-hidden="true"></div>
 
-<div id="loader" aria-live="polite">
-  <div class="top"><span id="ld-title">KookyTiger</span><span id="ld-sub">eleven floors</span></div>
-  <div><div class="pct" id="ld-pct">000</div><div class="bar"><i id="ld-bar"></i></div></div>
-</div>
+<div id="void-hint" class="void-hint" aria-live="polite"><span class="a" id="vh-a"></span><span class="b mono" id="vh-b"></span></div>
 
 <nav class="nav" aria-label="Site">
   <div class="brand" id="nav-brand"></div>
@@ -38,6 +35,9 @@
   <div class="inner" id="panel-inner"></div>
 </aside>
 <div class="quip" id="quip"></div>
+<div class="bubble" id="bubble" aria-hidden="true"><p class="who mono" id="bubble-who"></p><p class="page" id="bubble-page"></p><span class="next" aria-hidden="true">▾</span></div>
+<div class="photo" id="photo" aria-hidden="true"></div>
+<div class="talents" id="talents" role="group" aria-label="Talent show" aria-hidden="true"></div>
 <div id="deck" class="deck" aria-label="Projects on the computer screen"></div>
 
 <main id="page">
@@ -54,12 +54,7 @@
     <div class="words" id="hero-words"></div>
   </section>
 
-  <section class="paper intro grid" id="intro" aria-label="About">
-    <div class="big" id="intro-big"></div>
-    <div class="small"><span class="star">*</span><div id="intro-small"></div></div>
-    <a class="reel" id="intro-reel" href="#" onclick="return false"></a>
-    <div class="title" id="intro-title"></div>
-  </section>
+  <section class="window intro-win" id="intro" aria-label="About"></section>
 
   <div id="body"></div>
 
@@ -67,6 +62,8 @@
     <div class="head" id="arch-head"></div>
     <table id="arch-table"></table>
   </section>
+
+  <section class="window meadow dark" id="meadow" aria-label="The other shore"></section>
 
   <footer class="paper footer" id="footer">
     <div class="words" id="foot-words"></div>
