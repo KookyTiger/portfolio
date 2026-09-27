@@ -39,7 +39,7 @@ html = read('index.html')
 
 # index.html is authored as a fragment (title/meta/links + body); split it
 lines = html.split('\n')
-head_lines = [l for l in lines if l.startswith('<title') or l.startswith('<meta') or l.startswith('<link rel="preconnect') or 'fonts.googleapis.com/css2' in l]
+head_lines = [l for l in lines if l.startswith('<title') or l.startswith('<meta') or l.startswith('<link rel="preconnect') or l.startswith('<link rel="icon') or l.startswith('<link rel="apple-touch-icon') or 'fonts.googleapis.com/css2' in l]
 body_lines = [l for l in lines if not (l.startswith('<title') or l.startswith('<meta') or l.startswith('<link') or l.startswith('<script'))]
 head = '\n'.join(head_lines) + '\n<style>\n' + css + '\n</style>'
 body = '\n'.join(body_lines).strip()
