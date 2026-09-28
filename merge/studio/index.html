@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KookyTiger Studio</title>
+<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Schibsted+Grotesque:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="studio.css">
+<link rel="stylesheet" href="../writeup-view.css">
+</head>
+<body>
+<header class="top">
+  <span class="logo">Kooky<span>Tiger</span> Studio</span>
+  <span class="save" id="save">loading…</span>
+  <span class="sp"></span>
+  <a class="tb" href="#inbox" id="tb-inbox">Inbox</a>
+  <button class="tb" id="tb-pv" title="Show or hide the live preview">Preview</button>
+  <a class="tb" href="http://localhost:8000/preview.html" target="_blank" rel="noopener" title="The site itself (needs the merge-preview server on :8000)">Site ↗</a>
+  <a class="tb" href="#help">Help</a>
+</header>
+<nav class="side" id="side"></nav>
+<main class="edit" id="edit"></main>
+<aside class="view" id="view">
+  <div class="vbar">
+    <span class="k" id="pv-title">Preview</span>
+    <span class="sp"></span>
+    <div class="seg" id="pv-mode"><button data-m="panel" class="on" title="The site's panel today (860 px)">Panel</button><button data-m="wide" title="A wider panel (1200 px)">Wide</button><button data-m="phone" title="A phone (390 px)">Phone</button></div>
+  </div>
+  <div class="pv" id="pv"></div>
+</aside>
+<div id="toast"></div>
+<script type="module" src="studio.js"></script>
+</body>
+</html>

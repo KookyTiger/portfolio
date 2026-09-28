@@ -1,0 +1,73 @@
+{
+  "slug": "scenic",
+  "name": "隐藏的宝藏",
+  "floor": "design",
+  "onSite": true,
+  "order": 4,
+  "template": "design",
+  "status": "draft",
+  "oneLiner": "",
+  "context": {},
+  "software": [],
+  "skills": [],
+  "classes": [],
+  "cover": "assets/projects/scenic.webp",
+  "blocks": [
+    {
+      "id": "premise",
+      "stage": "premise",
+      "title": "",
+      "text": "",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "research",
+      "stage": "research",
+      "title": "",
+      "text": "",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "concept",
+      "stage": "concept",
+      "title": "",
+      "text": "",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "iterate",
+      "stage": "iterate",
+      "title": "",
+      "text": "",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "build",
+      "stage": "build",
+      "title": "",
+      "text": "",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "final",
+      "stage": "final",
+      "title": "",
+      "text": "",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "next",
+      "stage": "next",
+      "title": "",
+      "text": "",
+      "layout": "text",
+      "media": []
+    }
+  ]
+}

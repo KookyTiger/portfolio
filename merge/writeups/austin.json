@@ -1,0 +1,154 @@
+{
+  "slug": "austin",
+  "name": "Austin Vaccine Siting",
+  "floor": "analytics",
+  "onSite": true,
+  "order": 0,
+  "template": "analytics",
+  "status": "draft",
+  "oneLiner": "Grouping Austin's 44 ZIP areas for vaccine planning: a clustering heuristic, then two integer programs.",
+  "context": {
+    "course": "IEMS 313 · Foundations of Optimization",
+    "when": "Winter 2025",
+    "team": "Team of 4 (Phase 1), 3 (Phase 2)",
+    "partner": "",
+    "role": "Analyst; prototyped the Phase 2 integer program in Pyomo"
+  },
+  "software": [
+    "python",
+    "jupyter",
+    "colab",
+    "pandas",
+    "numpy",
+    "sklearn",
+    "gurobi"
+  ],
+  "skills": [
+    {
+      "name": "Problem framing",
+      "evidence": "question"
+    },
+    {
+      "name": "Python",
+      "evidence": "approach"
+    },
+    {
+      "name": "Optimization (integer programming)",
+      "evidence": "approach"
+    },
+    {
+      "name": "Clustering",
+      "evidence": "approach"
+    },
+    {
+      "name": "Design criteria & decision matrices",
+      "evidence": "analysis"
+    },
+    {
+      "name": "Data visualisation",
+      "evidence": "analysis"
+    },
+    {
+      "name": "Technical writing",
+      "evidence": "recommendation"
+    }
+  ],
+  "classes": [
+    "iems313"
+  ],
+  "cover": "assets/projects/austin.webp",
+  "blocks": [
+    {
+      "id": "question",
+      "stage": "question",
+      "title": "Split a city fairly, three ways at once",
+      "text": "Our brief was a public-health one: group Austin's 44 ZIP Code Tabulation Areas (ZCTAs) into two, three or four clusters that could each anchor vaccination planning. Every grouping had to keep socially vulnerable areas together, keep neighbours close and follow how people actually travel between areas — without handing one cluster most of the city's 1,146,600 people.\n\nSo the real question was never \"what is the best clustering?\" It was: how much of one good thing do you give up for another, and who gets to decide?",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "context",
+      "stage": "context",
+      "title": "Phase 1 allowed a heuristic; Phase 2 didn't",
+      "text": "IEMS 313 (Foundations of Optimization) ran the project in two rounds. Phase 1 (January 2025): design our own clustering method — we were told at least one approach had to be original — and defend it in a report with a four-page limit. Phase 2 (March): solve the same problem as integer programs, using two objective functions the course gave us. A course virtual machine drew the maps. Four of us wrote Phase 1; three of us wrote Phase 2.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "data",
+      "stage": "data",
+      "title": "Forty-four areas, three ways to measure distance",
+      "text": "The course gave us three tables for Austin's 44 ZCTAs: population with latitude and longitude; a Social Vulnerability Index (SVI) score from 0 to 1; and connectivity — the log of average daily visits — for every pair of areas. Each became a 44 × 44 \"distance\": SVI as the gap between two scores, GEO as Haversine kilometres weighted by the pair's average population, CON as how far a pair's traffic falls below the busiest link. We MinMax-scaled all three so they could be added.\n\nWhat the files never say: where the SVI scores and visit counts come from, or which year they describe.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/austin/svi-heatmap.webp",
+          "caption": "The map we started from: SVI by ZCTA, from the course's starter files. Darker = more vulnerable; the darkest areas sit on the east side.",
+          "kind": "chart"
+        }
+      ]
+    },
+    {
+      "id": "approach",
+      "stage": "approach",
+      "title": "A penalty first, then a hard floor",
+      "text": "Plain k-medoids ignores population, so in Phase 1 we added a penalty to its cost: the squared gap between each cluster's population and an equal share. We ran it from hundreds of spread-out starting points and kept the best. We chose k-medoids over k-means because its centres are real ZIP areas.\n\nPhase 2 turned the penalty into a rule: every cluster holds at least 80% of an equal share. My own pass at that integer program — Pyomo with the free CBC solver — was still on K = 2 when I stopped it. The team's version ran in Gurobi, capped at two minutes or a 5% optimality gap.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "analysis",
+      "stage": "analysis",
+      "title": "Each goal alone draws a different city",
+      "text": "Solving for one measure at a time gave each a baseline and exposed the conflict. In Phase 1, clusters drawn on distance alone scored two to four times worse on vulnerability than the vulnerability-only clusters; clusters drawn on vulnerability alone cost 20–43% on distance. We scored every candidate as a ratio to each baseline (1.00 = as good as it gets) and swept the weights in tenths — GEO against SVI, then that blend against CON: 11 steps × 3 values of K × 2 models, 66 maps per sweep, 132 in all. We judged each on the ratios, population balance, the objective value and whether its clusters looked like whole pieces of city.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/austin/phase1-svi-only-k3.webp",
+          "caption": "Phase 1, SVI only (K = 3): the vulnerable east side becomes one cluster. Each cluster is shaded by its population-weighted SVI.",
+          "kind": "chart"
+        },
+        {
+          "src": "assets/projects/austin/phase1-geo-only-k3.webp",
+          "caption": "GEO only (K = 3): compact clusters that each average out to the city's vulnerability — so the whole map turns one colour.",
+          "kind": "chart"
+        },
+        {
+          "src": "assets/projects/austin/phase1-con-only-k3.webp",
+          "caption": "CON only (K = 3): clusters drawn by travel between areas.",
+          "kind": "chart"
+        }
+      ]
+    },
+    {
+      "id": "quote",
+      "stage": "recommendation",
+      "title": "No clustering wins on every count",
+      "text": "Even the most optimal solutions yield trade-offs between the parameters.",
+      "layout": "quote",
+      "media": []
+    },
+    {
+      "id": "recommendation",
+      "stage": "recommendation",
+      "title": "Two answers, and when to use each",
+      "text": "Both phases ended at K = 2, but Phase 2 handed back two solutions instead of one. The all-pairs model (weights 0.4 GEO, 0.4 SVI, 0.2 CON) split Austin into two clusters within 1% of each other in population, 15% off the best on GEO and SVI and 10% on CON. The medoid model (0.54 / 0.36 / 0.10) won on its own objective but lost on every ratio — 1.19, 1.34 and 1.17 — and on population balance. Which one to use, we wrote, depends on the outbreak and what it makes planners care about most.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/austin/phase2-k2-two-models.webp",
+          "caption": "Phase 2, K = 2. Left: all-pairs model (ratios 1.15 GEO, 1.15 SVI, 1.10 CON). Right: medoid model (1.19, 1.34, 1.17).",
+          "kind": "chart"
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "stage": "next",
+      "title": "Check what \"15×\" and \"optimal\" meant",
+      "text": "Two things I'd fix before trusting our own headline. The report says the all-pairs objective came out 15 times the medoid one — but all-pairs adds up hundreds of pair distances while the medoid model adds 44 distances to a centre, so the totals were never on the same scale. (In February I asked how the two objectives related; this is the answer I'd give now.) And we called the medoid solution \"mathematically optimal\" after runs capped at two minutes or a 5% gap; the gap belongs next to that claim. Then I'd test the 80% population floor, which we never varied.",
+      "layout": "text",
+      "media": []
+    }
+  ]
+}

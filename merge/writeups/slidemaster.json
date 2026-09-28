@@ -1,0 +1,189 @@
+{
+  "slug": "slidemaster",
+  "name": "Slide Master",
+  "floor": "engineering",
+  "onSite": true,
+  "order": 2,
+  "template": "engineering",
+  "status": "draft",
+  "oneLiner": "A wheelchair-to-shower transfer board where the seat slides, so the user's skin doesn't have to.",
+  "context": {
+    "course": "DSGN 106-1 · Design Thinking & Communication 1",
+    "when": "Winter 2024",
+    "team": "Team of 4",
+    "partner": "Occupational therapist, spinal-cord-injury rehabilitation",
+    "role": "Led the mockup plan and design-freeze docs; drew the poster's exploded view; co-wrote the concept section; ran the poster demo"
+  },
+  "software": [
+    "tinkercad",
+    "onshape"
+  ],
+  "skills": [
+    {
+      "name": "Competitive analysis",
+      "evidence": "research"
+    },
+    {
+      "name": "User interviews",
+      "evidence": "research"
+    },
+    {
+      "name": "User needs → specs",
+      "evidence": "needs"
+    },
+    {
+      "name": "Sketching",
+      "evidence": "brainstorm"
+    },
+    {
+      "name": "Low-fi mockups",
+      "evidence": "brainstorm"
+    },
+    {
+      "name": "Engineering drawings",
+      "evidence": "prototype"
+    },
+    {
+      "name": "Posters & presentations",
+      "evidence": "final"
+    },
+    {
+      "name": "Technical writing",
+      "evidence": "final"
+    }
+  ],
+  "classes": [
+    "dsgn106-1"
+  ],
+  "cover": "assets/projects/slidemaster.webp",
+  "blocks": [
+    {
+      "id": "problem",
+      "stage": "problem",
+      "title": "Damage the user can't feel",
+      "text": "An occupational therapist who helps people with spinal-cord injuries manage daily tasks like bathing brought our DTC team a problem. Her patients cross from wheelchair to shower chair on a transfer board, usually a flat plank with two hand holes, scooting across it on bare, often wet skin they cannot feel. So friction damage goes unnoticed. Boards also slip off the tub ledge, are hard to get onto, and pinch fingers. A patient who can't transfer safely is left with bed baths.\n\nBoards are paid for by insurance; she asked us to stay around $50–60.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/slidemaster/scenario-storyboard.webp",
+          "caption": "Scenario breakdown from our first research deck: wheelchair beside the tub, board across the gap, patient on the shower chair.",
+          "kind": "sketch"
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "stage": "research",
+      "title": "The obvious fix already existed, unused",
+      "text": "We began with what's on the market: the plain wooden board, a tub transfer bench, the ShowerGlyde sliding system, ceiling lifts and the $249 BeasyGlyder. Our partner filled in the rest on a video call, where I was one of the note-takers. The surprise came on our week-5 visit to her unit. Sliding boards already existed, and staff rarely used them: they add instability, and their seats are narrower than the board, so skin hangs over the edge, drags and gets caught in the mechanism. Nobody there liked curved boards either. We weren't short of ideas. Each existing one failed somewhere specific.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "research-quote",
+      "stage": "research",
+      "title": "The rule we'd end up breaking",
+      "text": "“Less material you have to get under your butt, the easier.” — our partner",
+      "layout": "quote",
+      "media": []
+    },
+    {
+      "id": "needs",
+      "stage": "needs",
+      "title": "Friction stayed a feeling, not a number",
+      "text": "Our first project definition turned the interview into requirements; three weeks later I co-wrote the second version with a teammate. Size, load and cost got numbers. Friction, the reason the project existed, never did. And the number that mattered most came from the site visit: our partner wanted the board no more than half an inch thick. The second definition, written after the visit, still left it out.\n\n! Requirement | First definition (Jan 23) | Second definition (Feb 14)\nFriction | not so slippery the user falls, not so rough it hurts skin | unchanged\nStability | no fear of falling; a handle if the board shifts | unchanged\nLoad | holds 500 lb | holds 200 lb\nLength | 3 ft at most | 3 ft at most\nWater | survives frequent contact | unchanged\nCleaning | antiseptic | dropped\nCost | $60 at most | $55 at most",
+      "layout": "facts",
+      "media": []
+    },
+    {
+      "id": "brainstorm",
+      "stage": "brainstorm",
+      "title": "We broke our own moving-parts rule",
+      "text": "We each filled a row of an alternatives matrix. Mine asked for a slick, skin-friendly top over a metal structure “that allows the sliding to happen”, with rubber underneath; teammates added a tapered edge, a grab hole, a silk cover and rubber ends. I led the mockup plan: four tests on a standard board (silk cover, hollow handles, rubber bottom, slanted side), each tried with and without. After the site visit we split over two new options. Our instructors liked the dissent and reminded us DTC is a design class, not a prototype class. We chose the sliding seat, though our own constraints said “as little moving parts as possible”.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/slidemaster/mockup-plan-combined-sketch.webp",
+          "caption": "“A sketch of our design” from the mockup plan (Jan 25, 2024): slanted side, silk transfer surface, hollow handles, rubber bottom.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/slidemaster/mockup-plan-pillowcase.webp",
+          "caption": "Mockup 1: a silk “pillowcase” pulled over a standard board.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/slidemaster/mockup-plan-hollow-handles.webp",
+          "caption": "Mockup 2: hollow handles at both ends for a better grip.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/slidemaster/mockup-plan-rubber-bottom.webp",
+          "caption": "Mockup 3: rubber on the underside, maybe the two ends too, to grip the chair and the tub.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/slidemaster/mockup-plan-slanted-side.webp",
+          "caption": "Mockup 4: a slanted end to scoop under the patient.",
+          "kind": "sketch"
+        }
+      ]
+    },
+    {
+      "id": "prototype",
+      "stage": "prototype",
+      "title": "We chose the wood by sitting on it",
+      "text": "We cut the first base from plywood and sanded its offcuts to 10°, 20° and 30° tapers, measured from the bottom and from the middle, then tested them for impact and tension; 10° from the bottom won. On February 13 a teammate tried a wheelchair-to-shower-chair transfer on the board. He never put his full weight down: the plywood began to fracture. We moved to solid wood, sat on the candidates ourselves and settled on pine. At the design review three days later I presented the designs we had dropped and why. Reviewers asked for a much wider seat and softer edges; afterwards we traded wheels in rails for ball-bearing drawer slides.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/slidemaster/tinkercad-early-model.webp",
+          "caption": "Early Tinkercad model: hollow centre, rails for wheels, a sloped edge, a seat on top.",
+          "kind": "cad"
+        },
+        {
+          "src": "assets/projects/slidemaster/design-review-old-design.webp",
+          "caption": "My drawing of an earlier 30 × 10-inch version in top, front and side views, from my design-review slide.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/slidemaster/design-review-sketch.webp",
+          "caption": "The board as we showed it at the design review (Feb 16, 2024): slanted end, hollow centre, a seat on rails.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/slidemaster/design-freeze-dimensions.webp",
+          "caption": "Dimension drawing from the design-freeze package: 29 × 9-inch base, 23 × 3-inch cavity, 10 × 11-inch seat, 9 × 4-inch rubber end.",
+          "kind": "sketch"
+        }
+      ]
+    },
+    {
+      "id": "final",
+      "stage": "final",
+      "title": "The seat slides so the skin doesn't",
+      "text": "Slide Master is a 29 × 9 × ¾-inch pine board; a 23 × 3-inch cavity cuts weight and doubles as a handle. A tapered end slips under the thigh, and rubber under the other end grips the tub. Two 12-inch ball-bearing drawer slides carry a cutting-board seat that covers them, so skin rides on the seat instead of dragging or pinching. I co-wrote the concept section, drew the poster's exploded view and ran the demo on March 9.\n\nIt misses our own numbers: our partner wanted half an inch of thickness, and we're about three times that; the slides are rated for 100 lb, our requirements say 500. No target user tried it.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/slidemaster/final-board-test-setup.webp",
+          "caption": "The finished board between a shower chair and a wheelchair, in the test corner we set up at the Ford Design Center.",
+          "kind": "photo"
+        },
+        {
+          "src": "assets/projects/slidemaster/exploded-view.webp",
+          "caption": "The exploded view I drew for our poster: seat, slides, hollowed base, tapered end, rubber strip.",
+          "kind": "sketch"
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "stage": "next",
+      "title": "Next: thinner, cheaper, easier to clean",
+      "text": "Our report's list for the next version starts with testing by the people it's for and bringing the height down. It also proposes a different mechanism: a slide rail running in a U-channel cut into the board, which would hide the moving parts, give the seat a natural mount and reduce the pinch point that manufacturing errors could create. Then there's cost. Plain boards run $30–50 and insurance pays; the BeasyGlyder costs $249. Our slides, seat and rubber alone came to $57.89 before the pine. And cleaning is still open: an early report draft ruled out boards “with lots of crevices”, and drawer slides are mostly crevices.",
+      "layout": "text",
+      "media": []
+    }
+  ]
+}

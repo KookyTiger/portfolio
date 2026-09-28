@@ -1,0 +1,1161 @@
+{
+  "version": 1,
+  "templates": {
+    "engineering": {
+      "name": "Engineering (Kay's process)",
+      "stages": [
+        {
+          "key": "problem",
+          "label": "Problem",
+          "hint": "What was wrong, for whom, and why it mattered. Who brought it to us and what constraints we had."
+        },
+        {
+          "key": "research",
+          "label": "Initial research",
+          "hint": "What we looked at first — observation, interviews, existing products, literature — and what surprised us."
+        },
+        {
+          "key": "needs",
+          "label": "Needs",
+          "hint": "The user needs we took from the research, turned into measurable specs."
+        },
+        {
+          "key": "brainstorm",
+          "label": "Brainstorming",
+          "hint": "How we made options (sketches, brainwriting), how many, and how we narrowed them (criteria, matrices)."
+        },
+        {
+          "key": "prototype",
+          "label": "Prototyping",
+          "hint": "Each mockup round: what it tested, what broke, what we changed."
+        },
+        {
+          "key": "final",
+          "label": "Final prototype",
+          "hint": "How it works, how it did against the specs, honest shortfalls."
+        },
+        {
+          "key": "next",
+          "label": "Future iterations & business model",
+          "hint": "What I'd change next and how it could reach people (cost, manufacturing, who pays)."
+        }
+      ]
+    },
+    "design": {
+      "name": "Design & interaction (proposal)",
+      "stages": [
+        {
+          "key": "premise",
+          "label": "Premise",
+          "hint": "The idea, the brief or prompt, and the question the piece asks."
+        },
+        {
+          "key": "research",
+          "label": "Research & references",
+          "hint": "Precedents, references and research that shaped it."
+        },
+        {
+          "key": "concept",
+          "label": "Concept",
+          "hint": "The core concept and why this one over the alternatives."
+        },
+        {
+          "key": "iterate",
+          "label": "Iterations",
+          "hint": "Drafts, playtests, pivots: what changed and why."
+        },
+        {
+          "key": "build",
+          "label": "Making it",
+          "hint": "How it was made: tools, pipeline, craft decisions."
+        },
+        {
+          "key": "final",
+          "label": "Final piece",
+          "hint": "The finished piece and how people experienced it."
+        },
+        {
+          "key": "next",
+          "label": "Reflection & next",
+          "hint": "What I learned and what I'd do next."
+        }
+      ]
+    },
+    "analytics": {
+      "name": "Analytics & strategy (proposal)",
+      "stages": [
+        {
+          "key": "question",
+          "label": "The question",
+          "hint": "The question in one sentence, and who needed the answer."
+        },
+        {
+          "key": "context",
+          "label": "Context",
+          "hint": "The client or market situation and the constraints."
+        },
+        {
+          "key": "data",
+          "label": "Data",
+          "hint": "What data we had, where it came from, and its limits."
+        },
+        {
+          "key": "approach",
+          "label": "Approach",
+          "hint": "The method we chose and why — and what we rejected."
+        },
+        {
+          "key": "analysis",
+          "label": "Analysis",
+          "hint": "What the analysis showed: the few numbers that matter."
+        },
+        {
+          "key": "recommendation",
+          "label": "Recommendation",
+          "hint": "What we recommended and the reasoning."
+        },
+        {
+          "key": "next",
+          "label": "What I'd do next",
+          "hint": "What I'd test or build next."
+        }
+      ]
+    }
+  },
+  "floors": [
+    {
+      "id": "engineering",
+      "num": "01",
+      "title": "ENGINEERING",
+      "sub": "product · mechanical · clinical",
+      "software": [
+        "cura",
+        "excel"
+      ],
+      "suggest": [
+        "solidworks",
+        "fusion",
+        "matlab",
+        "arduino",
+        "nx"
+      ],
+      "classes": [
+        "dsgn106-1",
+        "dsgn106-2",
+        "dsgn240",
+        "dsgn308",
+        "civenv216",
+        "matsci201",
+        "mecheng240",
+        "dsgn388-1"
+      ]
+    },
+    {
+      "id": "design",
+      "num": "02",
+      "title": "DESIGN & INTERACTION",
+      "sub": "games · apps · motion · vr · stage",
+      "software": [
+        "godot",
+        "twine",
+        "claude",
+        "blender",
+        "threejs"
+      ],
+      "suggest": [
+        "figma",
+        "unity",
+        "premiere",
+        "procreate"
+      ],
+      "classes": [
+        "dsgn241",
+        "dsgn320",
+        "art210",
+        "rtvf360",
+        "rtvf376-vr",
+        "rtvf376-world",
+        "rtvf376-film",
+        "rtvf190"
+      ]
+    },
+    {
+      "id": "analytics",
+      "num": "03",
+      "title": "ANALYTICS & STRATEGY",
+      "sub": "optimization · pricing · market sizing · finance",
+      "software": [
+        "python",
+        "gurobi",
+        "pandas",
+        "sklearn",
+        "jupyter",
+        "excel"
+      ],
+      "suggest": [
+        "colab",
+        "sheets"
+      ],
+      "classes": [
+        "iems313",
+        "iems303",
+        "iems307",
+        "iems382",
+        "iems340",
+        "civenv205"
+      ]
+    }
+  ],
+  "software": [
+    {
+      "id": "solidworks",
+      "name": "SOLIDWORKS",
+      "group": "make",
+      "abbr": "SW",
+      "hex": "#DA291C"
+    },
+    {
+      "id": "fusion",
+      "name": "Autodesk Fusion",
+      "group": "make",
+      "abbr": "F",
+      "hex": "#F58025"
+    },
+    {
+      "id": "onshape",
+      "name": "Onshape",
+      "group": "make",
+      "abbr": "On",
+      "hex": "#0A6CFF"
+    },
+    {
+      "id": "nx",
+      "name": "Siemens NX",
+      "group": "make",
+      "abbr": "NX",
+      "hex": "#009999"
+    },
+    {
+      "id": "creo",
+      "name": "PTC Creo",
+      "group": "make",
+      "abbr": "Cr",
+      "hex": "#6E9B3C"
+    },
+    {
+      "id": "autocad",
+      "name": "AutoCAD",
+      "group": "make",
+      "si": "autocad"
+    },
+    {
+      "id": "revit",
+      "name": "Revit",
+      "group": "make",
+      "si": "autodeskrevit"
+    },
+    {
+      "id": "rhino",
+      "name": "Rhino",
+      "group": "make",
+      "si": "rhinoceros"
+    },
+    {
+      "id": "sketchup",
+      "name": "SketchUp",
+      "group": "make",
+      "si": "sketchup"
+    },
+    {
+      "id": "tinkercad",
+      "name": "Tinkercad",
+      "group": "make",
+      "si": "tinkercad"
+    },
+    {
+      "id": "keyshot",
+      "name": "KeyShot",
+      "group": "make",
+      "abbr": "KS"
+    },
+    {
+      "id": "matlab",
+      "name": "MATLAB",
+      "group": "make",
+      "abbr": "M",
+      "hex": "#E16737"
+    },
+    {
+      "id": "arduino",
+      "name": "Arduino",
+      "group": "make",
+      "si": "arduino"
+    },
+    {
+      "id": "kicad",
+      "name": "KiCad",
+      "group": "make",
+      "si": "kicad"
+    },
+    {
+      "id": "cura",
+      "name": "UltiMaker Cura",
+      "group": "make",
+      "abbr": "Cu",
+      "hex": "#196EF0"
+    },
+    {
+      "id": "bambu",
+      "name": "Bambu Studio",
+      "group": "make",
+      "si": "bambulab"
+    },
+    {
+      "id": "lightburn",
+      "name": "LightBurn",
+      "group": "make",
+      "si": "lightburn"
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "group": "design",
+      "si": "figma"
+    },
+    {
+      "id": "illustrator",
+      "name": "Adobe Illustrator",
+      "group": "design",
+      "abbr": "Ai",
+      "hex": "#FF9A00"
+    },
+    {
+      "id": "photoshop",
+      "name": "Adobe Photoshop",
+      "group": "design",
+      "abbr": "Ps",
+      "hex": "#31A8FF"
+    },
+    {
+      "id": "indesign",
+      "name": "Adobe InDesign",
+      "group": "design",
+      "abbr": "Id",
+      "hex": "#FF3366"
+    },
+    {
+      "id": "lightroom",
+      "name": "Adobe Lightroom",
+      "group": "design",
+      "abbr": "Lr",
+      "hex": "#31A8FF"
+    },
+    {
+      "id": "procreate",
+      "name": "Procreate",
+      "group": "design",
+      "abbr": "Pc"
+    },
+    {
+      "id": "canva",
+      "name": "Canva",
+      "group": "design",
+      "abbr": "Ca",
+      "hex": "#00C4CC"
+    },
+    {
+      "id": "miro",
+      "name": "Miro",
+      "group": "design",
+      "si": "miro"
+    },
+    {
+      "id": "blender",
+      "name": "Blender",
+      "group": "design",
+      "si": "blender"
+    },
+    {
+      "id": "maya",
+      "name": "Maya",
+      "group": "design",
+      "si": "autodeskmaya"
+    },
+    {
+      "id": "cinema4d",
+      "name": "Cinema 4D",
+      "group": "design",
+      "si": "cinema4d"
+    },
+    {
+      "id": "slides",
+      "name": "Google Slides",
+      "group": "design",
+      "si": "googleslides"
+    },
+    {
+      "id": "premiere",
+      "name": "Adobe Premiere Pro",
+      "group": "story",
+      "abbr": "Pr",
+      "hex": "#9999FF"
+    },
+    {
+      "id": "aftereffects",
+      "name": "Adobe After Effects",
+      "group": "story",
+      "abbr": "Ae",
+      "hex": "#9999FF"
+    },
+    {
+      "id": "davinci",
+      "name": "DaVinci Resolve",
+      "group": "story",
+      "si": "davinciresolve"
+    },
+    {
+      "id": "finalcut",
+      "name": "Final Cut Pro",
+      "group": "story",
+      "abbr": "FC"
+    },
+    {
+      "id": "unity",
+      "name": "Unity",
+      "group": "story",
+      "si": "unity"
+    },
+    {
+      "id": "unreal",
+      "name": "Unreal Engine",
+      "group": "story",
+      "si": "unrealengine"
+    },
+    {
+      "id": "godot",
+      "name": "Godot",
+      "group": "story",
+      "si": "godotengine"
+    },
+    {
+      "id": "twine",
+      "name": "Twine",
+      "group": "story",
+      "abbr": "Tw"
+    },
+    {
+      "id": "touchdesigner",
+      "name": "TouchDesigner",
+      "group": "story",
+      "abbr": "TD"
+    },
+    {
+      "id": "quest",
+      "name": "Meta Quest",
+      "group": "story",
+      "si": "meta"
+    },
+    {
+      "id": "runway",
+      "name": "Runway",
+      "group": "story",
+      "abbr": "Rw"
+    },
+    {
+      "id": "midjourney",
+      "name": "Midjourney",
+      "group": "story",
+      "abbr": "Mj"
+    },
+    {
+      "id": "mixamo",
+      "name": "Mixamo",
+      "group": "story",
+      "abbr": "Mx"
+    },
+    {
+      "id": "tripo",
+      "name": "Tripo",
+      "group": "story",
+      "abbr": "Tp"
+    },
+    {
+      "id": "excel",
+      "name": "Microsoft Excel",
+      "group": "data",
+      "abbr": "X",
+      "hex": "#217346"
+    },
+    {
+      "id": "sheets",
+      "name": "Google Sheets",
+      "group": "data",
+      "si": "googlesheets"
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "group": "data",
+      "si": "python"
+    },
+    {
+      "id": "jupyter",
+      "name": "Jupyter",
+      "group": "data",
+      "si": "jupyter"
+    },
+    {
+      "id": "colab",
+      "name": "Google Colab",
+      "group": "data",
+      "si": "googlecolab"
+    },
+    {
+      "id": "pandas",
+      "name": "pandas",
+      "group": "data",
+      "si": "pandas"
+    },
+    {
+      "id": "numpy",
+      "name": "NumPy",
+      "group": "data",
+      "si": "numpy"
+    },
+    {
+      "id": "sklearn",
+      "name": "scikit-learn",
+      "group": "data",
+      "si": "scikitlearn"
+    },
+    {
+      "id": "gurobi",
+      "name": "Gurobi",
+      "group": "data",
+      "si": "gurobi"
+    },
+    {
+      "id": "r",
+      "name": "R",
+      "group": "data",
+      "si": "r"
+    },
+    {
+      "id": "tableau",
+      "name": "Tableau",
+      "group": "data",
+      "abbr": "Tb",
+      "hex": "#E97627"
+    },
+    {
+      "id": "sql",
+      "name": "SQL",
+      "group": "data",
+      "abbr": "SQL"
+    },
+    {
+      "id": "claude",
+      "name": "Claude Code",
+      "group": "code",
+      "si": "claude"
+    },
+    {
+      "id": "threejs",
+      "name": "three.js",
+      "group": "code",
+      "si": "threedotjs"
+    },
+    {
+      "id": "p5js",
+      "name": "p5.js",
+      "group": "code",
+      "si": "p5dotjs"
+    },
+    {
+      "id": "javascript",
+      "name": "JavaScript",
+      "group": "code",
+      "si": "javascript"
+    },
+    {
+      "id": "html",
+      "name": "HTML & CSS",
+      "group": "code",
+      "si": "html5"
+    },
+    {
+      "id": "swift",
+      "name": "Swift",
+      "group": "code",
+      "si": "swift"
+    },
+    {
+      "id": "xcode",
+      "name": "Xcode",
+      "group": "code",
+      "si": "xcode"
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "group": "code",
+      "si": "github"
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "group": "code",
+      "si": "notion"
+    }
+  ],
+  "softwareGroups": {
+    "make": "Make",
+    "design": "Design",
+    "story": "Story & play",
+    "data": "Data",
+    "code": "Code"
+  },
+  "classes": [
+    {
+      "id": "econ100",
+      "code": "ECON 100",
+      "title": "Problem-Solving in Economics",
+      "term": "Summer 2023",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "genla100",
+      "code": "GEN_LA 100",
+      "title": "Exploring the Liberal Arts",
+      "term": "Summer 2023",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "hum100",
+      "code": "HUM 100-1",
+      "title": "Intro to Critical Thinking",
+      "term": "Summer 2023",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "math100",
+      "code": "MATH 100",
+      "title": "Quantitative Reasoning",
+      "term": "Summer 2023",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "geneng205-1",
+      "code": "GEN_ENG 205-1",
+      "title": "Engineering Analysis I",
+      "term": "Fall 2023",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "math230-1",
+      "code": "MATH 230-1",
+      "title": "Multivariable Differential Calculus",
+      "term": "Fall 2023",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "stat101",
+      "code": "STAT 101-7",
+      "title": "College Seminar",
+      "term": "Fall 2023",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "civenv205",
+      "code": "CIV_ENV 205",
+      "title": "Economics & Finance for Engineers",
+      "term": "Winter 2024",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "dsgn106-1",
+      "code": "DSGN 106-1",
+      "title": "Design Thinking & Communication 1",
+      "term": "Winter 2024",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "english106-1",
+      "code": "ENGLISH 106-1",
+      "title": "Writing in Special Contexts",
+      "term": "Winter 2024",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "geneng205-2",
+      "code": "GEN_ENG 205-2",
+      "title": "Engineering Analysis II",
+      "term": "Winter 2024",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "dsgn106-2",
+      "code": "DSGN 106-2",
+      "title": "Design Thinking & Communication 2",
+      "term": "Spring 2024",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "econ202",
+      "code": "ECON 202",
+      "title": "Introduction to Microeconomics",
+      "term": "Spring 2024",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "english106-2",
+      "code": "ENGLISH 106-2",
+      "title": "Writing in Special Contexts",
+      "term": "Spring 2024",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "geneng205-3",
+      "code": "GEN_ENG 205-3",
+      "title": "Engineering Analysis III",
+      "term": "Spring 2024",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "econ201",
+      "code": "ECON 201",
+      "title": "Introduction to Macroeconomics",
+      "term": "Summer 2024",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "math230-2",
+      "code": "MATH 230-2",
+      "title": "Multivariable Integral Calculus",
+      "term": "Summer 2024",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "compsci150",
+      "code": "COMP_SCI 150",
+      "title": "Fundamentals of Computer Programming 1.5",
+      "term": "Fall 2024",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "iems302",
+      "code": "IEMS 302",
+      "title": "Probability",
+      "term": "Fall 2024",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "iems340",
+      "code": "IEMS 340",
+      "title": "Qualitative Methods in Engineering Systems",
+      "term": "Fall 2024",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "dsgn320",
+      "code": "DSGN 320",
+      "title": "Intro to Industrial Design",
+      "term": "Winter 2025",
+      "group": "design",
+      "status": "done"
+    },
+    {
+      "id": "iems303",
+      "code": "IEMS 303",
+      "title": "Statistics",
+      "term": "Winter 2025",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "iems313",
+      "code": "IEMS 313",
+      "title": "Foundations of Optimization",
+      "term": "Winter 2025",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "rtvf260",
+      "code": "RTVF 260",
+      "title": "Foundations of Screenwriting",
+      "term": "Winter 2025",
+      "group": "design",
+      "status": "done"
+    },
+    {
+      "id": "dsgn240",
+      "code": "DSGN 240",
+      "title": "Introduction to Solid Modeling",
+      "term": "Spring 2025",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "dsgn241",
+      "code": "DSGN 241",
+      "title": "Wireframing and App Design",
+      "term": "Spring 2025",
+      "group": "design",
+      "status": "done"
+    },
+    {
+      "id": "dsgn308",
+      "code": "DSGN 308",
+      "title": "Human-Centered Product Design",
+      "term": "Spring 2025",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "math250",
+      "code": "MATH 250",
+      "title": "Elementary Differential Equations",
+      "term": "Spring 2025",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "rtvf190",
+      "code": "RTVF 190",
+      "title": "Media Construction",
+      "term": "Spring 2025",
+      "group": "design",
+      "status": "done"
+    },
+    {
+      "id": "rtvf312-2",
+      "code": "RTVF 312-2",
+      "title": "History of Film II",
+      "term": "Spring 2025",
+      "group": "design",
+      "status": "done"
+    },
+    {
+      "id": "chem151",
+      "code": "CHEM 151",
+      "title": "General Chemistry I",
+      "term": "Fall 2025",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "chem161",
+      "code": "CHEM 161",
+      "title": "General Chemistry Lab I",
+      "term": "Fall 2025",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "civenv216",
+      "code": "CIV_ENV 216",
+      "title": "Mechanics of Materials I",
+      "term": "Fall 2025",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "civenv385-1",
+      "code": "CIV_ENV 385-1",
+      "title": "Architectural Engineering & Design 1: Fundamentals",
+      "term": "Fall 2025",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "rtvf358",
+      "code": "RTVF 358",
+      "title": "Topics in Improv",
+      "term": "Fall 2025",
+      "group": "design",
+      "status": "done",
+      "topic": "Intro to Improv"
+    },
+    {
+      "id": "iems382",
+      "code": "IEMS 382",
+      "title": "Operations Engineering & Management",
+      "term": "Winter 2026",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "physics135-2",
+      "code": "PHYSICS 135-2",
+      "title": "General Physics",
+      "term": "Winter 2026",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "physics136-2",
+      "code": "PHYSICS 136-2",
+      "title": "General Physics Laboratory",
+      "term": "Winter 2026",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "rtvf360",
+      "code": "RTVF 360",
+      "title": "Topics in Media Writing",
+      "term": "Winter 2026",
+      "group": "design",
+      "status": "done",
+      "topic": "Writing for Video Games"
+    },
+    {
+      "id": "rtvf376-film",
+      "code": "RTVF 376",
+      "title": "Topics in Interactive Media",
+      "term": "Winter 2026",
+      "group": "design",
+      "status": "done",
+      "topic": "Filmmaking with Emerging Technologies"
+    },
+    {
+      "id": "rtvf376-vr",
+      "code": "RTVF 376",
+      "title": "Topics in Interactive Media",
+      "term": "Winter 2026",
+      "group": "design",
+      "status": "done",
+      "topic": "Alternate and Virtual Reality"
+    },
+    {
+      "id": "art210",
+      "code": "ART 210",
+      "title": "Introduction to Drawing",
+      "term": "Spring 2026",
+      "group": "design",
+      "status": "done"
+    },
+    {
+      "id": "iems307",
+      "code": "IEMS 307",
+      "title": "Quality Improvement by Experimental Design",
+      "term": "Spring 2026",
+      "group": "analytics",
+      "status": "done"
+    },
+    {
+      "id": "matsci201",
+      "code": "MAT_SCI 201",
+      "title": "Intro to Materials Science",
+      "term": "Spring 2026",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "mecheng240",
+      "code": "MECH_ENG 240",
+      "title": "Mechanical Design & Manufacturing",
+      "term": "Spring 2026",
+      "group": "engineering",
+      "status": "done"
+    },
+    {
+      "id": "rtvf376-world",
+      "code": "RTVF 376",
+      "title": "Topics in Interactive Media",
+      "term": "Spring 2026",
+      "group": "design",
+      "status": "done",
+      "topic": "Worldbuilding for Games"
+    },
+    {
+      "id": "dis2026",
+      "code": "DIS",
+      "title": "Study Abroad in Scandinavia (Copenhagen)",
+      "term": "Summer 2026",
+      "group": "design",
+      "status": "done",
+      "topic": "Two transfer courses — titles to add"
+    },
+    {
+      "id": "physics135-3",
+      "code": "PHYSICS 135-3",
+      "title": "General Physics",
+      "term": "Summer 2026",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "physics136-3",
+      "code": "PHYSICS 136-3",
+      "title": "General Physics Laboratory",
+      "term": "Summer 2026",
+      "group": "foundations",
+      "status": "done"
+    },
+    {
+      "id": "rtvf220",
+      "code": "RTVF 220",
+      "title": "Media Texts",
+      "term": "Summer 2026",
+      "group": "design",
+      "status": "done"
+    },
+    {
+      "id": "compsci260",
+      "code": "COMP_SCI 260",
+      "title": "Introduction to Law and Digital Technologies",
+      "term": "Fall 2026",
+      "group": "analytics",
+      "status": "now"
+    },
+    {
+      "id": "dsgn388-1",
+      "code": "DSGN 388-1",
+      "title": "MaDE Capstone Sequence I",
+      "term": "Fall 2026",
+      "group": "engineering",
+      "status": "now"
+    },
+    {
+      "id": "mecheng233",
+      "code": "MECH_ENG 233",
+      "title": "Electronics Design",
+      "term": "Fall 2026",
+      "group": "engineering",
+      "status": "now"
+    },
+    {
+      "id": "mecheng340-1",
+      "code": "MECH_ENG 340-1",
+      "title": "Computer Integrated Manufacturing: Processes",
+      "term": "Fall 2026",
+      "group": "engineering",
+      "status": "now"
+    },
+    {
+      "id": "theatre332-1",
+      "code": "THEATRE 332-1",
+      "title": "The Art of Storytelling",
+      "term": "Fall 2026",
+      "group": "design",
+      "status": "now"
+    }
+  ],
+  "skills": {
+    "Research": [
+      "Observational research (AEIOU)",
+      "User interviews",
+      "Site visits",
+      "Secondary research",
+      "Competitive analysis",
+      "Surveys"
+    ],
+    "Definition": [
+      "Problem framing",
+      "User needs → specs",
+      "Design criteria & decision matrices"
+    ],
+    "Ideation": [
+      "Sketching",
+      "Brainwriting",
+      "Concept selection"
+    ],
+    "Making": [
+      "Low-fi mockups",
+      "3D printing (FDM)",
+      "Woodworking",
+      "Laser cutting",
+      "CAD modelling",
+      "Mechanism design",
+      "Hardware sourcing",
+      "Manufacturing planning"
+    ],
+    "Testing": [
+      "User testing",
+      "Proxy-user testing",
+      "Performance testing",
+      "Design of experiments",
+      "Test protocols"
+    ],
+    "Communication": [
+      "Technical writing",
+      "Posters & presentations",
+      "Engineering drawings",
+      "Client communication"
+    ],
+    "Management": [
+      "Team charter & roles",
+      "Gantt planning",
+      "Budget & purchasing"
+    ],
+    "Business": [
+      "Cost & BOM",
+      "Market sizing",
+      "Pricing strategy",
+      "Financial modelling (NPV)",
+      "Business model"
+    ],
+    "Analytics": [
+      "Python",
+      "Optimization (integer programming)",
+      "Clustering",
+      "Statistics",
+      "Excel modelling",
+      "Data visualisation"
+    ],
+    "Story & play": [
+      "Narrative design",
+      "Game design documents",
+      "Branching narrative",
+      "Worldbuilding",
+      "Screenwriting",
+      "VR filmmaking",
+      "Scenic design",
+      "Motion design"
+    ]
+  },
+  "layouts": {
+    "text": "Text",
+    "text-media": "Text · picture",
+    "media-text": "Picture · text",
+    "gallery": "Gallery",
+    "full": "Full picture",
+    "quote": "Quote",
+    "facts": "Table"
+  },
+  "kinds": [
+    "sketch",
+    "photo",
+    "mockup",
+    "prototype",
+    "test",
+    "cad",
+    "render",
+    "screen",
+    "diagram",
+    "chart",
+    "still"
+  ]
+}

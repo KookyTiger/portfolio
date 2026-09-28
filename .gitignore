@@ -12,3 +12,4 @@ merge/shots/
 assets/src/
 
 merge/writeups-private/
+__pycache__/
