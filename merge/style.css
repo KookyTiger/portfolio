@@ -219,8 +219,9 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 #panel-scrim.on { display: block; }
 .panel { position: fixed; left: 0; top: 0; bottom: 0; z-index: 45; width: min(58vw, 860px); background: rgba(241,241,238,.9); -webkit-backdrop-filter: blur(18px) saturate(1.05); backdrop-filter: blur(18px) saturate(1.05); color: var(--ink); box-shadow: 40px 0 120px rgba(20,20,16,.14); transform: translate3d(-104%, 0, 0); transition: transform .75s cubic-bezier(.4,0,0,1); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .panel.open { transform: translate3d(0, 0, 0); }
-.panel .close { position: absolute; right: 22px; top: 22px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
+.panel .close { position: sticky; float: right; z-index: 3; margin: 22px 22px 0 0; top: 22px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
 .panel .close:hover { background: var(--ink); color: var(--paper); }
+.panel::before { content: ""; position: sticky; top: 0; display: block; height: 88px; margin-bottom: -88px; z-index: 2; pointer-events: none; background: linear-gradient(rgba(241,241,238,.97) 60%, rgba(241,241,238,0)); }   /* a long write-up scrolls under the nav: keep the top of the panel clear; the close button stays with it */
 .panel .inner { padding: 96px 56px 56px; }
 .panel .eyebrow { display: flex; gap: 14px; margin: 0 0 18px; }
 .panel .eyebrow .n { color: var(--ink); }
@@ -230,10 +231,10 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 .panel .sec .k { padding-top: 3px; }
 .panel .sec p { margin: 0; font-size: 15.5px; line-height: 1.5; max-width: 52ch; }
 .panel .sec.one p { font-size: 18px; line-height: 1.35; }
-.panel figure { margin: 34px 0 0; width: min(100%, 420px); aspect-ratio: 200 / 140; position: relative; }
-.panel figure svg { width: 100%; height: 100%; fill: var(--ink); }
-.panel figure img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.panel figure::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -6%; height: 14%; border-radius: 50%; background: rgba(20,20,16,.28); filter: blur(10px); }
+.panel .inner > figure { margin: 34px 0 0; width: min(100%, 420px); aspect-ratio: 200 / 140; position: relative; }
+.panel .inner > figure svg { width: 100%; height: 100%; fill: var(--ink); }
+.panel .inner > figure img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.panel .inner > figure::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -6%; height: 14%; border-radius: 50%; background: rgba(20,20,16,.28); filter: blur(10px); }
 .panel .ask { display: inline-block; margin-top: 40px; font-size: 16px; text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
 .panel .blk { will-change: transform, opacity; }
 .card .in { cursor: pointer; }
@@ -279,6 +280,8 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
   .archives table { grid-column: 1 / -1; font-size: 13px; }
   .footer .word { font-size: clamp(38px, 13vw, 80px); }
   .panel { width: 100vw; box-shadow: none; }
+  .panel .close { top: 70px; margin-top: 70px; }                            /* below the nav links, which sit where the × was */
+  .panel::before { height: 120px; margin-bottom: -120px; }
   .panel .inner { padding: 84px 22px 48px; }
   .panel .sec { grid-template-columns: 1fr; row-gap: 6px; }
   .panel .line { font-size: 17px; }

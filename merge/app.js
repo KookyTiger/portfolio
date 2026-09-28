@@ -9,6 +9,8 @@
 import * as THREE from './vendor/three.module.min.js';
 import { GLTFLoader } from './vendor/GLTFLoader.js';
 import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, VALUE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_TEXT_AT, INTRO_SCREENS, MEADOW_SCREENS, LAND_AT, RATE, CAMERA, TIGER, LEDGE_X, DECK, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
+import { WRITEUPS, WRITEUP_LIB, TOOL_ICONS } from './writeups.js';
+import { renderWriteup } from './writeup-view.js';
 
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -75,19 +77,37 @@ $('foot-bottom').innerHTML = `<span>${COPY.footer.bottom[0]} · ${COPY.footer.bo
 
 // ───────────────────────── Project detail panel (slides in from the left; the tiger keeps hanging on the right) ─────────────────────────
 const panel = $('panel'), panelInner = $('panel-inner'), panelScrim = $('panel-scrim'); let panelOpen = false, panelFrom = null;
+// A project whose write-up Kay approved in the Studio (merge/writeups.js) opens as its case study; the others keep the copy in content.js.
+// ?drafts on localhost shows every Studio draft instead, approved or not, for checking them in the real panel.
+const DRAFTS = { on: new URLSearchParams(location.search).has('drafts') && /^(localhost|127\.0\.0\.1)$/.test(location.hostname), w: {}, lib: null, icons: null };
+if (DRAFTS.on) {
+  const get = (path) => fetch(path).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  get('writeups/_studio.json').then((j) => (DRAFTS.lib = j));
+  get('vendor/tool-icons.json').then((j) => (DRAFTS.icons = j?.icons || {}));
+  PIECES.forEach((p) => p.slug && get(`writeups/${p.slug}.json`).then((j) => { if (j) DRAFTS.w[p.slug] = j; }));
+}
 function openPanel(pi, from) { const p = PIECES[pi], d = p.detail || {}, L = COPY.panel; panelFrom = from || null;
+  const draft = DRAFTS.on && DRAFTS.lib && DRAFTS.w[p.slug], w = draft || WRITEUPS[p.slug];
+  if (w) {
+    panelInner.innerHTML = renderWriteup(w, draft ? DRAFTS.lib : WRITEUP_LIB, draft ? DRAFTS.icons : TOOL_ICONS, { index: pi + 1, total: NP, email: COPY.footer.email });
+    panelInner.querySelector('.wu-title')?.setAttribute('id', 'panel-title');
+    panelInner.querySelectorAll('.wu > :not(.wu-block)').forEach((el) => el.classList.add('blk'));   // the head reveals like the old panel; the stages sit below the fold
+  } else {
   const sec = (k, v, cls = '') => v ? `<div class="sec blk ${cls}"><span class="k mono">${k}</span><p>${v}</p></div>` : '';
   panelInner.innerHTML = `<p class="eyebrow mono blk"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span><span>${p.meta.join(' · ')}</span></p>
     <h2 id="panel-title" class="blk">${p.name}</h2><p class="line blk">${d.line || p.desc}</p>
     ${sec(L.role, d.role)}${sec(L.tools, d.tools)}${sec(L.numbers, d.numbers)}${sec(L.one, d.one || p.take, 'one')}
     <figure class="blk">${p.img ? `<img src="${p.img}" alt="${p.name}">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg>`}</figure>
     <a class="ask blk" href="mailto:${COPY.footer.email}?subject=${encodeURIComponent(p.name)}">${L.ask}</a>`;
+  }
   panel.classList.add('open'); panel.inert = false; panel.setAttribute('aria-hidden', 'false'); panelScrim.classList.add('on'); panelOpen = true; panel.scrollTop = 0;
   gsap.fromTo(panelInner.querySelectorAll('.blk'), { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'reveal', stagger: 0.05, delay: 0.12, overwrite: true });
   lenis.stop(); setTimeout(() => $('panel-close').focus({ preventScroll: true }), 50); }
 function closePanel() { if (!panelOpen) return; panelOpen = false; panel.classList.remove('open'); panel.inert = true; panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true }); }
 document.querySelectorAll('.card .in, .slide .in').forEach((el) => { const pi = +el.closest('[data-p]').dataset.p; el.addEventListener('click', () => openPanel(pi, el)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(pi, el); } }); });
 panel.inert = true; $('panel-close').addEventListener('click', closePanel); panelScrim.addEventListener('click', closePanel);
+panelInner.addEventListener('click', (e) => { const a = e.target.closest('a[href^="#wu-"]'); if (!a) return;   // a write-up's process strip and skills jump inside the panel
+  e.preventDefault(); panelInner.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
 // the screen's own controls (floor 03): ← → keys, horizontal wheel / trackpad, drag — each maps onto page scroll, which drives the strip
 const deckStrip = deckIdx >= 0 ? $('deck-strip') : null;

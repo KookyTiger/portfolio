@@ -26,6 +26,8 @@ HIST = PRIV / 'history'
 ASSETS = ROOT / 'assets'
 sys.path.insert(0, str(ROOT / 'merge' / 'tools'))
 import pics                                                      # noqa: E402  (merge/tools/pics.py)
+sys.path.insert(0, str(ROOT / 'merge'))
+import writeups_export                                           # noqa: E402  (approved write-ups → merge/writeups.js for the site)
 
 PRIVATE_BLOCK = ('draft', 'sources', 'questions', 'note', 'ok')
 PRIVATE_PROJECT = ('log', 'drive', 'vision', 'legacy', 'notes')
@@ -110,6 +112,12 @@ def keep_history(name, paths):
     for p in old[:-80]: p.unlink()                                 # keep the last 40 saves (two files each)
 
 
+def refresh_site():
+    """Approving (or un-approving) a write-up changes what the site's panel shows: regenerate merge/writeups.js."""
+    try: writeups_export.export(ROOT / 'merge')
+    except Exception as e: sys.stderr.write(f'writeups.js not refreshed: {e}\n')
+
+
 def save_project(slug, data):
     a, b = project_paths(slug)
     data = dict(data); data['slug'] = slug
@@ -118,6 +126,7 @@ def save_project(slug, data):
     pub, priv = split_project(data)
     keep_history(slug, (a, b))
     a.write_text(dump(pub)); b.write_text(dump(priv))
+    refresh_site()
     return file_hash(a, b)
 
 
@@ -127,6 +136,7 @@ def save_studio(data):
     priv = {k: data[k] for k in PRIVATE_STUDIO if k in data}
     keep_history('_studio', (a, b))
     a.write_text(dump(pub)); b.write_text(dump(priv))
+    refresh_site()
     return file_hash(a, b)
 
 

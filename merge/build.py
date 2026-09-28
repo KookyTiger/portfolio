@@ -47,7 +47,14 @@ content = re.sub(r'^export ', '', read('content.js'), flags=re.M)
 app = read('app.js')
 app = re.sub(r"^import [^\n]*\n", '', app, flags=re.M)
 
-css = read('style.css')
+# 3b) the write-ups Kay approved in the Studio (writeups_export.py regenerates writeups.js) and their view
+sys.path.insert(0, str(SITE))
+import writeups_export
+print('live write-ups:', ', '.join(writeups_export.export(SITE)) or 'none')
+writeups = re.sub(r'^export ', '', read('writeups.js'), flags=re.M)
+wview = esm_block(read('writeup-view.js'), ['renderWriteup'])
+
+css = read('style.css') + '\n' + read('writeup-view.css')
 html = read('index.html')
 
 # index.html is authored as a fragment (title/meta/links + body); split it
@@ -58,7 +65,7 @@ head = '\n'.join(head_lines) + '\n<style>\n' + css + '\n</style>'
 body = '\n'.join(body_lines).strip()
 scripts = ('<script>\n' + vendors + '\n</script>\n'
            '<script>\n' + three_iife + '\n</script>\n'
-           '<script>\n(() => {\n"use strict";\n' + gltf + '\n' + content + '\n' + app + '\n})();\n</script>')
+           '<script>\n(() => {\n"use strict";\n' + gltf + '\n' + content + '\n' + writeups + '\n' + wview + '\n' + app + '\n})();\n</script>')
 
 full = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n'
         + head + '\n</head>\n<body>\n' + body + '\n' + scripts + '\n</body>\n</html>\n')

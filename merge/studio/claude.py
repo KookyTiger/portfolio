@@ -16,34 +16,8 @@ ROOT, PUB, PRIV = S.ROOT, S.PUB, S.PRIV
 SEEN = PRIV / 'seen'
 DRAFTS = PRIV / 'drafts'
 
-# The Drive folder of each project (KAY-PORTFOLIO), for the Studio's "Drive folder ↗" button.
-DRIVE = {
-    'levelup': ('01_engineering/bubble-level', '1NxtC6gMyGXQ0VOctStu5-mRsw4Po_16E'),
-    'notipclip': ('01_engineering/halo-traction-wheel', '1N6xtzwv9Dvm2P357XdKSpwu_FT-9Y7q1'),
-    'slidemaster': ('01_engineering/shirley-ryan-board', '1GF4rqL0pDpJnu4H2W7hsOSfNF8b1orpD'),
-    'gamejam': ('02_product-ux/game-jam', '1AgXIJ47Y3MQFwruQWMveMQV6Lxb7pyiA'),
-    'onebirth': ('02_product-ux/twine-game', '1HtwKivJndFhxiL12YY90YgjF_eLKgDkS'),
-    'neighbors': ('04_film-experiential/neighbors-vr-film', '13aKa8T1F_LRAL7tTfZsacgYakHa7JL8Z'),
-    'scenic': ('04_film-experiential/scenic-chinese-theatre', '1sTGFVXjdIdJB7O_I5AAe4yjRPXTfvxmC'),
-    'giftme': ('06_leadership/giftme', '1BMLjIPNYb5ewI2reiMAuAaAblMhacgSw'),
-    'austin': ('03_analytics/ie-optimization-vaccine', '17mjJi1Qd0qioLj8-0DMmjM8d0trstaIV'),
-    'alv': ('03_analytics/case-projects', '1gl27hJ8D91Lxp5hiSJMQRb-sCfRoIxGk'),
-    'yello': ('03_analytics/case-projects', '1gl27hJ8D91Lxp5hiSJMQRb-sCfRoIxGk'),
-    'amg': ('03_analytics/drug-analysis project', '1R2xjMTYLxMBby7f_-xiZ7diUdyV_Vahg'),
-    'bike-caliper': ('01_engineering/bike-caliper', '1X1vyu1N3NgJ1UV-XYG-Ld18DLTt_vIr-'),
-    'feet': ('01_engineering/feet', '1O2J2meEXMvNuQ7xuAbrlR07K4sr-f6I4'),
-    'paper-helicopter': ('01_engineering/paper-helicopter', '13V8cyBAzTks6MzEn_o0Q29tZH2bjJfJE'),
-    'wind-dfa': ('02_product-ux/wind-dfa', '149kOeeLhwOZoVlSz8LRB9zAkv23u_bP_'),
-    'running': ('04_film-experiential/ai-films', '1elfOLeqhdtPHrAR5wqWS_3ScePD5N2V2'),
-    'vr-installation': ('04_film-experiential/vr-installation', '1nYniUzadbQMtTjOLksgVaAsAAQ1WMmrp'),
-    'copenhagen': ('02_product-ux/copenhagen-interactive', '1Zhx7DEnzsNjcpHAAcPjKHG9iwubBHKV6'),
-    'ux-class': ('02_product-ux/ux-design-class (tbd)', '1bYKjJeZ8XckbwdjF3ltzCf-G5XY_G8uJ'),
-    'architecture': ('05_visual-art/architecture-project', '1EbwdhbxyoJtS47AX2-rSCSmPnzM7ltJJ'),
-    'industrial-design': ('05_visual-art/intro-to-industrial-design', '1AQDJRk95bPcf-ejFCULBs7b3qe0WkR-x'),
-    'drawing': ('05_visual-art/intro-to-drawing', '1aFUzcXsxNbHlKapvO1R3HF4XtUOMIajB'),
-    'kookynails': ('06_leadership/kookynails', '1FdZ1lBcTlhDVmT9EGHR21F_vrzxrLDif'),
-    'cisa': ('06_leadership/cisa', '1afSQDRtmtdGfhvGXMz7MZQAwGF4AnDOE'),
-}
+# The Drive folder of each project (KAY-PORTFOLIO), for the Studio's "Drive folder ↗" button. Private: folder names name partners.
+DRIVE = {k: tuple(v) for k, v in (S.read_json(PRIV / 'drive-map.json', {}) or {}).items()}
 SLUG_OF = ['levelup', 'notipclip', 'slidemaster', 'gamejam', 'giftme', 'plu', 'neighbors', 'scenic', 'onebirth', 'austin', 'alv', 'yello', 'amg']
 
 

@@ -17,7 +17,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Schibsted+Grotesque:wght@400;500&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Schibsted+Grotesque:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
 <style>
 :root {
   --paper: #F1F1EE;
@@ -240,8 +240,9 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 #panel-scrim.on { display: block; }
 .panel { position: fixed; left: 0; top: 0; bottom: 0; z-index: 45; width: min(58vw, 860px); background: rgba(241,241,238,.9); -webkit-backdrop-filter: blur(18px) saturate(1.05); backdrop-filter: blur(18px) saturate(1.05); color: var(--ink); box-shadow: 40px 0 120px rgba(20,20,16,.14); transform: translate3d(-104%, 0, 0); transition: transform .75s cubic-bezier(.4,0,0,1); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .panel.open { transform: translate3d(0, 0, 0); }
-.panel .close { position: absolute; right: 22px; top: 22px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
+.panel .close { position: sticky; float: right; z-index: 3; margin: 22px 22px 0 0; top: 22px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
 .panel .close:hover { background: var(--ink); color: var(--paper); }
+.panel::before { content: ""; position: sticky; top: 0; display: block; height: 88px; margin-bottom: -88px; z-index: 2; pointer-events: none; background: linear-gradient(rgba(241,241,238,.97) 60%, rgba(241,241,238,0)); }   /* a long write-up scrolls under the nav: keep the top of the panel clear; the close button stays with it */
 .panel .inner { padding: 96px 56px 56px; }
 .panel .eyebrow { display: flex; gap: 14px; margin: 0 0 18px; }
 .panel .eyebrow .n { color: var(--ink); }
@@ -251,10 +252,10 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 .panel .sec .k { padding-top: 3px; }
 .panel .sec p { margin: 0; font-size: 15.5px; line-height: 1.5; max-width: 52ch; }
 .panel .sec.one p { font-size: 18px; line-height: 1.35; }
-.panel figure { margin: 34px 0 0; width: min(100%, 420px); aspect-ratio: 200 / 140; position: relative; }
-.panel figure svg { width: 100%; height: 100%; fill: var(--ink); }
-.panel figure img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.panel figure::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -6%; height: 14%; border-radius: 50%; background: rgba(20,20,16,.28); filter: blur(10px); }
+.panel .inner > figure { margin: 34px 0 0; width: min(100%, 420px); aspect-ratio: 200 / 140; position: relative; }
+.panel .inner > figure svg { width: 100%; height: 100%; fill: var(--ink); }
+.panel .inner > figure img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.panel .inner > figure::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -6%; height: 14%; border-radius: 50%; background: rgba(20,20,16,.28); filter: blur(10px); }
 .panel .ask { display: inline-block; margin-top: 40px; font-size: 16px; text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
 .panel .blk { will-change: transform, opacity; }
 .card .in { cursor: pointer; }
@@ -300,6 +301,8 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
   .archives table { grid-column: 1 / -1; font-size: 13px; }
   .footer .word { font-size: clamp(38px, 13vw, 80px); }
   .panel { width: 100vw; box-shadow: none; }
+  .panel .close { top: 70px; margin-top: 70px; }                            /* below the nav links, which sit where the × was */
+  .panel::before { height: 120px; margin-bottom: -120px; }
   .panel .inner { padding: 84px 22px 48px; }
   .panel .sec { grid-template-columns: 1fr; row-gap: 6px; }
   .panel .line { font-size: 17px; }
@@ -335,6 +338,129 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 }
 @media (hover: none) { .void-hint .a { font-size: 16px; } }
 
+/* ─────────────────────────────────────────────────────────────
+   Write-up view (writeup-view.js): the project case study and the floor title band with its toolkit.
+   Scoped under .wu and .fb; reads the site's tokens (--ink, --paper, --sans …) with fallbacks so the Studio can use it alone.
+   Sizes follow the container, not the window (container queries), so the same view fits the 860px panel, a wide panel and a phone.
+   ───────────────────────────────────────────────────────────── */
+.wu, .fb {
+  --wu-ink: var(--ink, #111111); --wu-ink2: var(--ink-2, #5A5A56); --wu-ink3: var(--ink-3, #9A9A94);
+  --wu-line: var(--line, rgba(17,17,17,.14)); --wu-paper: var(--paper, #F1F1EE); --wu-tile: #E5E4DD;
+  --wu-sans: var(--sans, "Schibsted Grotesque", "Helvetica Neue", Arial, sans-serif);
+  --wu-display: var(--display, "Bricolage Grotesque", "Helvetica Neue", sans-serif);
+  --wu-mono: var(--mono, "Space Mono", "SF Mono", Menlo, monospace);
+  container-type: inline-size; color: var(--wu-ink); font-family: var(--wu-sans); -webkit-font-smoothing: antialiased;
+}
+.wu *, .fb * { box-sizing: border-box; }
+.wu { font-size: 15.5px; line-height: 1.55; }
+.wu-k, .fb-k { font-family: var(--wu-mono); font-size: 11px; line-height: 1.3; letter-spacing: .12em; text-transform: uppercase; color: var(--wu-ink2); }
+
+/* head */
+.wu-eyebrow { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0 0 18px; }
+.wu-eyebrow .n { color: var(--wu-ink); }
+.wu .wu-title { font-family: var(--wu-sans); font-weight: 400; font-size: clamp(30px, 5.4cqi, 48px); line-height: 1.04; letter-spacing: -.02em; margin: 0 0 14px; }
+.wu-lede { font-size: clamp(17px, 2.4cqi, 21px); line-height: 1.3; margin: 0 0 30px; max-width: 36ch; }
+.wu-cover { margin: 0 0 34px; width: min(100%, 420px); aspect-ratio: 200 / 140; position: relative; }
+.wu-cover img { width: 100%; height: 100%; object-fit: contain; display: block; position: relative; z-index: 1; filter: drop-shadow(0 16px 20px rgba(20,20,16,.2)); }
+.wu-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px 22px; padding: 18px 0; border-top: 1px solid var(--wu-line); }
+.wu-meta p { margin: 5px 0 0; font-size: 14.5px; line-height: 1.4; }
+
+/* toolkit: software icons, skills, classes */
+.wu-kit { display: grid; grid-template-columns: 96px 1fr; gap: 18px 22px; align-items: start; padding: 18px 0; border-top: 1px solid var(--wu-line); }
+.wu-kit > .wu-k { padding-top: 4px; }
+.wu-tools { display: flex; flex-wrap: wrap; gap: 14px 10px; }
+.wu-tool { width: 66px; display: grid; justify-items: center; gap: 7px; text-align: center; }
+.wu-tool .ic { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--wu-line); border-radius: 10px; color: var(--wu-ink); background: rgba(255,255,255,.4); }
+.wu-tool .ic svg { width: 19px; height: 19px; fill: currentColor; display: block; }
+.wu-tool .ic b { font-family: var(--wu-display); font-weight: 800; font-size: 14px; letter-spacing: -.02em; line-height: 1; }
+.wu-tool .ic b.sm { font-size: 10.5px; letter-spacing: 0; }
+.wu-tool .nm { font-family: var(--wu-mono); font-size: 9.5px; line-height: 1.25; letter-spacing: .02em; color: var(--wu-ink2); }
+.wu-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.wu-chip { font-size: 13px; line-height: 1; padding: 7px 11px 8px; border: 1px solid var(--wu-line); border-radius: 999px; color: inherit; text-decoration: none; }
+.wu-chip:hover { background: var(--wu-ink); color: var(--wu-paper); border-color: var(--wu-ink); }
+.wu-classes { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.wu-classes li { display: grid; grid-template-columns: 124px 1fr; gap: 12px; font-size: 14px; line-height: 1.35; }
+.wu-classes li b { font-family: var(--wu-mono); font-weight: 400; font-size: 11.5px; letter-spacing: .04em; padding-top: 2px; white-space: nowrap; }
+.wu-classes li i { font-style: normal; color: var(--wu-ink3); }
+
+/* the process at a glance */
+.wu-steps { display: flex; flex-wrap: wrap; gap: 8px 0; padding: 16px 0; border-top: 1px solid var(--wu-line); border-bottom: 1px solid var(--wu-line); margin-bottom: 6px; }
+.wu-steps a { font-family: var(--wu-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--wu-ink2); text-decoration: none; display: inline-flex; gap: 6px; align-items: baseline; }
+.wu-steps a .n { color: var(--wu-ink3); }
+.wu-steps a:hover { color: var(--wu-ink); }
+.wu-steps a:not(:last-child)::after { content: "→"; margin: 0 10px 0 4px; color: var(--wu-ink3); }
+
+/* blocks */
+.wu-block { padding: 46px 0 6px; scroll-margin-top: 24px; }
+.wu-stage { display: flex; gap: 12px; margin: 0 0 12px; }
+.wu-stage .n { color: var(--wu-ink); }
+.wu-block h3 { font-family: var(--wu-display); font-weight: 700; font-size: clamp(22px, 3.4cqi, 31px); line-height: 1.06; letter-spacing: -.015em; margin: 0 0 14px; max-width: 26ch; }
+.wu-text p { margin: 0 0 12px; max-width: 62ch; }
+.wu-text ul { margin: 0 0 12px; padding-left: 1.15em; max-width: 60ch; }
+.wu-text li { margin: 0 0 4px; }
+.wu-text strong { font-weight: 600; }
+.wu-split { display: grid; grid-template-columns: 5fr 6fr; gap: 30px; align-items: start; }
+.wu-split.rev { grid-template-columns: 6fr 5fr; }
+.wu-split.rev > .wu-text { order: 2; }
+.wu-stack { display: grid; gap: 14px; }
+.wu-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 16px 14px; margin-top: 18px; }
+.wu-gallery.n1 { grid-template-columns: 1fr; }
+.wu-gallery.n2 { grid-template-columns: 1fr 1fr; }
+.wu-full { margin: 4px 0 20px; }
+
+/* pictures: frameless tiles; sketches sit on a paper tile, photos fill theirs */
+.wu-fig { margin: 0; }
+.wu-fig .fr { background: var(--wu-tile); aspect-ratio: 4 / 3; display: grid; place-items: center; overflow: hidden; }
+.wu-fig img, .wu-fig video { width: 100%; height: 100%; object-fit: contain; display: block; }
+.wu-fig.k-photo img, .wu-fig.k-test img, .wu-fig.k-prototype img, .wu-fig.k-still img, .wu-fig.k-photo video, .wu-fig.k-test video, .wu-fig.k-prototype video, .wu-fig.k-still video { object-fit: cover; }
+.wu-fig.k-sketch .fr { background: #ECEBE5; padding: 6px; }
+.wu-fig.big .fr { aspect-ratio: auto; max-height: 560px; }
+.wu-fig.big img, .wu-fig.big video { height: auto; max-height: 560px; }
+.wu-gallery.n1 .wu-fig .fr, .wu-stack .wu-fig .fr { aspect-ratio: auto; }
+.wu-gallery.n1 .wu-fig img, .wu-stack .wu-fig img { height: auto; }
+.wu-fig figcaption { margin-top: 7px; font-size: 12.5px; line-height: 1.35; color: var(--wu-ink2); }
+.wu-fig figcaption .kd { font-family: var(--wu-mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--wu-ink3); margin-right: 7px; }
+
+.wu-quote { font-family: var(--wu-display); font-weight: 800; font-size: clamp(26px, 4.6cqi, 42px); line-height: 1.02; letter-spacing: -.025em; max-width: 22ch; margin: 0; }
+.wu-table { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 14px; line-height: 1.35; }
+.wu-table th, .wu-table td { text-align: left; vertical-align: top; padding: 9px 12px 9px 0; border-top: 1px solid var(--wu-line); font-weight: 400; }
+.wu-table tr:first-child th { font-family: var(--wu-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--wu-ink2); }
+.wu-table th[scope="row"] { font-weight: 500; }
+.wu-empty { margin-top: 30px; padding: 18px 20px 20px; border: 1px dashed var(--wu-line); border-radius: 4px; }
+.wu-empty .wu-stage { margin: 0 0 6px; }
+.wu-hint { margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--wu-ink3); max-width: 56ch; }
+.wu-ask { display: inline-block; margin: 44px 0 0; font-size: 16px; color: inherit; text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 2px; }
+
+@container (max-width: 600px) {
+  .wu-split, .wu-split.rev { grid-template-columns: 1fr; gap: 16px; }
+  .wu-split.rev > .wu-text { order: 0; }
+  .wu-kit { grid-template-columns: 1fr; gap: 10px; }
+  .wu-kit > .wu-k { padding-top: 8px; }
+  .wu-gallery, .wu-gallery.n2 { grid-template-columns: 1fr 1fr; gap: 12px 10px; }
+  .wu-classes li { grid-template-columns: 1fr; gap: 1px; }
+}
+
+/* ── the floor title band: the site's section paper + the floor's toolkit ── */
+.fb { height: 100%; background: var(--wu-paper); display: grid; grid-template-columns: repeat(12, 1fr); column-gap: 20px; padding: 0 20px; align-items: center; }
+.fb-l { grid-column: 2 / 7; }
+.fb-r { grid-column: 8 / 13; display: grid; gap: 22px; }
+.fb-l .fb-k { margin: 0 0 16px; }
+.fb-big { font-family: var(--wu-display); font-weight: 800; font-size: clamp(34px, 4.8cqi, 72px); line-height: .8; letter-spacing: -.035em; text-transform: uppercase; }
+.fb-big .line { display: block; }
+.fb-sub { margin: 16px 0 0; font-size: 16px; line-height: 1.3; color: var(--wu-ink2); max-width: 46ch; }
+.fb-row { display: grid; gap: 10px; }
+.fb .wu-tools { gap: 12px 6px; }
+.fb .wu-tool { width: 58px; }
+.fb .wu-tool .ic { width: 34px; height: 34px; }
+.fb .wu-tool .ic svg { width: 17px; height: 17px; }
+.fb .wu-classes { grid-template-columns: 1fr 1fr; column-gap: 20px; row-gap: 6px; }
+.fb .wu-classes li { grid-template-columns: 1fr; gap: 0; font-size: 12.5px; line-height: 1.3; }
+.fb .wu-classes li b { font-size: 10.5px; }
+@container (max-width: 700px) {
+  .fb { align-content: center; row-gap: 26px; }
+  .fb-l, .fb-r { grid-column: 1 / -1; }
+}
+
 </style>
 </head>
 <body>
@@ -351,7 +477,7 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 
 <div id="cursor" aria-hidden="true"><div class="dot"></div><div class="pill" id="cursor-pill">scroll</div></div>
 <div id="panel-scrim" aria-hidden="true"></div>
-<aside id="panel" class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" aria-hidden="true">
+<aside id="panel" class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" aria-hidden="true" data-lenis-prevent>
   <button class="close" id="panel-close" type="button" aria-label="Close">×</button>
   <div class="inner" id="panel-inner"></div>
 </aside>
@@ -6500,32 +6626,32 @@ const SIL = {
 };
 
 const PIECES = [
-  { name: 'LevelUp',               cat: 'product',   year: '2025', sil: 'level',   img: 'assets/projects/levelup.webp', silImg: 'assets/projects/levelup-sil.webp', desc: 'A clip-on bubble level for barbells, iterated from 70 sketches down to one $1.30 part.', meta: ['DTC', 'prototype'], take: '80% of testers picked it over the two competing concepts. It still failed three specs, and the report says which.',
-    detail: { line: 'Built after watching gym-goers at SPAC misalign bars without ever noticing.', tools: 'AEIOU observational research at SPAC · user and lift-coach interviews · structured ideation (70 sketches → 21 → 3 concepts) · three-setting mockup testing · 3D printing · Colab analysis of time-per-rep data', numbers: 'Against spec: 4.35/5 visibility (goal 4/5), 2.5 s setup (goal < 5 s), $1.30 unit cost (goal < $10), 100% of reps level (goal ≥ 90%). It failed three: it interfered with movement for 1 in 3 users, fit only 28.5 mm bars, and came in at 0.98 s per rep.', one: 'During bench-press testing the bubble hit the tester’s chest and split into several smaller bubbles — the device defeating its own readout. The final surface-tension fix exists because of that.' } },
-  { name: 'No-Tip-Clip',           cat: 'product',   year: '2025', sil: 'caster',  img: 'assets/projects/notipclip.webp', desc: 'An anti-tip caster for wheelchairs carrying halo-traction patients at Shriners Children’s.', meta: ['DTC', 'clinical'], take: 'Proxy testing killed the obvious counterweight idea exactly where patients needed it most. $62.26, printed.',
-    detail: { line: 'A 3D-printed adjustable clamp and caster that works like a training wheel on a bicycle.', role: 'Ran and documented the mockup user-testing phase — wrote the Mockup Feedback and Testing Summaries, running proxy-user tests on three competing concepts in the Segal Prototyping Lab and outdoors.', tools: 'Client interviews and a site visit to Shriners Children’s Hospital · secondary research on halo traction · proxy-user testing with weighted loads and timed obstacle courses · 3D printing (Cura, 95% infill, ~50 h print) · McMaster-Carr hardware sourcing', numbers: 'Proxy-user testing scored stability 2/10 at 1 kg rising to 8/10 at 5–10 kg against a fixed 7 kg halo load, with flexibility falling 5/10 → 4/10 as weight increased — the data that killed the weight-bag concept. Final clamp assembly bills out at $62.26, with a cutout radius sized ~1.5× standard frame tubing.', one: 'A $62 printed part for a real pediatric hospital safety problem — chosen because proxy testing showed the “obvious” counterweight solution got worse exactly where patients needed it most.' } },
-  { name: 'Slide Master',          cat: 'product',   year: '2025', sil: 'board',   img: 'assets/projects/slidemaster.webp', desc: 'A wheelchair-to-shower transfer board for Shirley Ryan AbilityLab, built around friction, stability and pinching.', meta: ['DSGN 308', 'wood'], take: 'The plywood mockup cracked under a person. That failure, not a calculation, is why the final board is pine.',
-    detail: { line: 'Redesigned around the three failures of existing boards: skin friction, instability, and finger pinching.', role: 'Co-wrote the Design Concept and Rationale; front matter and references; presented existing solutions and ran the demo at the poster session.', tools: 'User interviews and on-site observation at Shirley Ryan AbilityLab · iterative mockup testing · woodworking (jigsaw, drill press, band saw, sander) · drawer-slide mechanism · orthographic drafting', numbers: 'Final board 29″ × 9″ × 0.75″ with a 23″ × 3″ hollow cavity, a 10° tapered onboarding end chosen after testing multiple mockup angles, and a 10″ × 11″ sliding seat platform on 12″ drawer rails.', one: 'The plywood mockup cracked under a person’s weight during testing. That failure, not a calculation, is why the final board is solid pine.' } },
-  { name: 'Northwestern Game Jam', cat: 'game',      year: '2026', sil: 'house',   img: 'assets/projects/gamejam.webp', wide: true, desc: 'A Taoist exorcist hired to cleanse a haunted show-home, and the grandmother who refused to leave.', meta: ['game jam', 'Godot'], take: 'The concept pivoted three times. The question never changed: who has more claim to a home.',
-    detail: { line: 'Northwestern Game Jam 2026, theme “Twist of Fate” — a four-person team, showcased May 9.', role: 'Wrote the game design document and the narrative bible.', tools: 'Game design documentation · narrative bible · Godot 4 (2D) · AI-generated character and environment art · asset pipeline organization', one: 'The concept pivoted three times — Airbnb guests in the walls, then a sublet roommate in the walls, then a ghost displaced by gentrification — but the question never changed: who has more claim to a home, the person who owns it or the person who lived in it.' } },
-  { name: 'GiftMe',                cat: 'app',       year: '2026', sil: 'gift',    img: 'assets/projects/giftme.webp', desc: 'An iOS app for saving what you want into wishlists friends and family can see — idea to App Store in two months.', meta: ['co-founder', 'iOS'], take: 'A beta of 13 friends and family shaped the UI before launch. The idea came from our own frustration with gift-giving.',
-    detail: { line: 'Co-founded with three teammates; live on the App Store since early September 2026.', role: 'Co-founder.', numbers: 'Idea to shipped app in two months; a pre-launch beta with 13 friends and family; public launch early September 2026.', one: 'The idea came from our own frustration with gift-giving.', todo: 'Kay: add what you built (design? iOS? growth?), a screenshot, and the App Store link.' } },
-  { name: 'People Like Us',        cat: 'interactive', year: '2025', sil: 'gears',   img: 'assets/projects/plu.webp', desc: 'A logo animation rebuilt from a 900 × 900 GIF: two counter-rotating eight-lobed forms that morph into each other on contact.', meta: ['client', 'motion'], take: 'The original GIF was the only asset — no source file — so it was a rebuild, not an edit.',
+  { name: 'LevelUp',               slug: 'levelup',     cat: 'product',   year: '2025', sil: 'level',   img: 'assets/projects/levelup.webp', silImg: 'assets/projects/levelup-sil.webp', desc: 'A clip-on bubble level for barbells, narrowed from 70 written ideas and 21 sketches to one printed clip.', meta: ['DSGN 308', 'prototype'], take: 'My grocery-bag problem lost the vote to a crooked barbell, 63 to 82.5.',
+    detail: { line: 'Built after watching gym-goers at SPAC misalign bars without ever noticing.', tools: 'AEIOU observational research at SPAC · user and lift-coach interviews · structured ideation (70 ideas → 21 sketches → 3 mockups) · three-setting mockup testing · 3D printing · Colab analysis of time-per-rep data', numbers: 'Against spec: 4.35/5 visibility (goal 4/5), 2.5 s setup (goal < 5 s), 100% of reps level with the vial in view (goal ≥ 90%). It missed two: it hit one of three testers’ chests, and it fits only 28.5 mm bars.', one: 'When the bar met the lift coach’s chest, the bubble split into several smaller ones — the device defeating its own readout.' } },
+  { name: 'No-Tip-Clip',           slug: 'notipclip',   cat: 'product',   year: '2024', sil: 'caster',  img: 'assets/projects/notipclip.webp', desc: 'An anti-tip caster for wheelchairs carrying halo-traction patients at Shriners Children’s.', meta: ['DTC', 'clinical'], take: 'The weight bag steadied the chair but was hard to place the same way twice. The wheel promised one size for all. $62.26 in parts.',
+    detail: { line: 'A 3D-printed adjustable clamp and caster that works like a training wheel on a bicycle.', role: 'Wrote the interview guide, the mockup plans, the mockup test report and the instructions for use; drafted the safety evaluation.', tools: 'Client interviews and a site visit to Shriners Children’s Hospital · secondary research on halo traction · proxy-user testing with weighted loads and timed obstacle courses · 3D printing (Cura, 95% infill, ~50 h print) · McMaster-Carr hardware sourcing', numbers: 'Weight-bag tests against a 7 kg hanging load rated stability 2, 5, 8, 8 and flexibility 5, 7, 6, 4 (out of 10) at 1, 3, 5 and 10 kg: past 5 kg, more weight bought no stability. Parts came to $62.26; the clamp’s cutout is about 1.5× standard frame tubing.', one: 'Instead of adding weight, we added a point of contact with the floor.' } },
+  { name: 'Slide Master',          slug: 'slidemaster', cat: 'product',   year: '2024', sil: 'board',   img: 'assets/projects/slidemaster.webp', desc: 'A wheelchair-to-shower transfer board where the seat slides, so the user’s skin doesn’t have to.', meta: ['DTC', 'wood'], take: 'The plywood started to crack before our tester put his full weight on it. We chose pine by sitting on it.',
+    detail: { line: 'Redesigned around what goes wrong with existing boards: skin friction, slipping, getting on, and pinched fingers.', role: 'Led the mockup plan and the design-freeze documents; co-wrote the concept and rationale, the front matter and references; presented existing solutions and ran the demo at the poster session.', tools: 'Partner interviews and a site visit · iterative mockup testing · woodworking · drawer-slide mechanism · orthographic drafting · Tinkercad', numbers: 'Final board 29″ × 9″ × ¾″ with a 23″ × 3″ hollow cavity and a tapered onboarding end (offcuts tested at 10°, 20° and 30°); the seat rides on 12″ ball-bearing drawer slides.', one: 'The plywood started to crack before our tester put his full weight on it. We chose pine by sitting on the candidates, not by calculation.' } },
+  { name: 'Northwestern Game Jam', slug: 'gamejam',     cat: 'game',      year: '2026', sil: 'house',   img: 'assets/projects/gamejam.webp', wide: true, desc: 'A Taoist exorcist hired to cleanse a haunted show-home, and the grandmother who refused to leave.', meta: ['game jam', 'Unity'], take: 'The concept pivoted three times. The question never changed: who has more claim to a home.',
+    detail: { line: 'Northwestern Game Jam 2026, theme “Twist of Fate” — a four-person team, showcased May 9.', role: 'Wrote the game design document and the narrative bible.', tools: 'Game design documentation · narrative bible · Unity (first prototype in Godot) · AI-generated art and cutscenes · asset pipeline organization', one: 'The concept changed three times — a roommate living in the walls, an Airbnb, a realtor on a haunted block, a Daoist exorcist — but the question never did: who has more claim to a home, the person who owns it or the person who lived in it.' } },
+  { name: 'GiftMe',                slug: 'giftme',      cat: 'app',       year: '2026', sil: 'gift',    img: 'assets/projects/giftme.webp', desc: 'An iOS app for saving what you want into wishlists friends and family can see — idea to App Store in two months.', meta: ['co-founder', 'iOS'], take: 'A beta of 13 friends and family shaped the UI before launch. The idea came from our own frustration with gift-giving.',
+    detail: { line: 'Co-founded with three teammates; on the App Store since August 20, 2026.', role: 'Co-founder and front-end designer.', numbers: 'Idea to shipped app in two months; a pre-launch beta with 13 friends and family; on the App Store August 20, 2026.', one: 'The idea came from our own frustration with gift-giving.', todo: 'Kay: add what you built (design? iOS? growth?), a screenshot, and the App Store link.' } },
+  { name: 'People Like Us',        slug: 'plu',         cat: 'interactive', year: '2026', sil: 'gears',   img: 'assets/projects/plu.webp', desc: 'A logo animation rebuilt from a 900 × 900 GIF: two counter-rotating eight-lobed forms that morph into each other on contact.', meta: ['client', 'motion'], take: 'The original GIF was the only asset — no source file — so it was a rebuild, not an edit.',
     detail: { line: 'Two eight-lobed forms, counter-rotating, fusing where they touch.', tools: 'SDF / smin blending · 48 frames · linear colour diffusion in the fusion region · built in gated stages with Claude Code (extraction → parameter grid → full render → acceptance test)', one: 'Chose lobe-on-lobe collision (head-on squash) over tooth-in-gap meshing, and elastic recoil over a fixed centre distance — and accepted continuous off-axis contact as intrinsic to eight lobes.', todo: 'Kay: add the client context and the final GIF.' } },
-  { name: 'Neighbors',             cat: 'film',      year: '2026', sil: 'headset', img: 'assets/projects/neighbors.webp', desc: 'A VR film. You cannot cut. You can only wait.', meta: ['RTVF', 'VR'], take: 'In VR the edit is the viewer.',
+  { name: 'Neighbors',             slug: 'neighbors',   cat: 'film',      year: '2026', sil: 'headset', img: 'assets/projects/neighbors.webp', desc: 'A VR film. You cannot cut. You can only wait.', meta: ['RTVF', 'VR'], take: 'In VR the edit is the viewer.',
     detail: { line: 'A VR film. You cannot cut. You can only wait.', one: 'In VR the edit is the viewer.', todo: 'Kay: add role, tools and a still — nothing verified beyond the card yet.' } },
-  { name: '隐藏的宝藏',             cat: 'stage',     year: '2025', sil: 'wall',    img: 'assets/projects/scenic.webp', desc: 'A 3 m × 6 m mobile reveal wall for a student production: a cardboard exterior tears open to a fake-cash cavity backed by projection cloth.', meta: ['theatre', 'scenic design'], take: 'Plautus’s Aulularia nested inside a contemporary Shanghai developer story — two worlds, one wall.',
+  { name: '隐藏的宝藏',             slug: 'scenic',      cat: 'stage',     year: '2026', sil: 'wall',    img: 'assets/projects/scenic.webp', desc: 'A 3 m × 6 m mobile reveal wall for a student production: a cardboard exterior tears open to a fake-cash cavity backed by projection cloth.', meta: ['theatre', 'scenic design'], take: 'Plautus’s Aulularia nested inside a contemporary Shanghai developer story — two worlds, one wall.',
     detail: { line: 'A play within a play: a Shanghai old theatre wrapped around ancient Athens.', tools: 'Script analysis for the two scenic environments · hybrid 2×4 lumber + rebar frame · caster wagon base · projection cloth · fake-bill math · team delegation', numbers: '3 m × 6 m, on casters, about $400.', one: 'The cardboard tears. That is the reveal.', todo: 'Kay: add your role/title on the production and the production date.' } },
-  { name: 'One Birth Too Many',    cat: 'game',      year: '2025', sil: 'table',   desc: 'A Twine game set in a 1983 Chinese village under the One-Child Policy. One Friday morning, six perspectives, one dinner table.', meta: ['RTVF 360', 'Twine'], take: 'Choices in one character’s morning silently change another’s. You find out at dinner.',
-    detail: { line: 'Replay one Friday morning from up to six perspectives before they all collide at a single dinner table.', role: 'Sole writer and designer (RTVF 360, Writing in Video Games).', tools: 'Twine / SugarCube 2.37.3 · branching narrative design · hub-and-spoke structure · multi-protagonist state tracking · HTML/JS', numbers: 'Over 10 endings across 2 playable protagonists and 6 explorable morning vignettes, converging on a five-round dinner-table confrontation with a government inspector.', one: 'Choices made in one character’s morning silently change the conditions of another’s. You don’t find that out until dinner.' } },
-  { name: 'Austin Vaccine Siting', cat: 'analytics', year: '2025', sil: 'map',     img: 'assets/projects/austin.webp', desc: 'Clustered 42 Austin ZIP areas to site vaccine distribution: k-medoids first, then two Gurobi integer programs.', meta: ['IEMS 313', 'optimization'], take: 'We handed back two answers and said which one to pick depending on what you care about.',
-    detail: { line: 'Balancing CDC social vulnerability, population-weighted distance and human mobility — first as a custom k-medoids heuristic, then reformulated as two competing integer programs.', tools: 'Python · Gurobi (gurobipy) · pandas, numpy, scikit-learn · integer programming · k-medoids with a population-balance penalty · Haversine distance · CDC SVI, census ZCTA and mobility-visit data · TIGER shapefiles', numbers: 'The all-pairs model at K = 2 splits Austin into clusters within 1% of each other by population, at 15% suboptimality on distance and vulnerability and 10% on connectivity. The medoids model reaches an objective value 15× better — but doesn’t balance population nearly as well. Weights came out of 132 generated cluster maps across 11 weight ratios.', one: 'We didn’t hand back one answer. We handed back two, and said which one to pick depending on whether you care more about serving equal populations or about the number in the objective function.' } },
-  { name: 'CASE × Ama La Vida',    cat: 'analytics', year: '2025', sil: 'ladder',  img: 'assets/projects/alv.webp', desc: 'Pricing and retention strategy for a virtual career-coaching company, from five years of churn data.', meta: ['consulting', 'pricing'], take: '43% of cancellations said “goal achieved.” The product was working. That’s an argument for charging more.',
-    detail: { line: 'Built from competitor benchmarking and 2020–2024 membership churn data.', role: 'Pricing & Retention Strategies workstream (with two other analysts), on a six-analyst team under two project managers.', tools: 'Competitor pricing benchmarking · churn and retention cohort analysis · pricing-tier design · implementation planning · client presentation', numbers: 'Recommended raising the ceiling from $189.50 to $250 per session, restructuring the 12-session bundle from $1,933 to $2,550 and the 24-session from $3,638 to $4,800. 12-month retention falls from 14% on the 1×-monthly plan to 4% on 2×-monthly; 43.3% of cancellations cite “goal achieved” rather than price — only 3.9% say they didn’t see value.', one: 'The churn data said the product was working, not failing — people were leaving because they’d finished. That’s an argument for charging more, not less.' } },
-  { name: 'CASE × Yello',          cat: 'analytics', year: '2024', sil: 'funnel',  img: 'assets/projects/yello.webp', desc: 'Mapped the HR-tech landscape for a talent-acquisition platform and found the public-sector opening.', meta: ['consulting', 'market sizing'], take: '98.8% of the Fortune 500 already run an ATS. The opening isn’t displacement, it’s adjacency.',
-    detail: { line: 'Competitive landscape, partnership and expansion targets for a talent-acquisition software company — including the federal public-sector opening.', role: 'Partnership Identification & Expansion workstream (with two other analysts).', tools: 'Competitive and SWOT analysis of ATS vendors · market sizing · secondary research synthesis (Gartner, Deloitte, McKinsey, J.P. Morgan) · partnership target identification', numbers: '98.8% of the Fortune 500 already run an ATS, and Workday holds 37.1% of that market to SuccessFactors’ 13.1%. 55% of recruiting executives expect to spend more on recruiting tech; 80% of vendors are expected to embed AI by 2027.', one: 'The opening isn’t displacement, it’s adjacency.' } },
-  { name: 'AMG-786',               cat: 'analytics', year: '2025', sil: 'capsule', img: 'assets/projects/amg.webp', desc: 'Financial analysis of a drug candidate: 10-year revenue forecast, risk-adjusted NPV.', meta: ['CIV_ENV 205', 'Excel'], take: '“Proceed, but wary of Phase II.” Half of pricing is deciding what not to count.',
-    detail: { line: 'A go / no-go on a drug candidate, priced against Wegovy, Mounjaro and Ozempic.', role: 'Calculator — the Excel model behind the numbers; authored the mechanism comparison and the pricing table (Wegovy $1,349/mo, Mounjaro $1,100, Ozempic $959.60; inflation-adjusted 2033 average $1,470.41).', tools: 'Excel · revenue forecasting · risk-adjusted NPV · comparable pricing', numbers: '10-year revenue forecast of $3.37B; risk-adjusted NPV positive; recommendation: proceed, but wary of Phase II.', one: 'Half of pricing is deciding what not to count.' } },
+  { name: 'One Birth Too Many',    slug: 'onebirth',    cat: 'game',      year: '2026', sil: 'table',   desc: 'A Twine game set in a 1983 Chinese village under the One-Child Policy. One Friday morning, six perspectives, one dinner table.', meta: ['RTVF 360', 'Twine'], take: 'Choices in one character’s morning silently change another’s. You find out at dinner.',
+    detail: { line: 'Replay one Friday morning from up to six perspectives before they all collide at a single dinner table.', role: 'Writer and designer (RTVF 360, Writing for Video Games).', tools: 'Twine / SugarCube 2.37.3 · branching narrative design · hub-and-spoke structure · multi-protagonist state tracking · HTML/JS', numbers: '24 endings across 2 playable protagonists and 6 explorable morning vignettes: 4 happen before dinner, the other 20 come out of a five-round dinner-table confrontation with a government inspector.', one: 'Choices made in one character’s morning silently change the conditions of another’s. You don’t find that out until dinner.' } },
+  { name: 'Austin Vaccine Siting', slug: 'austin',      cat: 'analytics', year: '2025', sil: 'map',     img: 'assets/projects/austin.webp', desc: 'Clustered 44 Austin ZIP areas to site vaccine distribution: k-medoids first, then two Gurobi integer programs.', meta: ['IEMS 313', 'optimization'], take: 'We handed back two answers and said which one to pick depending on what you care about.',
+    detail: { line: 'Balancing social vulnerability, population-weighted distance and human mobility — first as a custom k-medoids heuristic, then reformulated as two competing integer programs.', tools: 'Python · Gurobi (gurobipy) · pandas, numpy, scikit-learn · integer programming · k-medoids with a population-balance penalty · Haversine distance · SVI, census ZCTA and mobility-visit data · TIGER shapefiles', numbers: 'The all-pairs model at K = 2 splits Austin into clusters within 1% of each other by population, at 15% suboptimality on distance and vulnerability and 10% on connectivity. The medoids model reaches an objective value 15× better — but doesn’t balance population nearly as well. Weights came out of 132 generated cluster maps across 11 weight ratios.', one: 'We didn’t hand back one answer. We handed back two, and said which one to pick depending on whether you care more about serving equal populations or about the number in the objective function.' } },
+  { name: 'CASE × Ama La Vida',    slug: 'alv',         cat: 'analytics', year: '2025', sil: 'ladder',  img: 'assets/projects/alv.webp', desc: 'Pricing and retention strategy for a virtual career-coaching company, from five years of churn data.', meta: ['consulting', 'pricing'], take: 'Members kept stepping down to cheaper plans. We raised the ceiling and rewarded staying up.',
+    detail: { line: 'Built from competitor benchmarking and 2020–2024 membership churn data.', role: 'Pricing & Retention Strategies workstream (with two other analysts), on a six-analyst team under two project managers.', tools: 'Competitor pricing benchmarking · churn and retention cohort analysis · pricing-tier design · implementation planning · client presentation', numbers: 'Recommended raising the ceiling from $189.50 to $250 per session, restructuring the 12-session bundle from $1,933 to $2,550 and the 24-session from $3,638 to $4,800.', one: 'A cancellation says someone left, not how much they would pay. The plan changes said more.' } },
+  { name: 'CASE × Yello',          slug: 'yello',       cat: 'analytics', year: '2024', sil: 'funnel',  img: 'assets/projects/yello.webp', desc: 'Mapped the HR-tech landscape for a campus-recruiting platform and picked partners it could grow with.', meta: ['consulting', 'partnerships'], take: '98.8% of the Fortune 500 already run an ATS. The opening isn’t displacement, it’s adjacency.',
+    detail: { line: 'Competitive landscape and partnership targets for a campus-recruiting software company, including the federal channels the client asked about.', role: 'Partnership Identification & Expansion workstream (with two other analysts).', tools: 'Competitive and SWOT analysis of ATS vendors · secondary research synthesis (Gartner, Deloitte, McKinsey, J.P. Morgan) · partnership target identification', numbers: '98.8% of the Fortune 500 already run an ATS, and Workday holds 37.1% of that market to SuccessFactors’ 13.1%. 55% of recruiting executives expect to spend more on recruiting tech; 80% of vendors are expected to embed AI by 2027.', one: 'The opening isn’t displacement, it’s adjacency.' } },
+  { name: 'AMG-786',               slug: 'amg',         cat: 'analytics', year: '2024', sil: 'capsule', img: 'assets/projects/amg.webp', desc: 'Financial analysis of a drug candidate: development costs, pricing, ten years of sales and NPV.', meta: ['CIV_ENV 205', 'Excel'], take: '“Proceed, but wary of Phase II.” I priced it against Wegovy, Mounjaro, Zepbound and Ozempic.',
+    detail: { line: 'A go / no-go on a drug candidate, priced against Wegovy, Mounjaro and Ozempic.', role: 'The team’s “Calculator”; wrote the pricing analysis (Wegovy $1,349/mo, Mounjaro $1,100, Zepbound $1,060, Ozempic $959.60; inflation-adjusted 2033 average $1,470.41).', tools: 'Excel · revenue forecasting · NPV and IRR · decision tree · comparable pricing', numbers: '$3.37B in revenue in year ten; NPV positive in every sales-growth case we ran ($6.9B–$12.1B); recommendation: proceed, but wary of Phase II.', one: 'We budgeted for the tail, not the average: pessimistic on purpose, and we had to defend it.' } },
 ];
 
 // Page rhythm: paper / window / paper / window / paper / window (Léo), three windows share one shaft (Laurens).
@@ -6611,7 +6737,7 @@ const COPY = {
 const ARCHIVE = [
   ['Running', 'AI-assisted short — the storyboard survived, the model didn’t', 'RTVF 376', '2026'],
   ['WIND × DFA', 'Tech-literacy curriculum for justice-impacted women', 'Design for America', '2024'],
-  ['Bike caliper', 'Rear brake caliper, 115 g → 60 g, road-tested', 'ME 240', '2025'],
+  ['Bike caliper', 'Rear brake caliper, 115 g → 60 g, road-tested', 'ME 240', '2026'],
   ['Prosthetic foot', '3D-printed PLA foot, loaded to failure', 'MaDE', '2025'],
   ['Reverie', 'Dream journaling app', 'Personal', '2026'],
   ['MiraclePlus', 'Investment analyst intern', 'Beijing', '2025'],
@@ -6637,6 +6763,166 @@ const LIGHT = {
   lamp:  { color: 0xFFD9A0, intensity: 8, distance: 10 },
 };
 
+// Generated by merge/writeups_export.py from merge/writeups/*.json. Edit in the Studio, not here.
+// Only the write-ups Kay approved are in it; the other projects keep their panel copy in content.js.
+const WRITEUPS = {};
+const WRITEUP_LIB = {"templates": {}, "floors": [{"id": "engineering", "num": "01", "title": "ENGINEERING"}, {"id": "design", "num": "02", "title": "DESIGN & INTERACTION"}, {"id": "analytics", "num": "03", "title": "ANALYTICS & STRATEGY"}], "software": [], "classes": []};
+const TOOL_ICONS = {};
+
+const { renderWriteup } = (() => {
+// ─────────────────────────────────────────────────────────────
+// Write-up view: renders one project case study (and a floor's title band) from merge/writeups/*.json.
+// Used by the Studio's live preview now; the site's detail panel will use the same functions once Kay approves the layout.
+// Pure functions → HTML strings. Styles: writeup-view.css (everything scoped under .wu / .fb).
+// ─────────────────────────────────────────────────────────────
+
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// Kay's text → HTML: blank line = new paragraph, "- " lines = a list, **bold**, single newlines kept.
+function mdLite(text) {
+  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  return String(text || '').trim().split(/\n\s*\n/).filter(Boolean).map((para) => {
+    const lines = para.split('\n');
+    if (lines.every((l) => /^\s*[-•]\s+/.test(l))) return `<ul>${lines.map((l) => `<li>${inline(l.replace(/^\s*[-•]\s+/, ''))}</li>`).join('')}</ul>`;
+    return `<p>${inline(para)}</p>`;
+  }).join('');
+}
+
+// "facts" layout: `A | B | C` rows, `!` = header row, other lines = paragraphs.
+function factsHTML(text) {
+  const out = []; let rows = [];
+  const flush = () => { if (!rows.length) return;
+    out.push(`<table class="wu-table">${rows.map((r) => `<tr>${r.cells.map((c, i) => r.head ? `<th>${esc(c)}</th>` : i === 0 ? `<th scope="row">${esc(c)}</th>` : `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`); rows = []; };
+  for (const raw of String(text || '').split('\n')) {
+    const line = raw.trim();
+    if (!line) { flush(); continue; }
+    if (line.includes('|')) { const head = line.startsWith('!'); rows.push({ head, cells: line.replace(/^!/, '').split('|').map((c) => c.trim()) }); }
+    else { flush(); out.push(mdLite(line)); }
+  }
+  flush();
+  return out.join('');
+}
+
+function toolIcon(sw, icons) {
+  const si = sw.si && icons?.[sw.si];
+  if (si) return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${si.path}"/></svg>`;
+  const abbr = esc(sw.abbr || sw.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 2));
+  return `<b class="${abbr.length > 2 ? 'sm' : ''}">${abbr}</b>`;
+}
+
+function toolsHTML(ids, lib, icons) {
+  const byId = Object.fromEntries((lib.software || []).map((s) => [s.id, s]));
+  const list = (ids || []).map((id) => byId[id]).filter(Boolean);
+  if (!list.length) return '';
+  return `<div class="wu-tools">${list.map((s) => `<div class="wu-tool" title="${esc(s.name)}"><span class="ic">${toolIcon(s, icons)}</span><span class="nm">${esc(s.name)}</span></div>`).join('')}</div>`;
+}
+
+function classesHTML(ids, lib) {
+  const byId = Object.fromEntries((lib.classes || []).map((c) => [c.id, c]));
+  const list = (ids || []).map((id) => byId[id]).filter(Boolean);
+  if (!list.length) return '';
+  return `<ul class="wu-classes">${list.map((c) => `<li><b>${esc(c.code)}</b><span>${esc(c.topic || c.title)}${c.status === 'now' ? ' <i>· now</i>' : ''}</span></li>`).join('')}</ul>`;
+}
+
+let BASE = '';
+const url = (src) => (/^(https?:|data:|blob:|\/)/.test(src) ? src : BASE + src);
+
+function figHTML(m, cls = '') {
+  if (!m?.src) return '';
+  const cap = m.caption ? `<figcaption>${m.kind ? `<span class="kd">${esc(m.kind)}</span>` : ''}${esc(m.caption)}</figcaption>`
+                        : m.kind ? `<figcaption><span class="kd">${esc(m.kind)}</span></figcaption>` : '';
+  const isVideo = /\.(mp4|webm|mov)$/i.test(m.src);
+  const media = isVideo ? `<video src="${esc(url(m.src))}" muted loop autoplay playsinline></video>`
+                        : `<img src="${esc(url(m.src))}" alt="${esc(m.caption || m.kind || '')}" loading="lazy">`;
+  return `<figure class="wu-fig k-${esc(m.kind || 'photo')} ${cls}"><div class="fr">${media}</div>${cap}</figure>`;
+}
+
+function stagesOf(p, lib) {
+  const t = lib.templates?.[p.template] || { stages: [] };
+  return Object.fromEntries(t.stages.map((s, i) => [s.key, { ...s, n: i + 1 }]));
+}
+
+function blockHTML(b, stage, num, opts = {}) {
+  const empty = !(b.text && b.text.trim()) && !(b.media || []).some((m) => m.src);
+  if (empty && opts.showEmpty) return `<section class="wu-block wu-empty" data-block="${esc(b.id)}" id="wu-${esc(b.id)}">${stage ? `<p class="wu-stage wu-k"><span class="n">${String(num).padStart(2, '0')}</span><span>${esc(stage.label)}</span></p>` : ''}<p class="wu-hint">${esc(stage?.hint || 'Empty block')}</p></section>`;
+  const title = b.title ? `<h3>${esc(b.title)}</h3>` : '';
+  const eyebrow = stage ? `<p class="wu-stage wu-k"><span class="n">${String(num).padStart(2, '0')}</span><span>${esc(stage.label)}</span></p>` : '';
+  const media = (b.media || []).filter((m) => m.src);
+  const text = b.layout === 'facts' ? factsHTML(b.text) : mdLite(b.text);
+  let body;
+  switch (b.layout) {
+    case 'quote':
+      body = `<blockquote class="wu-quote">${esc(String(b.text || '').trim())}</blockquote>${media.length ? `<div class="wu-gallery">${media.map((m) => figHTML(m)).join('')}</div>` : ''}`; break;
+    case 'text-media': case 'media-text':
+      body = media.length ? `<div class="wu-split ${b.layout === 'media-text' ? 'rev' : ''}"><div class="wu-text">${title}${text}</div><div class="wu-stack">${media.map((m) => figHTML(m)).join('')}</div></div>`
+                          : `<div class="wu-text">${title}${text}</div>`;
+      return `<section class="wu-block l-${b.layout}" data-block="${esc(b.id)}" id="wu-${esc(b.id)}">${eyebrow}${body}</section>`;
+    case 'gallery':
+      body = `<div class="wu-text">${text}</div>${media.length ? `<div class="wu-gallery n${Math.min(media.length, 4)}">${media.map((m) => figHTML(m)).join('')}</div>` : ''}`; break;
+    case 'full':
+      body = `${media.length ? `<div class="wu-full">${media.map((m) => figHTML(m, 'big')).join('')}</div>` : ''}<div class="wu-text">${text}</div>`; break;
+    default:
+      body = `<div class="wu-text">${text}</div>${media.length ? `<div class="wu-gallery n${Math.min(media.length, 4)}">${media.map((m) => figHTML(m)).join('')}</div>` : ''}`;
+  }
+  return `<section class="wu-block l-${esc(b.layout || 'text')}" data-block="${esc(b.id)}" id="wu-${esc(b.id)}">${eyebrow}${b.layout === 'quote' ? '' : title}${body}</section>`;
+}
+
+// p = a project (public fields are enough), lib = _studio.json, icons = vendor/tool-icons.json → icons
+// opts: { index, total, email, showEmpty (dashed placeholders for empty stages), base (prefix for relative picture paths) }
+function renderWriteup(p, lib, icons, opts = {}) {
+  BASE = opts.base || '';
+  const stages = stagesOf(p, lib);
+  const floor = (lib.floors || []).find((f) => f.id === p.floor);
+  const c = p.context || {};
+  const eyebrow = [opts.index != null ? `<span class="n">${String(opts.index).padStart(2, '0')}${opts.total ? ` / ${String(opts.total).padStart(2, '0')}` : ''}</span>` : '',
+    floor ? `<span>${esc(floor.title)}</span>` : '', c.when ? `<span>${esc(c.when)}</span>` : ''].filter(Boolean).join('');
+  const meta = [['Role', c.role], ['Team', c.team], ['Partner', c.partner], ['Course', c.course]].filter(([, v]) => v)
+    .map(([k, v]) => `<div><span class="wu-k">${k}</span><p>${esc(v)}</p></div>`).join('');
+  const tools = toolsHTML(p.software, lib, icons);
+  const skills = (p.skills || []).filter((s) => s.name);
+  const classes = classesHTML(p.classes, lib);
+  const kit = [tools && ['Tools', tools], skills.length && ['Skills', `<div class="wu-chips">${skills.map((s) => `<a class="wu-chip" href="#wu-${esc(s.evidence || '')}">${esc(s.name)}</a>`).join('')}</div>`], classes && ['Classes', classes]]
+    .filter(Boolean).map(([k, v]) => `<span class="wu-k">${k}</span><div>${v}</div>`).join('');
+  const blocks = (p.blocks || []).filter((b) => opts.showEmpty || (b.text && b.text.trim()) || (b.media || []).some((m) => m.src));
+  const numbered = blocks.map((b) => { const st = b.layout !== 'quote' ? stages[b.stage] : null; return { b, st, num: st ? st.n : null }; });
+  const steps = numbered.filter((x) => x.st);
+  const seen = new Set();
+  const stepsHTML = steps.length > 2 ? `<nav class="wu-steps" aria-label="Process">${steps.filter((x) => !seen.has(x.b.stage) && seen.add(x.b.stage)).map((x) => `<a href="#wu-${esc(x.b.id)}"><span class="n">${String(x.num).padStart(2, '0')}</span>${esc(x.st.label)}</a>`).join('')}</nav>` : '';
+  const email = opts.email || 'kaytu2027@u.northwestern.edu';
+  return `<article class="wu">
+    ${eyebrow ? `<p class="wu-eyebrow wu-k">${eyebrow}</p>` : ''}
+    <h2 class="wu-title">${esc(p.name)}</h2>
+    ${p.oneLiner ? `<p class="wu-lede">${esc(p.oneLiner)}</p>` : ''}
+    ${p.cover ? `<figure class="wu-cover"><img src="${esc(url(p.cover))}" alt="${esc(p.name)}"></figure>` : ''}
+    ${meta ? `<div class="wu-meta">${meta}</div>` : ''}
+    ${kit ? `<div class="wu-kit">${kit}</div>` : ''}
+    ${stepsHTML}
+    ${numbered.map((x) => blockHTML(x.b, x.st, x.num, opts)).join('')}
+    <a class="wu-ask" href="mailto:${esc(email)}?subject=${encodeURIComponent(p.name || '')}">Ask me for the full report ↗</a>
+  </article>`;
+}
+
+// The floor's title band with its toolkit (a proposal for the site's section papers).
+function renderFloorBand(f, lib, icons, opts = {}) {
+  const lines = String(f.title || '').split(' & ');
+  const title = lines.map((l, i) => `<span class="line">${esc(l)}${i < lines.length - 1 ? ' &amp;' : ''}</span>`).join('');
+  const tools = toolsHTML(f.software, lib, icons);
+  const classes = classesHTML(f.classes, lib);
+  return `<section class="fb">
+    <div class="fb-l">
+      <p class="fb-k">${esc(f.num)} / ${String(opts.total || 3).padStart(2, '0')}${opts.count != null ? ` · ${opts.count} projects` : ''}</p>
+      <div class="fb-big">${title}</div>
+      ${f.sub ? `<p class="fb-sub">${esc(f.sub)}</p>` : ''}
+    </div>
+    <div class="fb-r">
+      ${tools ? `<div class="fb-row"><span class="fb-k">Tools</span>${tools}</div>` : ''}
+      ${classes ? `<div class="fb-row"><span class="fb-k">Classes</span>${classes}</div>` : ''}
+    </div>
+  </section>`;
+}
+
+return { renderWriteup };
+})();
 // KookyTiger — MERGED LAYOUT (Léo × Laurens), motion pass.
 //   Camera  = Léo: position is a LINEAR function of page scroll (Lenis is the only smoothing), rotation never changes,
 //             header dollies down 2.4 / forward 4 over 200vh, then a straight vertical descent — even under paper.
@@ -6711,19 +6997,37 @@ $('foot-bottom').innerHTML = `<span>${COPY.footer.bottom[0]} · ${COPY.footer.bo
 
 // ───────────────────────── Project detail panel (slides in from the left; the tiger keeps hanging on the right) ─────────────────────────
 const panel = $('panel'), panelInner = $('panel-inner'), panelScrim = $('panel-scrim'); let panelOpen = false, panelFrom = null;
+// A project whose write-up Kay approved in the Studio (merge/writeups.js) opens as its case study; the others keep the copy in content.js.
+// ?drafts on localhost shows every Studio draft instead, approved or not, for checking them in the real panel.
+const DRAFTS = { on: new URLSearchParams(location.search).has('drafts') && /^(localhost|127\.0\.0\.1)$/.test(location.hostname), w: {}, lib: null, icons: null };
+if (DRAFTS.on) {
+  const get = (path) => fetch(path).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  get('writeups/_studio.json').then((j) => (DRAFTS.lib = j));
+  get('vendor/tool-icons.json').then((j) => (DRAFTS.icons = j?.icons || {}));
+  PIECES.forEach((p) => p.slug && get(`writeups/${p.slug}.json`).then((j) => { if (j) DRAFTS.w[p.slug] = j; }));
+}
 function openPanel(pi, from) { const p = PIECES[pi], d = p.detail || {}, L = COPY.panel; panelFrom = from || null;
+  const draft = DRAFTS.on && DRAFTS.lib && DRAFTS.w[p.slug], w = draft || WRITEUPS[p.slug];
+  if (w) {
+    panelInner.innerHTML = renderWriteup(w, draft ? DRAFTS.lib : WRITEUP_LIB, draft ? DRAFTS.icons : TOOL_ICONS, { index: pi + 1, total: NP, email: COPY.footer.email });
+    panelInner.querySelector('.wu-title')?.setAttribute('id', 'panel-title');
+    panelInner.querySelectorAll('.wu > :not(.wu-block)').forEach((el) => el.classList.add('blk'));   // the head reveals like the old panel; the stages sit below the fold
+  } else {
   const sec = (k, v, cls = '') => v ? `<div class="sec blk ${cls}"><span class="k mono">${k}</span><p>${v}</p></div>` : '';
   panelInner.innerHTML = `<p class="eyebrow mono blk"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span><span>${p.meta.join(' · ')}</span></p>
     <h2 id="panel-title" class="blk">${p.name}</h2><p class="line blk">${d.line || p.desc}</p>
     ${sec(L.role, d.role)}${sec(L.tools, d.tools)}${sec(L.numbers, d.numbers)}${sec(L.one, d.one || p.take, 'one')}
     <figure class="blk">${p.img ? `<img src="${p.img}" alt="${p.name}">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg>`}</figure>
     <a class="ask blk" href="mailto:${COPY.footer.email}?subject=${encodeURIComponent(p.name)}">${L.ask}</a>`;
+  }
   panel.classList.add('open'); panel.inert = false; panel.setAttribute('aria-hidden', 'false'); panelScrim.classList.add('on'); panelOpen = true; panel.scrollTop = 0;
   gsap.fromTo(panelInner.querySelectorAll('.blk'), { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'reveal', stagger: 0.05, delay: 0.12, overwrite: true });
   lenis.stop(); setTimeout(() => $('panel-close').focus({ preventScroll: true }), 50); }
 function closePanel() { if (!panelOpen) return; panelOpen = false; panel.classList.remove('open'); panel.inert = true; panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true }); }
 document.querySelectorAll('.card .in, .slide .in').forEach((el) => { const pi = +el.closest('[data-p]').dataset.p; el.addEventListener('click', () => openPanel(pi, el)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(pi, el); } }); });
 panel.inert = true; $('panel-close').addEventListener('click', closePanel); panelScrim.addEventListener('click', closePanel);
+panelInner.addEventListener('click', (e) => { const a = e.target.closest('a[href^="#wu-"]'); if (!a) return;   // a write-up's process strip and skills jump inside the panel
+  e.preventDefault(); panelInner.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
 // the screen's own controls (floor 03): ← → keys, horizontal wheel / trackpad, drag — each maps onto page scroll, which drives the strip
 const deckStrip = deckIdx >= 0 ? $('deck-strip') : null;
