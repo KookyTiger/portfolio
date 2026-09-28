@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Tiger view</title>
+<!-- A grid of views of a tiger GLB, lit like the site (ACES, hemi + key from the camera side), for checking the texture.
+     Driven by merge/tools/tiger-turntable.js: window.__load(base64 GLB) then window.__views([{ yaw, pitch, clip, t, label, zoom }]).
+     Also usable by hand: http://localhost:8000/tools/tiger-view.html?glb=../assets/tiger/tiger.glb -->
+<style>
+  html, body { margin: 0; background: #F1F1EE; font: 12px/1.2 ui-monospace, Menlo, monospace; color: #111; }
+  #wrap { position: relative; display: inline-block; }
+  canvas { display: block; }
+  .lab { position: absolute; padding: 3px 6px; background: rgba(241,241,238,.85); }
+</style></head>
+<body><div id="wrap"><canvas id="c"></canvas></div>
+<script type="module">
+import * as THREE from '../vendor/three.module.min.js';
+import { GLTFLoader } from '../vendor/GLTFLoader.js';
+const P = new URLSearchParams(location.search), CELL = +(P.get('cell') || 360), COLS = +(P.get('cols') || 4);
+const canvas = document.getElementById('c'), wrap = document.getElementById('wrap');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0; renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.setScissorTest(true);
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
+scene.add(new THREE.HemisphereLight(0xE8EEF4, 0xC9C2B4, 1.2));
+const key = new THREE.DirectionalLight(0xFFF3E0, 0.85); scene.add(key); scene.add(key.target);
+const camLight = new THREE.PointLight(0xffffff, 0.35, 0, 0); camera.add(camLight); scene.add(camera);
+let model = null, mixer = null, clips = {}, H = 1, hips = null;
+function setup(gltf) {
+  if (model) scene.remove(model);
+  model = gltf.scene; scene.add(model);
+  const box = new THREE.Box3().setFromObject(model, true), size = box.getSize(new THREE.Vector3());
+  const s = 1.9 / size.y; model.scale.setScalar(s); model.updateMatrixWorld(true); H = 1.9;
+  model.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; } if (o.isBone && /Hips$/.test(o.name)) hips = o; });
+  mixer = new THREE.AnimationMixer(model); clips = {}; for (const c of gltf.animations) clips[c.name] = c;
+  window.__ready = { clips: Object.keys(clips), height: size.y };
+}
+function pose(clip, t) {
+  mixer.stopAllAction();
+  clip = clip && clips[clip] ? clip : 'idle';                 // the standing idle stands in for the bind pose (the armature is in centimetres: skeleton.pose() would ignore the scale)
+  if (clips[clip]) { const a = mixer.clipAction(clips[clip]); a.reset().play(); a.time = t * clips[clip].duration; mixer.update(0); }
+  model.updateMatrixWorld(true);
+}
+window.__load = (b64) => new Promise((res, rej) => { const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  new GLTFLoader().parse(bin.buffer, '', (g) => { setup(g); res(window.__ready); }, rej); });
+window.__views = (views) => {
+  const rows = Math.ceil(views.length / COLS); renderer.setSize(COLS * CELL, rows * CELL);
+  wrap.querySelectorAll('.lab').forEach((e) => e.remove());
+  renderer.setScissor(0, 0, COLS * CELL, rows * CELL); renderer.setViewport(0, 0, COLS * CELL, rows * CELL); renderer.setClearColor(P.get('bg') || '#E4E2DC'); renderer.clear();
+  views.forEach((v, i) => {
+    pose(v.clip, v.t || 0);
+    const target = hips ? hips.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3(0, H / 2, 0); target.y += (v.dy ?? 0.12) * H; target.x = 0; target.z = 0;
+    if (hips) { const hp = hips.getWorldPosition(new THREE.Vector3()); target.x = hp.x; target.z = hp.z; }
+    const yaw = (v.yaw || 0) * Math.PI / 180, pitch = (v.pitch || 0) * Math.PI / 180, d = H * 2.6 / (v.zoom || 1);
+    camera.position.set(target.x + Math.sin(yaw) * Math.cos(pitch) * d, target.y + Math.sin(pitch) * d, target.z + Math.cos(yaw) * Math.cos(pitch) * d);
+    camera.lookAt(target); camera.aspect = 1; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+    // the key comes from the camera's side, above and to the right (as on the site, where the camera looks at the tiger's back while it climbs)
+    const r = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw)); key.position.copy(camera.position).addScaledVector(r, H * 1.5).add(new THREE.Vector3(0, H * 2, 0)); key.target.position.copy(target); key.target.updateMatrixWorld();
+    const cx = (i % COLS) * CELL, cy = (rows - 1 - Math.floor(i / COLS)) * CELL;
+    renderer.setViewport(cx, cy, CELL, CELL); renderer.setScissor(cx, cy, CELL, CELL); renderer.render(scene, camera);
+    const lab = document.createElement('div'); lab.className = 'lab'; lab.textContent = v.label || `${v.clip || 'bind'} yaw ${v.yaw || 0}`;
+    lab.style.left = (i % COLS) * CELL + 'px'; lab.style.top = Math.floor(i / COLS) * CELL + 'px'; wrap.appendChild(lab);
+  });
+  return { w: COLS * CELL, h: rows * CELL };
+};
+if (P.get('glb')) new GLTFLoader().load(P.get('glb'), (g) => { setup(g); window.__views([0, 45, 90, 135, 180, 225, 270, 315].map((yaw) => ({ yaw, pitch: 8 }))); });
+</script></body></html>
