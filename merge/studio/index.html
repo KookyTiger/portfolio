@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>KookyTiger Studio</title>
-<link rel="icon" type="image/png" href="/favicon-32.png">
+<link rel="icon" type="image/png" href="../../favicon-32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Schibsted+Grotesque:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
@@ -17,9 +17,11 @@
   <span class="save" id="save">loading…</span>
   <span class="sp"></span>
   <a class="tb" href="#inbox" id="tb-inbox">Inbox</a>
+  <button class="tb" id="tb-publish" hidden title="Put everything you approved on the site">Publish</button>
   <button class="tb" id="tb-pv" title="Show or hide the live preview">Preview</button>
-  <a class="tb" href="http://localhost:8000/preview.html" target="_blank" rel="noopener" title="The site itself (needs the merge-preview server on :8000)">Site ↗</a>
+  <a class="tb" id="tb-site" href="https://kookytiger.github.io/portfolio/" target="_blank" rel="noopener" title="The site">Site ↗</a>
   <a class="tb" href="#help">Help</a>
+  <button class="tb" id="tb-out" hidden title="Forget the GitHub token in this browser">Sign out</button>
 </header>
 <nav class="side" id="side"></nav>
 <main class="edit" id="edit"></main>

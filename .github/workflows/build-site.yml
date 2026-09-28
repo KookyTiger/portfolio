@@ -1,0 +1,43 @@
+# Rebuilds the one-file site (index.html) whenever a write-up is published from the Studio, or the site's source changes.
+# The online Studio commits approved write-ups to merge/writeups/ and their pictures to assets/projects/<slug>/; this job
+# runs merge/build.py (which regenerates merge/writeups.js) and commits the result, then asks Pages to redeploy.
+name: Build site
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'merge/writeups/**'
+      - 'merge/*.js'
+      - 'merge/*.css'
+      - 'merge/*.py'
+      - 'merge/index.html'
+      - 'merge/vendor/**'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: build-site
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build
+        run: cd merge && python3 build.py . dist && cp dist/index.html ../index.html
+      - name: Commit the build if it changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html merge/dist/index.html merge/writeups.js
+          if git diff --cached --quiet; then echo "Site already up to date."; exit 0; fi
+          git commit -m "Build the site (write-ups from the Studio)"
+          git pull --rebase
+          git push
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds" || true
+        env:
+          GH_TOKEN: ${{ github.token }}

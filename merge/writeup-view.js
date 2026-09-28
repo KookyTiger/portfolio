@@ -52,8 +52,8 @@ function classesHTML(ids, lib) {
   return `<ul class="wu-classes">${list.map((c) => `<li><b>${esc(c.code)}</b><span>${esc(c.topic || c.title)}${c.status === 'now' ? ' <i>· now</i>' : ''}</span></li>`).join('')}</ul>`;
 }
 
-let BASE = '';
-const url = (src) => (/^(https?:|data:|blob:|\/)/.test(src) ? src : BASE + src);
+let BASE = '', RESOLVE = null;                                     // RESOLVE: the online Studio turns private picture paths into blob URLs
+const url = (src) => (RESOLVE ? RESOLVE(src) : /^(https?:|data:|blob:|\/)/.test(src) ? src : BASE + src);
 
 function figHTML(m, cls = '') {
   if (!m?.src) return '';
@@ -96,9 +96,9 @@ function blockHTML(b, stage, num, opts = {}) {
 }
 
 // p = a project (public fields are enough), lib = _studio.json, icons = vendor/tool-icons.json → icons
-// opts: { index, total, email, showEmpty (dashed placeholders for empty stages), base (prefix for relative picture paths) }
+// opts: { index, total, email, showEmpty (dashed placeholders for empty stages), base (prefix for relative picture paths), resolve (src → url) }
 export function renderWriteup(p, lib, icons, opts = {}) {
-  BASE = opts.base || '';
+  BASE = opts.base || ''; RESOLVE = opts.resolve || null;
   const stages = stagesOf(p, lib);
   const floor = (lib.floors || []).find((f) => f.id === p.floor);
   const c = p.context || {};

@@ -1,9 +1,11 @@
 // ─────────────────────────────────────────────────────────────
-// KookyTiger Studio — Kay edits the write-ups here; Claude reads (and writes) the same files.
-// State lives in merge/writeups (public) + merge/writeups-private (drafts, notes, questions); server.py merges/splits them.
+// KookyTiger Studio — Kay edits the write-ups here; Claude reads (and writes) the same data.
+// Two homes (backend.js): on this Mac the Python server (server.py); anywhere else GitHub, signed in with Kay's token.
 // Every edit autosaves; a save made on top of an older version is refused (409) so nobody overwrites anybody.
+// Approving a write-up publishes it to the site.
 // ─────────────────────────────────────────────────────────────
 import { renderWriteup, renderFloorBand, toolIcon, stagesOf } from '../writeup-view.js';
+import { LocalBackend, GitHubBackend } from './backend.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -36,6 +38,10 @@ function setPath(o, path, v) {
   a[ks.at(-1)] = v;
 }
 const docOf = (key) => (key === '_studio' ? S.studio : S.projects[key]);
+let B = null;                                                          // the backend: LocalBackend | GitHubBackend
+const pic = (src) => (B ? B.picURL(src) : '');
+let redrawTimer = 0;
+const redrawSoon = () => { clearTimeout(redrawTimer); redrawTimer = setTimeout(() => { renderEditor(); renderPreview(); }, 250); };
 
 function toast(msg, bad = false, ms = 3200) {
   const t = document.createElement('div'); t.className = 't' + (bad ? ' bad' : ''); t.textContent = msg;
@@ -43,15 +49,26 @@ function toast(msg, bad = false, ms = 3200) {
 }
 
 // ── load ──
-async function api(url, opt = {}) {
-  const r = await fetch(url, opt); let j = {};
-  try { j = await r.json(); } catch {}
-  return { ok: r.ok, status: r.status, j };
-}
 async function boot() {
-  const [st, ic] = await Promise.all([api('/api/state'), api('/merge/vendor/tool-icons.json')]);
-  if (!st.ok) { $('edit').innerHTML = `<h1>Studio can't load</h1><p class="lead">${esc(st.j.error || 'Is the server running? python3 merge/studio/server.py')}</p>`; return; }
-  S.studio = st.j.studio; S.projects = st.j.projects; S.hashes = st.j.hashes; S.icons = ic.j.icons || {};
+  if (await LocalBackend.detect()) B = new LocalBackend();
+  else {
+    const token = store.get('studio.gh', null);
+    if (!token) return loginView();
+    B = new GitHubBackend(token, redrawSoon);
+  }
+  document.body.dataset.mode = B.mode;
+  $('save').textContent = B.mode === 'github' ? 'loading from GitHub…' : 'loading…';
+  let st;
+  try { st = await B.load(); }
+  catch (e) {
+    if (B.mode === 'github' && [401, 403, 404].includes(e.status)) { store.del('studio.gh'); return loginView('GitHub refused that token (' + e.message + '). Make a new one below.'); }
+    $('edit').innerHTML = `<h1>Studio can't load</h1><p class="lead">${esc(e.message)}</p>`; return;
+  }
+  const ic = await fetch('../vendor/tool-icons.json').then((r) => r.json()).catch(() => ({}));
+  S.studio = st.studio; S.projects = st.projects; S.hashes = st.hashes; S.icons = ic.icons || {};
+  $('tb-site').href = B.siteURL();
+  $('tb-publish').hidden = B.mode !== 'github';
+  $('tb-out').hidden = B.mode !== 'github';
   // edits that never reached the server (it was down, the tab closed mid-save)
   for (const key of [...Object.keys(S.projects), '_studio']) {
     const saved = store.get('studio.unsaved.' + key);
@@ -60,11 +77,39 @@ async function boot() {
     else store.del('studio.unsaved.' + key);
   }
   route(); setSave();
-  setInterval(poll, 4000);
+  setInterval(poll, B.mode === 'github' ? 20000 : 4000);
 }
+
+// the online Studio signs in with a GitHub token that stays in this browser
+function loginView(msg = '') {
+  document.body.classList.add('login');
+  $('save').textContent = '';
+  $('edit').innerHTML = `<div class="login-box">
+    <h1>Connect to GitHub</h1>
+    <p class="lead">The online Studio saves straight to your GitHub: drafts and notes to the private repo <code>portfolio-studio-private</code>, approved write-ups to <code>portfolio</code> (the site rebuilds itself). It needs a token from you, once per browser. The token stays in this browser — nothing else ever sees it.</p>
+    ${msg ? `<div class="banner">${esc(msg)}</div>` : ''}
+    <ol class="lead">
+      <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → Settings → Fine-grained tokens → Generate new token</a>.</li>
+      <li>Name it <b>KookyTiger Studio</b>; pick an expiration (up to a year).</li>
+      <li>Repository access → <b>Only select repositories</b> → <code>portfolio</code> and <code>portfolio-studio-private</code>.</li>
+      <li>Permissions → Repository permissions → <b>Contents: Read and write</b>. Nothing else.</li>
+      <li>Generate, copy it, paste it here.</li>
+    </ol>
+    <div class="row"><input id="gh-token" type="password" autocomplete="off" placeholder="github_pat_…" style="max-width:460px"><button class="btn dark" id="gh-go">Connect</button></div>
+    <p class="hint" style="margin-top:10px">On your Mac you can also double-click <code>merge/studio/Open Studio.command</code> — the local Studio needs no token.</p>
+  </div>`;
+  $('gh-go').onclick = async () => {
+    const t = $('gh-token').value.trim(); if (!t) return;
+    $('gh-go').disabled = true; $('gh-go').textContent = 'Checking…';
+    try { const who = await GitHubBackend.connect(t); store.set('studio.gh', t); toast(`Connected as ${who}`); setTimeout(() => location.reload(), 500); }
+    catch (e) { $('gh-go').disabled = false; $('gh-go').textContent = 'Connect'; toast(`GitHub said: ${e.message}. Check the repositories and the Contents permission.`, true, 6000); }
+  };
+}
+
 
 // ── routing: #p/<slug> #f/<floor> #classes #software #skills #templates #notes #inbox #help ──
 function route() {
+  if (!S.studio) return;                                               // still signing in
   const h = decodeURIComponent(location.hash.slice(1));
   const [a, b] = h.split('/');
   if (a === 'p' && S.projects[b]) S.sel = { type: 'project', id: b };
@@ -159,7 +204,7 @@ function projectEditor(p) {
       <select data-k="template" data-rerender="1" style="width:auto" title="Process template">${optionList(Object.entries(lib.templates).map(([k, t]) => [k, t.name]), p.template)}</select>
       <span class="sp" style="flex:1"></span>
       ${drive.folder ? `<a class="btn sm ghost" href="https://drive.google.com/drive/folders/${esc(drive.folder)}" target="_blank" rel="noopener">Drive folder ↗</a>` : drive.path ? `<span class="hint">Drive: ${esc(drive.path)}</span>` : ''}
-      <a class="btn sm ghost" href="/merge/writeups-private/sources/${esc(p.slug)}.md" target="_blank" title="Claude's notes on the Drive sources (private)">Source notes ↗</a>
+      <a class="btn sm ghost" href="${esc(B.sourcesURL(p.slug))}" target="_blank" rel="noopener" title="Claude's notes on the Drive sources (private)">Source notes ↗</a>
     </div>
     <input class="name" data-k="name" data-side="1" value="${esc(p.name || '')}" placeholder="Project name">
     <label class="f" style="margin-top:8px"><span>One-liner (under 20 words)</span><textarea data-k="oneLiner" rows="2">${esc(p.oneLiner || '')}</textarea></label>
@@ -173,7 +218,7 @@ function projectEditor(p) {
     <div class="sec"><span class="k">Software I used</span><div class="chips">${softwareChips}<button class="add" data-act="pick-software">＋ software</button></div></div>
     <div class="sec"><span class="k">Skills this project shows</span><div class="chips">${skillChips}<button class="add" data-act="pick-skills">＋ skill</button></div></div>
     <div class="sec"><span class="k">Classes</span><div class="chips">${classChips}<button class="add" data-act="pick-classes">＋ class</button></div></div>
-    <div class="sec"><span class="k">Cover (the cut-out on the site)</span><div class="row"><input data-k="cover" value="${esc(p.cover || '')}" style="max-width:420px">${p.cover ? `<img src="/${esc(p.cover)}" alt="" style="height:44px">` : ''}</div></div>
+    <div class="sec"><span class="k">Cover (the cut-out on the site)</span><div class="row"><input data-k="cover" value="${esc(p.cover || '')}" style="max-width:420px">${p.cover ? `<img src="${esc(pic(p.cover))}" alt="" style="height:44px">` : ''}</div></div>
     ${legacy}
     <div class="sec"><span class="k">The page, block by block — ${esc(tpl.name || p.template)}</span>
       ${(p.blocks || []).map((b, i) => blockCard(p, b, i, stages, tpl)).join('')}
@@ -181,7 +226,7 @@ function projectEditor(p) {
     </div>
     <div class="sec"><span class="k">Vision — show Claude what you imagine for this page (private)</span>
       <textarea data-k="vision.note" rows="3" placeholder="Anything: a mood, a site you like, 'the sketches should feel like a wall of post-its', what to cut…">${esc(p.vision?.note || '')}</textarea>
-      <div class="media" data-drop="vision">${(p.vision?.refs || []).map((m, j) => `<div class="m"><div class="th"><img src="/${esc(m.src)}" alt=""><div class="tools"><button data-act="vdel" data-j="${j}" title="Remove">✕</button></div></div><input data-k="vision.refs.${j}.note" value="${esc(m.note || '')}" placeholder="What about it?"></div>`).join('')}
+      <div class="media" data-drop="vision">${(p.vision?.refs || []).map((m, j) => `<div class="m"><div class="th"><img src="${esc(pic(m.src))}" alt=""><div class="tools"><button data-act="vdel" data-j="${j}" title="Remove">✕</button></div></div><input data-k="vision.refs.${j}.note" value="${esc(m.note || '')}" placeholder="What about it?"></div>`).join('')}
         <div class="drop">Drop reference pictures, screenshots or a photo of a hand-drawn layout</div></div>
     </div>
     <div class="sec"><span class="k">Log — what changed and why</span>
@@ -220,7 +265,7 @@ function blockCard(p, b, i, stages, tpl) {
 
 function mediaTile(i, j, m) {
   const video = /\.(mp4|webm|mov)$/i.test(m.src || '');
-  return `<div class="m"><div class="th">${video ? `<video src="/${esc(m.src)}" muted></video>` : `<img src="/${esc(m.src)}" alt="" loading="lazy">`}
+  return `<div class="m"><div class="th">${video ? `<video src="${esc(pic(m.src))}" muted></video>` : `<img src="${esc(pic(m.src))}" alt="" loading="lazy">`}
       <div class="tools"><button data-act="mmove" data-i="${i}" data-j="${j}" data-d="-1" title="Move left">←</button><button data-act="mmove" data-i="${i}" data-j="${j}" data-d="1" title="Move right">→</button><button data-act="mdel" data-i="${i}" data-j="${j}" title="Remove from this block (the file stays)">✕</button></div></div>
     <input data-k="blocks.${i}.media.${j}.caption" value="${esc(m.caption || '')}" placeholder="Caption">
     <select data-k="blocks.${i}.media.${j}.kind">${KINDS.map((k) => `<option ${k === (m.kind || 'photo') ? 'selected' : ''}>${k}</option>`).join('')}</select></div>`;
@@ -339,9 +384,10 @@ function helpView() {
     <p><b>Claude drafts, you edit, the site shows.</b> Claude reads your Drive (KAY-PORTFOLIO and the course folders it links to) and drafts each project here, block by block, following your process: problem → research → needs → brainstorming → prototyping → final → next. Every fact is cited (the “Sources” under a block open the Drive file). Anything Claude couldn't verify is a <b>question</b> in orange — answer it in the block or in the Inbox.</p>
     <p><b>Edit anything.</b> Rewrite the words, swap the headline, change a block's layout with the little icons, drop pictures from Finder onto a block (HEIC, PDF, video are fine — they're converted), or pick from the pictures Claude pulled out of the Drive. “Approve” marks a block as checked by you. Everything saves by itself.</p>
     <p><b>Talk to Claude inside the page.</b> Each block has a “Note to Claude”; each project has a Log and a Vision box where you can drop screenshots or a photo of a layout you drew. Then say “studio updated” in chat: Claude sees exactly what you changed (your edits vs its drafts) and learns your voice from it.</p>
-    <p><b>Private vs public.</b> The words, pictures and toolkit go to <code>merge/writeups/</code> (in git, on the site). Claude's drafts, your notes, questions, sources and the Vision box stay in <code>merge/writeups-private/</code> — only on this Mac. The repo is public, so that split matters.</p>
+    <p><b>Private vs public.</b> Everything you're working on — drafts, pictures, your notes, Claude's questions and sources — lives in the private repo <code>portfolio-studio-private</code>. Only what you approve reaches the public repo (and the site).</p>
     <p><b>Floors.</b> Each floor's title band can carry its software icons and classes — pick them on the floor's page; the preview shows the band at real size. The site doesn't use any of this yet: when you like the preview, tell Claude to wire it in.</p>
-    <p><b>Start it:</b> <code>python3 merge/studio/server.py</code> → http://localhost:8010 (or ask Claude to open the Studio).</p></div>`;
+    <p><b>Two ways in.</b> Online at <code>kookytiger.github.io/portfolio/merge/studio/</code> from any computer or phone (sign in once per browser with your GitHub token; everything saves to GitHub). On your Mac, double-click <code>merge/studio/Open Studio.command</code> — the local Studio saves to the same private repo a few seconds later, so both always show the same drafts.</p>
+    <p><b>Going live.</b> Set a project to <b>● Approved</b>: online, it's published right away (the write-up and its pictures go to the public repo and the site rebuilds in a minute or two); on your Mac, click <b>Publish</b> in the top bar. Set it back to Draft and it comes off the site.</p></div>`;
 }
 
 // ── preview ──
@@ -355,7 +401,7 @@ function renderPreview(reset = false) {
     const p = S.projects[S.sel.id], order = onSiteOrder(), idx = order.indexOf(p);
     const W = mode === 'wide' ? 1200 : mode === 'phone' ? 390 : 860;
     $('pv-title').textContent = `${p.name} · ${mode === 'wide' ? 'wide panel 1200' : mode === 'phone' ? 'phone 390' : 'site panel 860'}`;
-    pv.innerHTML = `<div class="pv-frame ${mode === 'phone' ? 'phone' : 'panel'}" style="width:${W}px;zoom:${Math.min(1, avail / W)}">${renderWriteup(p, S.studio, S.icons, { index: idx >= 0 ? idx + 1 : null, total: order.length, showEmpty: true, base: '/' })}</div>`;
+    pv.innerHTML = `<div class="pv-frame ${mode === 'phone' ? 'phone' : 'panel'}" style="width:${W}px;zoom:${Math.min(1, avail / W)}">${renderWriteup(p, S.studio, S.icons, { index: idx >= 0 ? idx + 1 : null, total: order.length, showEmpty: true, resolve: pic })}</div>`;
   } else if (S.sel.type === 'floor') {
     const f = S.studio.floors.find((x) => x.id === S.sel.id), n = projectsOn(f.id).length, total = S.studio.floors.length;
     $('pv-title').textContent = `${f.title} · title band`;
@@ -399,40 +445,58 @@ $('edit').addEventListener('focusin', (e) => { const card = e.target.closest('.b
 function markDirty(key) {
   S.dirty.add(key); setSave();
   store.set('studio.unsaved.' + key, docOf(key));
-  clearTimeout(S.timers[key]); S.timers[key] = setTimeout(() => save(key), 700);
+  clearTimeout(S.timers[key]); S.timers[key] = setTimeout(() => save(key), B.mode === 'github' ? 2500 : 700);   // online: one commit per pause, not per keystroke
 }
 function setSave() {
-  const el = $('save'), n = S.dirty.size + S.saving.size;
-  el.classList.toggle('bad', Object.keys(S.conflicts).length > 0);
-  el.textContent = Object.keys(S.conflicts).length ? 'needs your decision ↓' : n ? 'saving…' : 'all saved';
+  const el = $('save'), n = S.dirty.size + S.saving.size, where = B?.mode === 'github' ? ' to GitHub' : '';
+  const sync = S.sync && !S.sync.ok;
+  el.classList.toggle('bad', Object.keys(S.conflicts).length > 0 || sync);
+  el.title = sync ? `Syncing with GitHub failed: ${S.sync.error}` : '';
+  el.textContent = Object.keys(S.conflicts).length ? 'needs your decision ↓' : n ? `saving${where}…` : sync ? 'saved here · GitHub sync problem (hover)' : `all saved${where}`;
+  const pb = $('tb-publish');
+  if (B?.mode === 'local') { pb.hidden = !S.publishPending; pb.textContent = `Publish · ${S.publishPending}`; }
 }
 async function save(key) {
   if (S.conflicts[key]) return;
-  if (S.saving.has(key)) { S.timers[key] = setTimeout(() => save(key), 300); return; }
+  if (S.saving.has(key)) { S.timers[key] = setTimeout(() => save(key), 400); return; }
   S.saving.add(key); S.dirty.delete(key); setSave();
-  const url = key === '_studio' ? '/api/studio' : `/api/project/${key}`;
-  const r = await api(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: docOf(key), base: S.hashes[key] }) }).catch(() => ({ ok: false, j: { error: 'The Studio server is not answering.' } }));
+  let r;
+  try { r = key === '_studio' ? await B.saveStudio(docOf(key), S.hashes[key]) : await B.saveProject(key, docOf(key), S.hashes[key]); }
+  catch (e) {
+    S.saving.delete(key); S.dirty.add(key); toast(e.message || 'Save failed', true);
+    S.timers[key] = setTimeout(() => save(key), 8000); setSave(); return;
+  }
   S.saving.delete(key);
-  if (r.status === 409) { S.conflicts[key] = { kind: 'remote', data: r.j.data, hash: r.j.hash }; renderEditor(); }
-  else if (!r.ok) { S.dirty.add(key); toast(r.j.error || 'Save failed', true); S.timers[key] = setTimeout(() => save(key), 5000); }
-  else { S.hashes[key] = r.j.hash; if (!S.dirty.has(key)) store.del('studio.unsaved.' + key); }
+  if (r.conflict) { S.conflicts[key] = { kind: 'remote', data: r.data, hash: r.hash }; renderEditor(); }
+  else {
+    S.hashes[key] = r.hash; if (!S.dirty.has(key)) store.del('studio.unsaved.' + key);
+    if (r.published) toast(`${docOf(key)?.status === 'approved' ? 'Published' : 'Taken off the site'}: ${docOf(key)?.name}. The site updates in a minute or two.`, false, 5000);
+  }
   setSave();
 }
 async function poll() {
-  const r = await api('/api/hashes').catch(() => null); if (!r?.ok) { $('save').textContent = 'server not answering'; $('save').classList.add('bad'); return; }
+  let r;
+  try { r = await B.poll(); } catch { $('save').textContent = B.mode === 'github' ? 'offline — edits wait here' : 'server not answering'; $('save').classList.add('bad'); return; }
+  S.sync = r.sync; S.publishPending = r.publish?.pending || 0;
   let redraw = false;
-  for (const [key, h] of Object.entries(r.j)) {
+  for (const [key, h] of Object.entries(r.hashes)) {
     if (h === S.hashes[key] || S.saving.has(key)) continue;
     if (S.dirty.has(key)) continue;                                   // our save will get the 409 and ask
-    const d = await api(key === '_studio' ? '/api/state' : `/api/project/${key}`);
-    if (!d.ok) continue;
-    if (key === '_studio') { S.studio = d.j.studio; S.hashes._studio = d.j.hashes._studio; }
-    else { const isNew = !S.projects[key]; S.projects[key] = d.j.data; S.hashes[key] = d.j.hash; toast(isNew ? `New project: ${d.j.data.name}` : `Claude updated ${d.j.data.name}`); }
+    let d; try { d = key === '_studio' ? await B.getStudio() : await B.getProject(key); } catch { continue; }
+    if (key === '_studio') { S.studio = d.data; S.hashes._studio = d.hash; }
+    else { const isNew = !S.projects[key]; S.projects[key] = d.data; S.hashes[key] = d.hash; toast(isNew ? `New project: ${d.data.name}` : `${d.data.name} changed elsewhere (Claude or your other device) — loaded`); }
     redraw = true;
   }
-  for (const key of Object.keys(S.projects)) if (!(key in r.j)) { delete S.projects[key]; redraw = true; }
+  for (const key of Object.keys(S.projects)) if (!(key in r.hashes) && !S.dirty.has(key) && !S.saving.has(key) && S.hashes[key]) { delete S.projects[key]; redraw = true; }
   if (redraw) { renderSide(); renderEditor(); renderPreview(); }
+  setSave();
 }
+$('tb-publish').addEventListener('click', async () => {
+  const b = $('tb-publish'); b.disabled = true;
+  try { toast((await B.publish()).message, false, 5000); } catch (e) { toast(e.message, true, 8000); }
+  b.disabled = false; poll();
+});
+$('tb-out').addEventListener('click', () => { if (confirm('Sign out of GitHub in this browser? (Unsaved edits are kept here.)')) { store.del('studio.gh'); location.reload(); } });
 addEventListener('beforeunload', (e) => { if (S.dirty.size || S.saving.size) { e.preventDefault(); e.returnValue = ''; } });
 addEventListener('keydown', (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); [...S.dirty].forEach((k) => { clearTimeout(S.timers[k]); save(k); }); toast('Saved'); }
@@ -504,7 +568,7 @@ document.addEventListener('click', async (e) => {
     case 'pick-skills': return pickSkills(p);
     case 'pick-pics': return pickPictures(p, i);
     case 'new-project': e.preventDefault(); return newProject();
-    case 'cf-theirs': { const c = S.conflicts[b.dataset.key]; delete S.conflicts[b.dataset.key]; if (b.dataset.key === '_studio') { const st = await api('/api/state'); S.studio = st.j.studio; S.hashes._studio = st.j.hashes._studio; } else { S.projects[b.dataset.key] = c.data; S.hashes[b.dataset.key] = c.hash; } store.del('studio.unsaved.' + b.dataset.key); renderSide(); renderEditor(); renderPreview(); setSave(); return; }
+    case 'cf-theirs': { const c = S.conflicts[b.dataset.key]; delete S.conflicts[b.dataset.key]; if (b.dataset.key === '_studio') { const st = await B.getStudio(); S.studio = st.data; S.hashes._studio = st.hash; } else { S.projects[b.dataset.key] = c.data; S.hashes[b.dataset.key] = c.hash; } store.del('studio.unsaved.' + b.dataset.key); renderSide(); renderEditor(); renderPreview(); setSave(); return; }
     case 'cf-mine': { const k = b.dataset.key, c = S.conflicts[k]; delete S.conflicts[k]; if (c.kind === 'local') { if (k === '_studio') S.studio = c.data; else S.projects[k] = c.data; } else S.hashes[k] = c.hash; markDirty(k); renderEditor(); renderPreview(); return; }
     case 'cf-drop': { delete S.conflicts[b.dataset.key]; store.del('studio.unsaved.' + b.dataset.key); renderEditor(); setSave(); return; }
   }
@@ -530,10 +594,9 @@ document.addEventListener('drop', async (e) => {
   const vision = z.dataset.drop === 'vision', i = +z.dataset.drop;
   for (const f of files) {
     toast(`Adding ${f.name}…`, false, 1800);
-    const r = await api(`/api/upload/${p.slug}${vision ? '?to=vision' : ''}`, { method: 'POST', headers: { 'X-Filename': encodeURIComponent(f.name) }, body: f });
-    if (!r.ok) { toast(`${f.name}: ${r.j.error || 'upload failed'}`, true); continue; }
-    if (vision) ((p.vision ||= {}).refs ||= []).push({ src: r.j.src, note: '' });
-    else (p.blocks[i].media ||= []).push({ src: r.j.src, caption: '', kind: /sketch|draw/i.test(f.name) ? 'sketch' : /\.(mp4|mov|m4v|webm)$/i.test(f.name) ? 'still' : 'photo' });
+    let r; try { r = await B.upload(p.slug, f, vision); } catch (e) { toast(`${f.name}: ${e.message || 'upload failed'}`, true, 6000); continue; }
+    if (vision) ((p.vision ||= {}).refs ||= []).push({ src: r.src, note: '' });
+    else (p.blocks[i].media ||= []).push({ src: r.src, caption: '', kind: /sketch|draw/i.test(f.name) ? 'sketch' : /\.(mp4|mov|m4v|webm)$/i.test(f.name) ? 'still' : 'photo' });
   }
   delete S.pics[p.slug]; markDirty(p.slug); renderEditor(); schedulePreview();
 });
@@ -591,11 +654,11 @@ function pickSkills(p) {
 
 async function pickPictures(p, i) {
   const block = p.blocks[i]; block.media ||= [];
-  if (!S.pics[p.slug]) { const r = await api(`/api/pictures/${p.slug}`); S.pics[p.slug] = r.ok ? r.j : { used: [], candidates: [] }; }
+  if (!S.pics[p.slug]) S.pics[p.slug] = await B.pictures(p.slug).catch(() => ({ used: [], candidates: [] }));
   const tile = (x, cand) => { const on = block.media.some((m) => m.src === x.src); const v = /\.(mp4|webm)$/i.test(x.src);
-    return `<button class="p ${on ? 'on' : ''}" data-src="${esc(x.src)}" data-cand="${cand ? 1 : ''}"><div class="th">${v ? `<video src="/${esc(x.src)}" muted></video>` : `<img src="/${esc(x.src)}" alt="" loading="lazy">`}</div><span>${/^private/i.test(x.name) ? '<b style="color:var(--ask)">PRIVATE · client data</b> ' : ''}${esc(x.name)}</span></button>`; };
+    return `<button class="p ${on ? 'on' : ''}" data-src="${esc(x.src)}" data-cand="${cand ? 1 : ''}"><div class="th">${v ? `<video src="${esc(pic(x.src))}" muted></video>` : `<img src="${esc(pic(x.src))}" alt="" loading="lazy">`}</div><span>${/^private/i.test(x.name) ? '<b style="color:var(--ask)">PRIVATE · client data</b> ' : ''}${esc(x.name)}</span></button>`; };
   const body = () => { const P = S.pics[p.slug];
-    return `<p class="k grp">On the site already · assets/projects/${esc(p.slug)}/</p>${P.used.length ? `<div class="pgrid">${P.used.map((x) => tile(x, false)).join('')}</div>` : '<p class="empty">None yet.</p>'}
+    return `<p class="k grp">This project's pictures (they go on the site with the write-up once you approve it)</p>${P.used.length ? `<div class="pgrid">${P.used.map((x) => tile(x, false)).join('')}</div>` : '<p class="empty">None yet.</p>'}
       <p class="k grp">Pulled from your Drive by Claude · not on the site until you pick them</p>${P.candidates.length ? `<div class="pgrid">${P.candidates.map((x) => tile(x, true)).join('')}</div>` : '<p class="empty">None.</p>'}`; };
   const { m, draw } = modal(`Pictures for “${block.title || stagesOf(p, S.studio)[block.stage]?.label || 'this block'}”`, body, { foot: '<span class="hint" style="margin-right:auto">Click to add or remove. You can also drop files from Finder straight onto a block.</span>' });
   m.querySelector('.mb').addEventListener('click', async (e) => {
@@ -604,7 +667,10 @@ async function pickPictures(p, i) {
     const k = block.media.findIndex((x) => x.src === src);
     if (k >= 0) block.media.splice(k, 1);
     else {
-      if (t.dataset.cand) { const r = await api(`/api/promote/${p.slug}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src }) }); if (!r.ok) return toast(r.j.error, true); src = r.j.src; delete S.pics[p.slug]; S.pics[p.slug] = (await api(`/api/pictures/${p.slug}`)).j; }
+      if (t.dataset.cand) {
+        try { src = (await B.promote(p.slug, src)).src; } catch (err) { return toast(err.message, true, 6000); }
+        S.pics[p.slug] = await B.pictures(p.slug).catch(() => S.pics[p.slug]);
+      }
       if (!block.media.some((x) => x.src === src)) block.media.push({ src, caption: '', kind: /sketch/i.test(src) ? 'sketch' : 'photo' });
     }
     markDirty(p.slug); draw(); renderEditor(); schedulePreview();

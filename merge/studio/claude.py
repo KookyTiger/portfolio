@@ -12,12 +12,12 @@ import difflib, json, pathlib, subprocess, sys, tempfile, textwrap
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import server as S                                              # split/merge/load/save live there
 
-ROOT, PUB, PRIV = S.ROOT, S.PUB, S.PRIV
+ROOT, PRIV = S.ROOT, S.PRIV
 SEEN = PRIV / 'seen'
 DRAFTS = PRIV / 'drafts'
 
 # The Drive folder of each project (KAY-PORTFOLIO), for the Studio's "Drive folder ↗" button. Private: folder names name partners.
-DRIVE = {k: tuple(v) for k, v in (S.read_json(PRIV / 'drive-map.json', {}) or {}).items()}
+DRIVE = {k: tuple(v) for k, v in (S.read_json(PRIV / '_drive-map.json', {}) or {}).items()}
 SLUG_OF = ['levelup', 'notipclip', 'slidemaster', 'gamejam', 'giftme', 'plu', 'neighbors', 'scenic', 'onebirth', 'austin', 'alv', 'yello', 'amg']
 
 
@@ -105,7 +105,7 @@ def cmd_import(slugs, force=False):
         for b in d.get('blocks', []):
             b.setdefault('draft', b.get('text', '')); b.setdefault('questions', []); b.setdefault('media', [])
             for m in b['media']:                                   # a block may only show public pictures
-                if str(m.get('src', '')).startswith('assets/src/'): m['src'] = S.promote(slug, m['src'])['src']
+                if str(m.get('src', '')).startswith(('assets/src/', 'candidates/')): m['src'] = S.promote(slug, m['src'])['src']
         d['slug'] = slug
         S.save_project(slug, d)
         print(f'{slug}: imported ({len(d.get("blocks", []))} blocks)')
@@ -122,8 +122,10 @@ def cmd_check():
         out += [f'unknown class id {x}' for x in p.get('classes', []) if x not in cl]
         for b in p.get('blocks', []):
             for m in b.get('media', []):
-                if m.get('src') and not (ROOT / m['src']).exists(): out.append(f'[{b["id"]}] missing picture {m["src"]}')
-                if m.get('src', '').startswith('assets/src/'): out.append(f'[{b["id"]}] {m["src"]} is not public — promote it into assets/projects/{slug}/')
+                src = m.get('src', '')
+                found = (ROOT / src).exists() or (S.PICS / slug / pathlib.Path(src).name).exists()
+                if src and not found: out.append(f'[{b["id"]}] missing picture {src}')
+                if src.startswith(('assets/src/', 'candidates/')): out.append(f'[{b["id"]}] {src} is a candidate — promote it into pictures/{slug}/')
         if p.get('cover') and not (ROOT / p['cover']).exists(): out.append(f'missing cover {p["cover"]}')
         for s in p.get('skills', []):
             if s.get('evidence') and s['evidence'] not in ids: out.append(f'skill “{s["name"]}” points at missing block {s["evidence"]}')

@@ -225,3 +225,13 @@ table.lib tr.term td { font-family: var(--mono); font-size: 10.5px; letter-spaci
   body .view { display: none; }
   body.pv-over .view { display: grid; position: fixed; top: 50px; right: 0; bottom: 0; width: min(760px, 94vw); z-index: 20; box-shadow: -20px 0 60px rgba(0,0,0,.15); }
 }
+
+/* signing in (the online Studio) */
+body.login { grid-template-columns: 1fr; }
+body.login .side, body.login .view { display: none; }
+body.login .edit { grid-column: 1 / -1; }
+.login-box { max-width: 680px; margin: 40px auto; }
+.login-box ol { padding-left: 1.2em; }
+.login-box li { margin: 0 0 6px; }
+.login-box code, .lead code { font-family: var(--mono); font-size: 12px; background: var(--line-2); padding: 1px 5px; border-radius: 4px; }
+body[data-mode="github"] .top .logo::after { content: "online"; font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-left: 10px; vertical-align: middle; }

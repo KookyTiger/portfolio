@@ -1,13 +1,18 @@
 # Write-ups — the project case studies
 
-Kay edits these in the **Studio** (`python3 merge/studio/server.py` → http://localhost:8010). Claude drafts them from the
-Drive (`KAY-PORTFOLIO/`, mounted at `~/Library/CloudStorage/GoogleDrive-kaytu2027@u.northwestern.edu/My Drive/KAY-PORTFOLIO`).
-The repo is public, so every project lives in two halves that the Studio server merges on load and splits on save:
+Kay edits them in the **Studio**: online at https://kookytiger.github.io/portfolio/merge/studio/ (signed in with her
+GitHub token) or on her Mac (`merge/studio/Open Studio.command` → http://localhost:8010). Claude drafts them from her Drive
+(`KAY-PORTFOLIO/`, mounted at `~/Library/CloudStorage/GoogleDrive-kaytu2027@u.northwestern.edu/My Drive/KAY-PORTFOLIO`).
 
-| Folder | In git | Holds |
+| Where | Repo | Holds |
 |---|---|---|
-| `merge/writeups/` | yes | what the site shows: `<slug>.json` per project, `_studio.json` (floors, templates, classes, software, skills) |
-| `merge/writeups-private/` | no | Claude's drafts, Kay's notes, Claude's questions, Drive sources, the log, save history, source digests (`sources/<slug>.md`) |
+| `merge/writeups-private/` | **private** `KookyTiger/portfolio-studio-private` (cloned here, gitignored by this repo) | everything being worked on: `public/<slug>.json` (public half), `<slug>.json` (private half: drafts, notes, questions, sources, log), `pictures/<slug>/`, `candidates/<slug>/`, `vision/`, `sources/`, `drafts/` |
+| `merge/writeups/` | public (this repo) | only what Kay approved: `<slug>.json` + `_studio.json` (floors, templates, classes, software, skills) |
+| `assets/projects/<slug>/` | public | the pictures of approved write-ups |
+
+Approving a project (status `approved`, on the site) publishes it: the online Studio commits it straight to this repo and
+the `Build site` GitHub Action rebuilds `index.html`; the local Studio writes it here and its Publish button pushes.
+Pictures are always named by their published path, `assets/projects/<slug>/<file>`.
 
 ## A project (merged form — what the Studio edits and what Claude writes)
 
@@ -47,7 +52,7 @@ The repo is public, so every project lives in two halves that the Studio server 
 ```
 
 Public keys: everything above except `draft`, `sources`, `questions`, `note`, `ok` (per block) and `log`, `drive`,
-`vision`, `legacy` (per project). The Studio server does the split (`merge/studio/server.py → PRIVATE_*`).
+`vision`, `legacy` (per project). The split lives in `merge/studio/server.py` and `merge/studio/backend.js` (keep them identical).
 
 ### Layouts
 - `text` — a reading column. `quote` — one big sentence (the insight of the stage).
@@ -57,8 +62,8 @@ Public keys: everything above except `draft`, `sources`, `questions`, `note`, `o
 
 ### Media kinds
 `sketch` · `photo` · `mockup` · `prototype` · `test` · `cad` · `render` · `screen` · `diagram` · `chart` · `still`
-Pictures used on the site live in `assets/projects/<slug>/` (webp, ≤ 1600 px). Everything else Claude pulled from the Drive
-waits in `assets/src/candidates/<slug>/` (gitignored) until Kay picks it in the Studio.
+A project's pictures live in the private repo's `pictures/<slug>/` (webp, ≤ 1600 px) and are copied to
+`assets/projects/<slug>/` when it is published. What Claude pulled from the Drive waits in `candidates/<slug>/` until Kay picks it.
 
 ## Rules for drafts (Claude)
 1. Truthful: every number, name, quote and outcome comes from a Drive source and is cited in the block's `sources`.
