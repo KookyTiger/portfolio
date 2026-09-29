@@ -19,8 +19,21 @@ const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 const seg = (v, [a, b]) => clamp((v - a) / (b - a), 0, 1);
 const frac = (v) => v - Math.floor(v);
 // The site copy Kay edits in the Studio (merge/writeups/_site.json → SITE_TEXT) replaces content.js's text: cards, floors, archive, everything else.
+// Inside the Studio's preview (?studio in an iframe) the text and type she is still trying come from her browser instead (localStorage),
+// so nothing unpublished ever reaches anyone else.
+const STUDIO = new URLSearchParams(location.search).has('studio') && window.parent !== window;
+const studioDraft = () => { try { return JSON.parse(localStorage.getItem('studio.siteDraft'))?.site || null; } catch { return null; } };
+// Type (Studio → Site text → Type): size, weight and case of the five kinds of big display text, as CSS variables style.css reads
+const TYPE_GROUPS = { hero: 0.9, titles: 0.8, values: 0.8, shore: 0.8, footer: 0.9 };      // group → its line height in capitals
+function applyType(style) {
+  const root = document.documentElement.style;
+  Object.entries(TYPE_GROUPS).forEach(([g, lh]) => { const t = style?.[g] || {}, lower = t.case === 'none';
+    root.setProperty(`--${g}-size`, String((+t.size || 100) / 100)); root.setProperty(`--${g}-weight`, String(+t.weight || 800));
+    root.setProperty(`--${g}-case`, lower ? 'none' : 'uppercase'); root.setProperty(`--${g}-lh`, String(lower ? lh + 0.17 : lh)); });   // lowercase needs room for descenders
+}
 (function applySiteText(t) {
   if (!t) return;
+  applyType(t.style);
   PIECES.forEach((p) => { const c = t.cards?.[p.slug]; if (!c) return;
     if (c.name) p.name = c.name; if (c.category) p.catName = c.category; if (c.year != null) p.year = c.year;
     if (c.tags != null) p.meta = String(c.tags).split('·').map((x) => x.trim()).filter(Boolean);
@@ -30,8 +43,8 @@ const frac = (v) => v - Math.floor(v);
   const deep = (to, from) => Object.entries(from || {}).forEach(([k, v]) => { if (v && typeof v === 'object' && !Array.isArray(v)) deep(to[k] ||= {}, v); else if (v != null) to[k] = v; });
   deep(COPY, t.copy);
   if (Array.isArray(t.archive)) ARCHIVE.splice(0, ARCHIVE.length, ...t.archive.map((r) => [r.name, r.line, r.course, r.year]));
-})(SITE_TEXT);
-const catName = (p) => p.catName || catName(p);
+})((STUDIO && studioDraft()) || SITE_TEXT);
+const catName = (p) => p.catName || CATS[p.cat]?.name || '';
 const NP = PIECES.length;
 const PARAMS = new URLSearchParams(location.search); const SNAP = PARAMS.has('snap');
 // the opening is the top of the page: never restore a mid-page scroll on reload (it would open on blank paper with no tiger)
@@ -54,9 +67,13 @@ $('nav-links').textContent = COPY.nav.tagline || 'Product, film, games, analytic
 $('nav-right').innerHTML = COPY.nav.links.map((l, i) => `<a href="#" data-to="${['title0', 'intro', 'archives'][i]}">${l}</a>`).join('');
 $('h-statement').innerHTML = COPY.header.statement.map(tpl).join('<br>');
 $('h-scroll').textContent = COPY.header.scroll;
-$('hero-words').innerHTML = COPY.hero.words.map((w, i) => `<span class="word"><span class="main">${w}</span><span class="alt">${COPY.hero.reveal[i]}</span></span>`).join('') + `<div class="ind">${COPY.hero.indication}</div>`;
-$('hero-l').innerHTML = `Raised in Wuhan<br>Designing anywhere`;
-$('hero-r').innerHTML = `Northwestern ’27<br>MaDE + RTVF`;
+$('hero-words').innerHTML = COPY.hero.words.map((w, i) => `<span class="word"><span class="main">${w}</span><span class="alt"><span class="t">${String(COPY.hero.reveal[i] ?? '').replace(/\//g, '/<wbr>')}</span></span></span>`).join('') + `<div class="ind">${COPY.hero.indication}</div>`;
+$('hero-l').innerHTML = (COPY.hero.left || ['Raised in Wuhan', 'Designing anywhere']).join('<br>');
+$('hero-r').innerHTML = (COPY.hero.right || ['Northwestern ’27', 'MaDE + RTVF']).join('<br>');
+// a hover line longer than its word (e.g. "Radio/Television/Film (RTVF)" under ZISHU) wraps, then shrinks until it fits the word's box
+function fitAlts() { document.querySelectorAll('.hero .word .alt').forEach((a) => { const t = a.firstElementChild; let f = 0.44; a.style.fontSize = f + 'em';
+  while (f > 0.14 && (t.scrollWidth > a.clientWidth + 1 || t.offsetHeight > a.clientHeight + 1)) { f -= 0.02; a.style.fontSize = f.toFixed(2) + 'em'; } }); }
+document.fonts.ready.then(fitAlts); addEventListener('resize', fitAlts);
 const cardArt = (p) => { const src = CARD_ART === 'photo' ? (p.img || p.silImg) : (p.silImg || p.img); return src ? `<img src="${src}" alt="${p.name}" loading="lazy" decoding="async">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption>`; };
 const body = $('body'); let html = '';
 const deckIdx = SECTIONS.findIndex((x) => x.deck);
@@ -729,7 +746,8 @@ window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && T.menu) ta
 // ───────────────────────── The opening (Kay, 2026-09-27): the tiger alone on paper; click → it waves → the world appears around it ─────────────────────────
 // Before any scroll: phase void (paper, only the tiger, a hint) → wave (1.9 s) → enter (2.2 s: the camera backs out to the rail's first
 // position while the fog lifts from paper, so the world materialises from near to far) → done (scroll starts). ?snap skips it unless ?entry.
-const ENTRY = { phase: SNAP && !PARAMS.has('entry') ? 'done' : 'void', t: 0, k: SNAP && !PARAMS.has('entry') ? 1 : 0 }, PAPER = new THREE.Color('#F1F1EE');
+const QUIET = (SNAP && !PARAMS.has('entry')) || STUDIO;
+const ENTRY = { phase: QUIET ? 'done' : 'void', t: 0, k: QUIET ? 1 : 0 }, PAPER = new THREE.Color('#F1F1EE');
 function entryGo() { if (ENTRY.phase !== 'void') return; ENTRY.t = 0; document.documentElement.classList.add('entering'); lockPage(false);
   const start = () => { ENTRY.t = 0; if (GT.ready) { ENTRY.phase = 'wave'; T.wave = 1.9; } else ENTRY.phase = 'enter'; };
   if (GT.ready || GT.failed) start(); else { ENTRY.phase = 'waiting'; tigerLoad.then(start); } }   // a click before the model is in waits for it
@@ -908,4 +926,27 @@ function frame(now) {
 window.addEventListener('resize', measure);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = performance.now(); requestAnimationFrame(frame); } });
 measure();
+// ───────────────────────── The Studio's preview (?studio in an iframe): jump to a section, show the hover text, report where it is ─────────────────────────
+if (STUDIO) {
+  const post = (m) => parent.postMessage({ studio: 1, ...m }, location.origin);
+  const at = (sel) => document.querySelector(sel), top = (el) => el.getBoundingClientRect().top + scrollY;
+  const mid = (el) => top(el) + el.getBoundingClientRect().height / 2 - vh / 2;       // the element's centre at the screen's centre
+  const place = (target) => {
+    const m = /^(title|value)(\d+)$/.exec(target || '');
+    if (m) { const el = m[1] === 'title' ? at('#title' + m[2]) : at('#value-big' + m[2])?.parentElement; return el ? mid(el) : null; }
+    if (target === 'header') return 0;
+    if (target === 'intro') return top(at('#intro')) + vh * 0.5;
+    if (target === 'shore') return top(at('#meadow')) + (LAND_AT + 0.2) * vh;
+    const el = at({ hero: '#hero', archives: '#archives', footer: '#footer' }[target]); return el ? mid(el) : null;
+  };
+  addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data?.studio) return; const m = e.data;
+    if (m.type === 'goto') { const y = m.target ? place(m.target) : m.s * vh; if (y != null) lenis.scrollTo(Math.max(0, y), { immediate: true, force: true });
+      setTimeout(() => post({ type: 'placed' }), 150); }                                    // timers, not frames: a frame still loading behind may not get frames
+    if (m.type === 'hover') { if (m.on) heroShown = true; document.documentElement.classList.toggle('studio-hover', !!m.on);
+      heroWords.forEach((w) => w.dispatchEvent(new Event(m.on ? 'mouseenter' : 'mouseleave'))); }
+  });
+  let lastS = -1; setInterval(() => { const s = scrollY / vh; if (Math.abs(s - lastS) > 0.005) { lastS = s; post({ type: 'scroll', s }); } }, 250);
+  (async () => { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]); await new Promise((r) => setTimeout(r, 60)); post({ type: 'ready' }); })();
+}
 requestAnimationFrame(frame);

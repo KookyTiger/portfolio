@@ -79,9 +79,10 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 /* ───────── hero (paper): three giant words ───────── */
 .hero { min-height: 100vh; display: grid; place-items: center; padding: 100px var(--gutter) 80px; }
 .hero .words { text-align: center; }
-.hero .word { position: relative; display: block; font-family: var(--display); font-weight: 800; font-size: clamp(48px, 11.25vw, 162px); line-height: .9; letter-spacing: -.035em; text-transform: uppercase; overflow: hidden; padding: 0 .04em; }
+.hero .word { position: relative; display: block; font-family: var(--display); font-weight: var(--hero-weight, 800); font-size: calc(clamp(48px, 11.25vw, 162px) * var(--hero-size, 1)); line-height: var(--hero-lh, .9); letter-spacing: -.035em; text-transform: var(--hero-case, uppercase); overflow: hidden; padding: 0 .04em; }
 .hero .word span { display: block; }
-.hero .word .alt { position: absolute; inset: 0; color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: .44em; letter-spacing: .01em; white-space: nowrap; }
+.hero .word .alt { position: absolute; inset: 0; color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: .44em; letter-spacing: .01em; line-height: 1; }
+.hero .word .alt .t { text-wrap: balance; }   /* long lines wrap, then shrink until they fit the word (fitAlts in app.js) */
 .hero .ind { margin-top: 30px; font-size: 14px; text-align: center; }
 .hero .corner { position: absolute; top: 92px; font-size: 14px; line-height: 1.2; }
 .hero .corner.l { left: var(--gutter); }
@@ -100,7 +101,7 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 .card .in:hover figure::after { transform: scaleX(1.08) translateY(6px); opacity: .7; }
 .card figcaption { position: absolute; left: 0; bottom: -22px; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
 .card .text { opacity: 0; transform: translate3d(-10px, 0, 0); transition: opacity .45s cubic-bezier(.4,0,0,1), transform .6s cubic-bezier(.4,0,0,1); color: var(--ink); pointer-events: auto; }
-.card .in:hover .text, .card .in:focus-visible .text { opacity: 1; transform: translate3d(0, 0, 0); }
+.card .in:hover .text, .card .in:focus-visible .text, .studio-hover .card .text { opacity: 1; transform: translate3d(0, 0, 0); }
 .card .eyebrow { display: flex; gap: 12px; margin: 0 0 10px; }
 .card .eyebrow .n { color: var(--ink); }
 .card h2 { font-size: 30px; line-height: 1.05; letter-spacing: -.015em; font-weight: 400; margin: 0 0 10px; }
@@ -111,7 +112,7 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 .window .shore-text::before { content: ""; position: absolute; left: 36%; top: 58%; width: 62vw; height: 46vw; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(ellipse at center, rgba(241,241,238,.85) 20%, rgba(241,241,238,0) 70%); z-index: -1; pointer-events: none; }
 /* --pin: after the landing the camera is clamped, so the words are pinned too (they never slide under the nav); the archives paper covers them */
 .window .shore-text { position: absolute; left: calc(var(--gutter) + 1 * (var(--col) + var(--gap))); top: calc(var(--i) * 100vh + 50vh + var(--pin, 0px)); transform: translateY(-50%); width: min(62.85vw, 900px); }
-.window .shore-text .big { font-family: var(--display); font-weight: 800; font-size: clamp(48px, 8.19vw, 118px); line-height: .8; letter-spacing: -.035em; text-transform: uppercase; }
+.window .shore-text .big { font-family: var(--display); font-weight: var(--shore-weight, 800); font-size: calc(clamp(48px, 8.19vw, 118px) * var(--shore-size, 1)); line-height: var(--shore-lh, .8); letter-spacing: -.035em; text-transform: var(--shore-case, uppercase); }
 .window .shore-text .sub { margin-top: 18px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
 .window .shore-text .sayhi { display: inline-block; margin-top: 26px; font-size: 18px; text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
 .window .shore-text .trick { margin: 26px 0 0 22px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: inherit; background: none; border: 1px solid currentColor; border-radius: 999px; padding: 7px 12px; cursor: pointer; opacity: 0; transition: opacity .5s ease, background .2s ease; }
@@ -121,7 +122,7 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 
 /* ───────── value statements: over the room at the end of each window (Léo's library statement) — never paper on paper ───────── */
 .window .value-text { position: absolute; left: calc(var(--gutter) + 1 * (var(--col) + var(--gap))); top: calc(var(--i) * 100vh + 50vh); transform: translateY(-50%); width: min(62.85vw, 900px); pointer-events: none; }
-.window .value-text .big { font-family: var(--display); font-weight: 800; font-size: clamp(44px, 8.19vw, 118px); line-height: .8; letter-spacing: -.035em; text-transform: uppercase; }
+.window .value-text .big { font-family: var(--display); font-weight: var(--values-weight, 800); font-size: calc(clamp(44px, 8.19vw, 118px) * var(--values-size, 1)); line-height: var(--values-lh, .8); letter-spacing: -.035em; text-transform: var(--values-case, uppercase); }
 .window .value-text .big .line { display: block; }
 .window .value-text .big .char { display: inline-block; white-space: pre; will-change: opacity; }
 .window .value-text.halo::before { content: ""; position: absolute; left: 40%; top: 50%; width: 70vw; height: 40vw; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(ellipse at center, rgba(241,241,238,.75) 20%, rgba(241,241,238,0) 70%); z-index: -1; pointer-events: none; }
@@ -166,11 +167,11 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 
 /* ───────── statements (paper): Léo's section title papers ───────── */
 .st { min-height: 100vh; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--gap); padding-inline: var(--gutter); align-items: center; }
-.st .big { grid-column: 2 / 13; max-width: 62.85vw; font-family: var(--display); font-weight: 800; font-size: clamp(44px, 8.19vw, 118px); line-height: .8; letter-spacing: -.035em; text-transform: uppercase; }
+.st .big { grid-column: 2 / 13; max-width: 62.85vw; font-family: var(--display); font-weight: var(--titles-weight, 800); font-size: clamp(44px, 8.19vw, 118px); line-height: var(--titles-lh, .8); letter-spacing: -.035em; text-transform: var(--titles-case, uppercase); }
 .st .big .line { display: block; }
 .st.title { min-height: calc(var(--n, 1.4) * 100vh); display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--gap); padding-inline: var(--gutter); align-items: center; }
 .st.title .wrap { grid-column: 2 / 13; }
-.st.title .big { font-size: clamp(34px, 4.8vw, 72px); }                    /* half a screen is enough (Kay, 2026-09-27) */
+.st.title .big { font-size: calc(clamp(34px, 4.8vw, 72px) * var(--titles-size, 1)); }                    /* half a screen is enough (Kay, 2026-09-27) */
 .st.title .eyebrow { margin: 0 0 16px; }
 .st.title .sub { margin: 16px 0 0; font-size: 16px; line-height: 1.3; color: var(--ink-2); max-width: 46ch; }
 .window.dark .card .text { color: var(--paper); }
@@ -197,7 +198,7 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 .archives tr:hover { background: #E8E8E4; }
 .footer { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; padding: 80px var(--gutter) 24px; }
 .footer .words { align-self: center; text-align: center; }
-.footer .word { display: block; font-family: var(--display); font-weight: 800; font-size: clamp(44px, 11.25vw, 162px); line-height: .9; letter-spacing: -.035em; text-transform: uppercase; }
+.footer .word { display: block; font-family: var(--display); font-weight: var(--footer-weight, 800); font-size: calc(clamp(44px, 11.25vw, 162px) * var(--footer-size, 1)); line-height: var(--footer-lh, .9); letter-spacing: -.035em; text-transform: var(--footer-case, uppercase); }
 .footer .word:nth-child(1) { transform: translateX(4.6vw); }
 .footer .word:nth-child(2) { transform: translateX(-4.6vw); }
 .footer .word:nth-child(3) { transform: translateX(4.6vw); }
@@ -263,7 +264,7 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
   .card .more { margin-top: 8px; }
   .card figcaption { display: none; }
   .window .shore-text { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 8vh + var(--pin, 0px)); transform: none !important; }
-  .window .shore-text .big { font-size: clamp(40px, 14vw, 84px); }
+  .window .shore-text .big { font-size: calc(clamp(40px, 14vw, 84px) * var(--shore-size, 1)); }
   .window .shore-text::before { display: none; }
   /* no halo on phones: the shore words stay paper-coloured in the dark room until the sky flips at the landing */
   .window.dark .shore-text { color: var(--paper); transition: color .8s ease; }
@@ -271,14 +272,14 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
   .window.dark .shore-text .sayhi { border-color: currentColor; }
   html.landed .window.dark .shore-text { color: var(--ink); }
   .window .value-text { left: var(--gutter); width: calc(100vw - 2 * var(--gutter)); top: calc(var(--i) * 100vh + 8vh); transform: none !important; }
-  .window .value-text .big { font-size: clamp(40px, 14vw, 84px); }
+  .window .value-text .big { font-size: calc(clamp(40px, 14vw, 84px) * var(--values-size, 1)); }
   .window .value-text::before { display: none; }
   .st { min-height: 80vh; }
   .st .big { grid-column: 1 / -1; max-width: none; font-size: clamp(38px, 13vw, 80px); }
   .st.title .wrap { grid-column: 1 / -1; }
   .archives .head { grid-column: 1 / -1; }
   .archives table { grid-column: 1 / -1; font-size: 13px; }
-  .footer .word { font-size: clamp(38px, 13vw, 80px); }
+  .footer .word { font-size: calc(clamp(38px, 13vw, 80px) * var(--footer-size, 1)); }
   .panel { width: 100vw; box-shadow: none; }
   .panel .close { top: 70px; margin-top: 70px; }                            /* below the nav links, which sit where the × was */
   .panel::before { height: 120px; margin-bottom: -120px; }

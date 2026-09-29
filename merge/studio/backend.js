@@ -69,6 +69,7 @@ export class LocalBackend {
   }
   sourcesURL(slug) { return `/merge/writeups-private/sources/${slug}.md`; }
   siteURL() { return 'http://localhost:8000/preview.html?drafts'; }
+  previewURL() { return '/merge/preview.html?studio'; }                 // the site from this Mac's files, reading the Studio's unpublished text
 }
 
 // ── GitHub (the online Studio) ──
@@ -271,6 +272,7 @@ export class GitHubBackend {
   }
   sourcesURL(slug) { return `https://github.com/${REPOS.priv}/blob/${REPOS.branch}/sources/${slug}.md`; }
   siteURL() { return 'https://kookytiger.github.io/portfolio/'; }
+  previewURL() { return new URL('../../?studio', location.href).href; }  // the live site, same origin as the Studio, reading the unpublished text
 }
 
 const mime = (n) => ({ webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', mp4: 'video/mp4', webm: 'video/webm' }[n.split('.').pop().toLowerCase()] || 'application/octet-stream');

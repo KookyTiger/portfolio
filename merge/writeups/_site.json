@@ -174,7 +174,15 @@
         "NORTHWESTERN ’27",
         "Based in Chicago "
       ],
-      "indication": "(Click the tiger)"
+      "indication": "(Click the tiger)",
+      "left": [
+        "Raised in Wuhan",
+        "Designing anywhere"
+      ],
+      "right": [
+        "Northwestern ’27",
+        "MaDE + RTVF"
+      ]
     },
     "intro": {
       "who": "KookyTiger",

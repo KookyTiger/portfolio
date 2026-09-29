@@ -15,7 +15,8 @@ const store = { get(k, d) { try { const v = localStorage.getItem(k); return v ==
                 set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
 
 const S = { studio: null, projects: {}, hashes: {}, icons: {}, sel: { type: 'inbox' }, dirty: new Set(), saving: new Set(), timers: {},
-            showDraft: new Set(), focusBlock: null, pvMode: store.get('studio.pv', 'panel'), conflicts: {}, pics: {} };
+            showDraft: new Set(), focusBlock: null, pvMode: store.get('studio.pv', 'panel'), conflicts: {}, pics: {},
+            siteDirty: false, pvSite: { dev: 'desktop', hover: false, s: 0, ...store.get('studio.pvsite', {}) } };
 const KINDS = ['sketch', 'photo', 'mockup', 'prototype', 'test', 'cad', 'render', 'screen', 'diagram', 'chart', 'still'];
 const FLOOR_NAMES = { engineering: 'Engineering', design: 'Design & Interaction', analytics: 'Analytics & Strategy', backlog: 'Backlog' };
 const SVG = (inner) => `<svg viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">${inner}</svg>`;
@@ -75,9 +76,10 @@ async function boot() {
   // edits that never reached the server (it was down, the tab closed mid-save)
   for (const key of [...Object.keys(S.projects), '_studio', '_site']) {
     const saved = store.get('studio.unsaved.' + key);
-    if (saved && JSON.stringify(saved) !== JSON.stringify(docOf(key)))
-      S.conflicts[key] = { kind: 'local', data: saved };
-    else store.del('studio.unsaved.' + key);
+    if (saved && JSON.stringify(saved) !== JSON.stringify(docOf(key))) {
+      if (key === '_site') { S.site = saved; S.siteDirty = true; }      // site text waits for Publish: pick up where she left off
+      else S.conflicts[key] = { kind: 'local', data: saved };
+    } else store.del('studio.unsaved.' + key);
   }
   route(); setSave();
   setInterval(poll, B.mode === 'github' ? 20000 : 4000);
@@ -120,7 +122,7 @@ function route() {
   else if (['site', 'classes', 'software', 'skills', 'templates', 'notes', 'inbox', 'help'].includes(a)) S.sel = { type: a };
   else S.sel = { type: 'inbox' };
   S.focusBlock = null;
-  document.body.classList.toggle('wide-edit', !['project', 'floor'].includes(S.sel.type));   // library pages use the full width
+  document.body.classList.toggle('wide-edit', !['project', 'floor', 'site'].includes(S.sel.type));   // library pages use the full width
   renderSide(); renderEditor(true); renderPreview(true);
 }
 addEventListener('hashchange', route);
@@ -296,7 +298,7 @@ function wordDiff(a, b) {
 
 const lines = (v) => esc(Array.isArray(v) ? v.join('\n') : v || '');
 const pages = (v) => esc((v || []).map((pg) => pg.join('\n')).join('\n\n'));
-const liveNote = () => B.mode === 'github' ? 'Changes here go live on the site a minute or two after you stop typing.' : 'Changes here are saved on this Mac; click Publish in the top bar to put them live.';
+const liveNote = () => 'Nothing here goes live until you press Publish site text in the top bar; the Site text page shows it in the real site first.';
 
 // the card: what a project shows on the site before it's opened
 function cardEditor(p) {
@@ -316,12 +318,31 @@ function cardEditor(p) {
 const SITE_FIELDS = [
   ['About me — the tiger\'s speech bubble', [['copy.intro.who', 'Who is speaking'], ['copy.intro.pages', 'What it says: one line per line, a blank line starts a new page', 'pages', 8]]],
   ['Opening & header', [['copy.entry.hint', 'Opening hint (computer)'], ['copy.entry.hintTouch', 'Opening hint (phone)'], ['copy.entry.sub', 'Under the hint'], ['copy.header.statement', 'Header statement, one line per line', 'lines', 2], ['copy.header.scroll', 'Scroll hint']]],
-  ['Hero', [['copy.hero.words', 'The big words, one per line', 'lines', 3], ['copy.hero.reveal', 'What each big word turns into on hover, one per line', 'lines', 3], ['copy.hero.indication', 'Small line under them']]],
+  ['Hero', [['copy.hero.words', 'The big words, one per line', 'lines', 3], ['copy.hero.reveal', 'What each big word turns into on hover, one per line (long lines shrink to fit)', 'lines', 3], ['copy.hero.indication', 'Small line under them'], ['copy.hero.left', 'Top-left corner, one line per line', 'lines', 2], ['copy.hero.right', 'Top-right corner, one line per line', 'lines', 2]]],
   ['Top bar', [['copy.nav.name', 'Name'], ['copy.nav.sub', 'Under the name'], ['copy.nav.tagline', 'Tagline'], ['copy.nav.links', 'Links (Work / About / Archives), one per line', 'lines', 3]]],
   ['The landing — the other shore', [['copy.shore.words', 'Big words, one per line', 'lines', 2], ['copy.shore.sub', 'Under them'], ['copy.shore.sayhi', 'Link'], ['copy.shore.tiger', 'What the tiger says'], ['copy.talents.hint', 'Talent-show hint'], ['copy.talents.trigger', 'Talent-show button'], ['copy.talents.title', 'Talent-show title']]],
   ['Archives & footer', [['copy.archives.title', 'Archives title'], ['copy.archives.note', 'Archives note'], ['copy.footer.words', 'Footer big words, one per line', 'lines', 3], ['copy.footer.sayhi', 'Footer link'], ['copy.footer.email', 'Email'], ['copy.footer.bottom', 'Bottom line, one part per line', 'lines', 3]]],
   ['Small labels', [['copy.cursor.tiger', 'Cursor over the tiger'], ['copy.cursor.card', 'Cursor over a project'], ['copy.panel.ask', 'Link at the end of a project'], ['copy.section.projects', 'Word after the project count on a floor title']]],
 ];
+// Type: the five kinds of big display words on the site (app.js → applyType turns these into CSS variables)
+const TYPE = [['hero', 'Hero words (KAY / ZISHU / TU)', 'hero'], ['titles', 'Floor titles', 'title0'], ['values', 'Floor statements (the quotes)', 'value0'], ['shore', 'The other shore', 'shore'], ['footer', 'Footer words', 'footer']];
+const WEIGHTS = [[400, 'Regular'], [500, 'Medium'], [600, 'Semibold'], [700, 'Bold'], [800, 'Extra bold']];
+function typeEditor(t) {
+  const st = t.style || {};
+  const row = ([g, label, to]) => { const v = st[g] || {}, size = v.size ?? 100, w = +(v.weight ?? 800);
+    return `<tr data-goto="${to}"><td>${esc(label)}</td>
+      <td class="sz"><input type="range" min="50" max="130" step="5" data-k="style.${g}.size" data-fmt="num" value="${size}"><span class="n">${size}%</span></td>
+      <td><select data-k="style.${g}.weight" data-fmt="num">${WEIGHTS.map(([x, l]) => `<option value="${x}" ${x === w ? 'selected' : ''}>${l}</option>`).join('')}</select></td>
+      <td><select data-k="style.${g}.case">${optionList([['upper', 'CAPITALS'], ['none', 'As typed']], v.case || 'upper')}</select></td>
+      <td style="width:34px"><button class="ib" data-act="type-reset" data-g="${g}" title="Back to the original look">↺</button></td></tr>`; };
+  return `<div class="sec"><span class="k">Type — how big, how bold, capitals or not</span>
+    <p class="hint">"As typed" shows the words exactly as you type them, so retype a line in lower case to see it that way. ↺ puts a row back to how the site looks today.</p>
+    <table class="lib type"><tr><th>Words</th><th>Size</th><th>Weight</th><th>Case</th><th></th></tr>${TYPE.map(row).join('')}</table></div>`;
+}
+function siteBar() {
+  if (!S.siteDirty) return `<div class="banner calm">You're looking at what's on the site. Change anything and try it in the preview on the right — it goes live only when you press <b>Publish site text</b>.</div>`;
+  return `<div class="banner try"><b>Trying things out.</b> Only you see this, in the preview. Nothing is on the site yet.<span class="sp"></span><button class="btn sm" data-act="site-discard">Discard my changes</button><button class="btn sm dark" data-act="site-publish">Publish site text</button></div>`;
+}
 function siteEditor() {
   const t = S.site || {}, get = (path) => path.split('.').reduce((a, k) => a?.[k], t);
   const field = ([path, label, fmt, rows]) => fmt ? `<label class="f"><span>${esc(label)}</span><textarea data-k="${path}" data-fmt="${fmt}" rows="${rows || 3}">${fmt === 'pages' ? pages(get(path)) : lines(get(path))}</textarea></label>`
@@ -331,7 +352,9 @@ function siteEditor() {
       <label class="f" style="margin-top:8px"><span>The big statement over the room (the "quote"), one line per line</span><textarea data-k="sections.${i}.value" data-fmt="lines" rows="4">${lines(s.value)}</textarea></label></div>`).join('');
   const arch = (t.archive || []).map((r, j) => `<tr><td><input data-k="archive.${j}.name" value="${esc(r.name)}"></td><td><input data-k="archive.${j}.line" value="${esc(r.line)}"></td><td><input data-k="archive.${j}.course" value="${esc(r.course)}"></td><td style="width:80px"><input data-k="archive.${j}.year" value="${esc(r.year)}"></td><td style="width:34px"><button class="ib" data-act="arr-del" data-k="archive" data-j="${j}" title="Remove">✕</button></td></tr>`).join('');
   return `<div data-doc="_site">${conflictBanner('_site')}
-    <h1>Site text</h1><p class="lead">Every word on the site outside the write-ups. ${liveNote()} Each project's card is on its own page (top of the project). <code>{N}</code>, <code>{N_UP}</code>, <code>{N_CAP}</code> become the number of projects.</p>
+    <h1>Site text</h1><p class="lead">Every word on the site outside the write-ups. Each project's card is on its own page (top of the project). <code>{N}</code>, <code>{N_UP}</code>, <code>{N_CAP}</code> become the number of projects. Click into a field and the preview jumps to where it is on the site.</p>
+    <div id="site-bar">${siteBar()}</div>
+    ${typeEditor(t)}
     ${SITE_FIELDS.map(([title, fs]) => `<div class="sec"><span class="k">${esc(title)}</span><div class="grid2">${fs.map((f) => `<div style="${f[2] ? 'grid-column:1/-1' : ''}">${field(f)}</div>`).join('')}</div></div>`).join('')}
     <div class="sec"><span class="k">The three floors</span>${floors}</div>
     <div class="sec"><span class="k">Archives — small projects listed near the end</span><table class="lib"><tr><th>Name</th><th>Line</th><th>Course / where</th><th>Year</th><th></th></tr>${arch}</table><button class="add" data-act="arch-add" style="margin-top:8px">＋ row</button></div>
@@ -444,6 +467,8 @@ function helpView() {
 let pvTimer = 0;
 const schedulePreview = () => { clearTimeout(pvTimer); pvTimer = setTimeout(() => renderPreview(), 140); };
 function renderPreview(reset = false) {
+  if (S.sel.type === 'site') return sitePreview();
+  $('pv-mode').hidden = false;
   const pv = $('pv'), keep = reset ? 0 : pv.scrollTop, mode = S.pvMode;
   document.querySelectorAll('#pv-mode button').forEach((b) => b.classList.toggle('on', b.dataset.m === mode));
   const avail = Math.max(200, pv.clientWidth - 36);
@@ -465,6 +490,72 @@ function renderPreview(reset = false) {
   pv.scrollTop = keep;
   if (S.focusBlock) pv.querySelector(`[data-block="${CSS.escape(S.focusBlock)}"]`)?.classList.add('hl');
 }
+// ── the site preview (Site text page): the real site in a frame, reading the text Kay is trying from this browser ──
+// Every change reloads it into a second frame behind the first; the new one takes over once it has scrolled to the same place.
+const SITE_DEV = { desktop: [1440, 900], phone: [390, 844] };
+const siteTargets = () => [['header', 'Header'], ['hero', 'Hero'], ['intro', 'About me (the bubble)'],
+  ...(S.site?.sections || []).flatMap((x, i) => [[`title${i}`, `${x.num} ${x.title} · title`], [`value${i}`, `${x.num} · its statement`]]),
+  ['archives', 'Archives'], ['shore', 'The other shore'], ['footer', 'Footer']];
+const siteTarget = (k) => { const m = /^sections\.(\d+)\.(\w+)/.exec(k || ''); if (m) return (m[2] === 'value' ? 'value' : 'title') + m[1];
+  if (/^style\./.test(k)) return TYPE.find(([g]) => g === k.split('.')[1])?.[2];
+  const c = /^copy\.(\w+)/.exec(k || '')?.[1];
+  return c === 'intro' ? 'intro' : ['entry', 'header'].includes(c) ? 'header' : c === 'hero' ? 'hero' : ['shore', 'talents'].includes(c) ? 'shore'
+    : c === 'footer' ? 'footer' : c === 'archives' || /^archive\./.test(k || '') ? 'archives' : null; };
+const spFrames = () => [...document.querySelectorAll('#pv .sp-frame')];
+const spPost = (f, m) => f?.contentWindow?.postMessage({ studio: 1, ...m }, location.origin);
+function sitePreview() {
+  const pv = $('pv'); $('pv-mode').hidden = true; $('pv-title').textContent = 'The site · your text';
+  if (!pv.querySelector('.sp-wrap')) {
+    pv.innerHTML = `<div class="sp-bar"><div class="seg" id="sp-dev"><button data-dev="desktop">Desktop</button><button data-dev="phone">Phone</button></div>
+      <select id="sp-go" title="Jump to"><option value="">Jump to…</option></select>
+      <label class="chk" title="Show the words that appear on hover (hero, project cards)"><input type="checkbox" id="sp-hover"> hover text</label>
+      <button class="btn sm" id="sp-reload" title="Reload">↻</button><span class="sp-state" id="sp-state"></span></div>
+      <div class="sp-wrap"><div class="sp-stage"></div></div>
+      <p class="hint" style="margin-top:10px">Scroll inside it like the real site. It shows your unpublished text and type — only in this browser.</p>`;
+    $('sp-dev').onclick = (e) => { const d = e.target.closest('button')?.dataset.dev; if (!d || d === S.pvSite.dev) return; S.pvSite.dev = d; store.set('studio.pvsite', S.pvSite); sitePreview(); loadSiteFrame(); };
+    $('sp-go').onchange = (e) => { const t = e.target.value; e.target.value = ''; if (t) siteGoto(t); };
+    $('sp-hover').onchange = (e) => { S.pvSite.hover = e.target.checked; store.set('studio.pvsite', S.pvSite); spFrames().forEach((f) => spPost(f, { type: 'hover', on: S.pvSite.hover })); };
+    $('sp-reload').onclick = () => loadSiteFrame();
+  }
+  $('sp-go').innerHTML = `<option value="">Jump to…</option>${siteTargets().map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('')}`;
+  $('sp-hover').checked = !!S.pvSite.hover;
+  pv.querySelectorAll('#sp-dev button').forEach((b) => b.classList.toggle('on', b.dataset.dev === S.pvSite.dev));
+  const [W, H] = SITE_DEV[S.pvSite.dev] || SITE_DEV.desktop, z = Math.min(1, Math.max(0.2, (pv.clientWidth - 36) / W));
+  const wrap = pv.querySelector('.sp-wrap'), stage = pv.querySelector('.sp-stage');
+  wrap.style.width = `${W * z}px`; wrap.style.height = `${H * z}px`;
+  stage.style.width = `${W}px`; stage.style.height = `${H}px`; stage.style.transform = `scale(${z})`;
+  if (!spFrames().length) loadSiteFrame();
+}
+function writeSiteDraft() { try { localStorage.setItem('studio.siteDraft', JSON.stringify({ site: S.site, at: Date.now() })); } catch {} }
+function loadSiteFrame() {
+  const stage = $('pv').querySelector('.sp-stage'); if (!stage || !B) return;
+  writeSiteDraft();
+  spFrames().filter((f) => f.classList.contains('loading')).forEach((f) => f.remove());   // a newer edit replaces a frame still loading
+  const f = document.createElement('iframe'); f.className = 'sp-frame loading'; f.title = 'The site, with your text'; f.src = B.previewURL();
+  stage.append(f); $('sp-state').textContent = 'updating…';
+}
+let siteDraftTimer = 0;
+const siteDraftSoon = () => { clearTimeout(siteDraftTimer); siteDraftTimer = setTimeout(() => { writeSiteDraft(); if (S.sel.type === 'site') loadSiteFrame(); }, 900); };
+function siteGoto(target) {
+  if (!target) return; S.spGoto = target;
+  const live = spFrames().filter((f) => !f.classList.contains('loading')).pop(); if (live) spPost(live, { type: 'goto', target });
+}
+addEventListener('message', (e) => {
+  if (e.origin !== location.origin || !e.data?.studio) return;
+  const m = e.data, f = spFrames().find((x) => x.contentWindow === e.source); if (!f) return;
+  if (m.type === 'ready') { spPost(f, S.spGoto ? { type: 'goto', target: S.spGoto } : { type: 'goto', s: S.pvSite.s || 0 }); if (S.pvSite.hover) spPost(f, { type: 'hover', on: true }); }
+  if (m.type === 'placed') { f.classList.remove('loading'); spFrames().forEach((x) => { if (x !== f && !x.classList.contains('loading')) x.remove(); }); if ($('sp-state')) $('sp-state').textContent = ''; }
+  if (m.type === 'scroll' && !f.classList.contains('loading')) { S.pvSite.s = m.s; S.spGoto = null; store.set('studio.pvsite', S.pvSite); }
+});
+$('edit').addEventListener('focusin', (e) => { if (S.sel.type !== 'site') return; const el = e.target.closest('[data-k], tr[data-goto]');
+  const t = el?.closest('tr[data-goto]')?.dataset.goto || siteTarget(el?.dataset?.k); if (t) siteGoto(t); });
+async function publishSite() {
+  if (!S.siteDirty) return;
+  S.siteDirty = false; S.dirty.add('_site'); setSave(); await save('_site');
+  if (S.conflicts._site || S.dirty.has('_site')) S.siteDirty = true; else store.del('studio.unsaved._site');
+  setSave();
+}
+$('tb-sitepub').addEventListener('click', publishSite);
 $('pv-mode').addEventListener('click', (e) => { const m = e.target.closest('button')?.dataset.m; if (!m) return; S.pvMode = m; store.set('studio.pv', m); renderPreview(true); });
 $('pv').addEventListener('click', (e) => {
   const a = e.target.closest('a'); if (a) e.preventDefault();
@@ -493,6 +584,7 @@ $('edit').addEventListener('focusin', (e) => { const card = e.target.closest('.b
 
 // ── edits ──
 function markDirty(key) {
+  if (key === '_site') { S.siteDirty = true; store.set('studio.unsaved._site', S.site); setSave(); siteDraftSoon(); return; }
   S.dirty.add(key); setSave();
   store.set('studio.unsaved.' + key, docOf(key));
   clearTimeout(S.timers[key]); S.timers[key] = setTimeout(() => save(key), B.mode !== 'github' ? 700 : key === '_site' ? 6000 : 2500);   // online: one commit per pause, not per keystroke
@@ -504,6 +596,8 @@ function setSave() {
   el.title = sync ? `Syncing with GitHub failed: ${S.sync.error}` : '';
   if (S.writeProblem) { el.classList.add('bad'); el.textContent = 'NOT saving — token can’t write ↓'; return; }
   el.textContent = Object.keys(S.conflicts).length ? 'needs your decision ↓' : n ? `saving${where}…` : sync ? 'saved here · GitHub sync problem (hover)' : `all saved${where}`;
+  $('tb-sitepub').hidden = !S.siteDirty;
+  const sb = $('site-bar'); if (sb && sb.dataset.dirty !== String(S.siteDirty)) { sb.dataset.dirty = String(S.siteDirty); sb.innerHTML = siteBar(); }
   const pb = $('tb-publish');
   if (B?.mode === 'local') { pb.hidden = !S.publishPending; pb.textContent = `Publish · ${S.publishPending}`; }
 }
@@ -523,7 +617,7 @@ async function save(key) {
   if (r.conflict) { S.conflicts[key] = { kind: 'remote', data: r.data, hash: r.hash }; renderEditor(); }
   else {
     S.hashes[key] = r.hash; if (!S.dirty.has(key)) store.del('studio.unsaved.' + key);
-    if (r.published && key === '_site') { if (!S.siteToast) toast('Site text saved — live on the site in a minute or two.', false, 5000); S.siteToast = true; }
+    if (key === '_site') toast(B.mode === 'github' ? 'Site text published — live on the site in a minute or two.' : 'Site text saved on this Mac — Publish in the top bar puts it live.', false, 5000);
     else if (r.published) toast(`${docOf(key)?.status === 'approved' ? 'Published' : 'Taken off the site'}: ${docOf(key)?.name}. The site updates in a minute or two.`, false, 5000);
   }
   setSave();
@@ -535,7 +629,7 @@ async function poll() {
   let redraw = false;
   for (const [key, h] of Object.entries(r.hashes)) {
     if (h === S.hashes[key] || S.saving.has(key)) continue;
-    if (S.dirty.has(key)) continue;                                   // our save will get the 409 and ask
+    if (S.dirty.has(key) || (key === '_site' && S.siteDirty)) continue;   // our save will get the 409 and ask
     let d; try { d = key === '_studio' ? await B.getStudio() : key === '_site' ? await B.getSite() : await B.getProject(key); } catch { continue; }
     if (key === '_studio') { S.studio = d.data; S.hashes._studio = d.hash; }
     else if (key === '_site') { S.site = d.data; S.hashes._site = d.hash; }
@@ -562,7 +656,8 @@ document.addEventListener('input', (e) => {
   const el = e.target.closest('[data-k]'); if (!el || el.closest('.modal')) return;
   const key = el.closest('[data-doc]')?.dataset.doc; if (!key || !docOf(key)) return;
   const fmt = el.dataset.fmt, raw = el.type === 'checkbox' ? el.checked : el.value;   // lines = one item per line; pages = pages split by a blank line
-  setPath(docOf(key), el.dataset.k, fmt === 'lines' ? raw.split('\n') : fmt === 'pages' ? raw.split(/\n\s*\n/).map((pg) => pg.split('\n').filter((l) => l.trim())).filter((pg) => pg.length) : raw);
+  setPath(docOf(key), el.dataset.k, fmt === 'lines' ? raw.split('\n') : fmt === 'pages' ? raw.split(/\n\s*\n/).map((pg) => pg.split('\n').filter((l) => l.trim())).filter((pg) => pg.length) : fmt === 'num' ? +raw : raw);
+  if (el.type === 'range') el.nextElementSibling && (el.nextElementSibling.textContent = raw + '%');
   markDirty(key);
   if (key === '_site' && el.closest('.card-ed')) {                    // keep the little card preview in step while typing
     const c = S.site.cards?.[S.sel.id], pv = el.closest('.card-ed').querySelector('.card-pv');
@@ -628,6 +723,11 @@ document.addEventListener('click', async (e) => {
     case 'pick-skills': return pickSkills(p);
     case 'pick-pics': return pickPictures(p, i);
     case 'new-project': e.preventDefault(); return newProject();
+    case 'site-publish': return publishSite();
+    case 'site-discard': { if (!confirm('Throw away what you are trying and go back to the text that is on the site?')) return;
+      try { const d = await B.getSite(); S.site = d.data; S.hashes._site = d.hash; } catch (err) { toast(err.message, true); return; }
+      S.siteDirty = false; store.del('studio.unsaved._site'); renderEditor(); setSave(); siteDraftSoon(); return; }
+    case 'type-reset': { if (S.site.style) delete S.site.style[b.dataset.g]; markDirty('_site'); renderEditor(); siteGoto(TYPE.find(([g]) => g === b.dataset.g)?.[2]); return; }
     case 'arch-add': (S.site.archive ||= []).push({ name: '', line: '', course: '', year: '' }); markDirty('_site'); renderEditor(); return;
     case 'reconnect': store.del('studio.gh'); location.reload(); return;   // unsaved edits stay in this browser and come back after signing in
     case 'cf-theirs': { const c = S.conflicts[b.dataset.key]; delete S.conflicts[b.dataset.key]; if (b.dataset.key === '_studio') { const st = await B.getStudio(); S.studio = st.data; S.hashes._studio = st.hash; } else if (b.dataset.key === '_site') { S.site = c.data; S.hashes._site = c.hash; } else { S.projects[b.dataset.key] = c.data; S.hashes[b.dataset.key] = c.hash; } store.del('studio.unsaved.' + b.dataset.key); renderSide(); renderEditor(); renderPreview(); setSave(); return; }

@@ -243,3 +243,22 @@ body[data-mode="github"] .top .logo::after { content: "online"; font-family: var
 .card-ed .card-pv .tk { color: var(--ink-2); font-size: 12px; }
 .card-ed .card-pv .k { font-size: 9.5px; }
 .card-ed::after { content: ""; display: block; clear: both; }
+
+/* ── Site text: the draft bar, the Type table, the live site preview ── */
+.top .tb.hot { background: var(--tiger); border-color: var(--tiger); color: #111; }
+.banner.calm { background: var(--card); border-color: var(--line); color: var(--ink-2); }
+.banner.try { background: #FBEFD9; }
+table.lib.type td .n { font-family: var(--mono); font-size: 11px; color: var(--ink-2); display: inline-block; width: 44px; text-align: right; }
+table.lib.type td.sz { white-space: nowrap; }
+table.lib.type td.sz input { width: 110px; vertical-align: middle; }
+table.lib.type select { min-width: 104px; }
+table.lib.type td:first-child { min-width: 120px; }
+.sp-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0 auto 12px; }
+.sp-bar select { font-size: 12.5px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+.sp-bar .chk { font-size: 12.5px; display: inline-flex; gap: 5px; align-items: center; color: var(--ink-2); }
+.sp-state { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: .06em; }
+.sp-wrap { position: relative; margin: 0 auto; overflow: hidden; border-radius: 6px; box-shadow: 0 10px 40px rgba(20,20,16,.14); background: var(--paper); }
+.sp-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.sp-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--paper); z-index: 1; }
+.sp-frame.loading { z-index: 0; pointer-events: none; }   /* the next version loads underneath, then comes up */
+#pv-mode[hidden] { display: none; }
