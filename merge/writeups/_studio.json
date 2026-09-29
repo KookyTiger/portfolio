@@ -606,6 +606,12 @@
       "name": "Notion",
       "group": "code",
       "si": "notion"
+    },
+    {
+      "id": "chatgpt",
+      "name": "ChatGPT",
+      "group": "design",
+      "abbr": "GPT"
     }
   ],
   "softwareGroups": {
