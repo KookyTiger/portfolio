@@ -158,7 +158,7 @@
     },
     "header": {
       "statement": [
-        "{N_CAP} A whole brain engineer."
+        "A whole brain engineer."
       ],
       "scroll": "Scroll to descend"
     },
@@ -195,7 +195,7 @@
       "words": [
         "Nice to finally meet you here."
       ],
-      "sub": "{N} That means please hire me...",
+      "sub": "That means please hire me...",
       "sayhi": "Say hi ↗",
       "tiger": "sorry it took me a while, too many floors!"
     },
