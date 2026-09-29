@@ -46,6 +46,10 @@
     {
       "name": "Business model",
       "evidence": "next"
+    },
+    {
+      "name": "3D printing (FDM)",
+      "evidence": "final"
     }
   ],
   "classes": [
@@ -164,7 +168,7 @@
       "id": "final",
       "stage": "final",
       "title": "The losing mockup gave the winner its angle",
-      "text": "We rebuilt the level from scratch. LevelUp is a printed black PLA clip that snaps over the bar, with no straps or magnets, and a 1-inch vial press-fit on an arm standing just under an inch off the bar. That angle came from the phone stand we had dropped: testers kept tilting the phone forward to face them.\n\nOn June 10, three SPAC lifters clipped it on without instructions in 2.5 seconds on average. With the vial hidden, the bubble left the level zone nine times over their reps; in view, never. It also hit one tester's chest and fits only one bar size.",
+      "text": "We rebuilt the level from scratch, and I helped print it. LevelUp is a printed black PLA clip that snaps over the bar, with no straps or magnets, and a 1-inch vial press-fit on an arm standing just under an inch off the bar. That angle came from the phone stand we had dropped: testers kept tilting the phone forward to face them.\n\nOn June 10, three SPAC lifters clipped it on without instructions in 2.5 seconds on average. With the vial hidden, the bubble left the level zone nine times over their reps; in view, never. It also hit one tester's chest and fits only one bar size.",
       "layout": "text-media",
       "media": [
         {
