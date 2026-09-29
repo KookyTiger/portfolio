@@ -1,0 +1,137 @@
+{
+  "slug": "alv",
+  "name": "CASE × Ama La Vida",
+  "floor": "analytics",
+  "onSite": true,
+  "order": 1,
+  "template": "analytics",
+  "status": "approved",
+  "oneLiner": "Pricing and retention strategy for a virtual career-coaching firm, read from its members' plan changes.",
+  "context": {
+    "course": "",
+    "when": "Winter 2025",
+    "team": "Six analysts, two project managers",
+    "partner": "Ama La Vida, through CASE (Consulting Advising Student Enterprise)",
+    "role": "Strategy Analyst — pricing & retention"
+  },
+  "software": [
+    "r",
+    "sheets",
+    "slides"
+  ],
+  "skills": [
+    {
+      "name": "Problem framing",
+      "evidence": "approach"
+    },
+    {
+      "name": "Statistics",
+      "evidence": "approach"
+    },
+    {
+      "name": "Data visualisation",
+      "evidence": "analysis"
+    },
+    {
+      "name": "Pricing strategy",
+      "evidence": "recommendation"
+    },
+    {
+      "name": "Client communication",
+      "evidence": "recommendation"
+    }
+  ],
+  "classes": [],
+  "cover": "assets/projects/alv.webp",
+  "blocks": [
+    {
+      "id": "question",
+      "stage": "question",
+      "title": "Raise prices without pushing members out",
+      "text": "Ama La Vida (ALV) sells one-on-one career coaching over video, as memberships. In January 2025 its founders brought CASE, a Northwestern student consulting group, three asks: benchmark what comparable coaching costs, recommend new prices to be in place by June, and plan how to tell current members.\n\nWe split into three workstreams — competitors, pricing & retention, and rollout. I was one of three analysts on pricing & retention: the half of the question about keeping members once the prices change.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "context",
+      "stage": "context",
+      "title": "The cheapest of four similar coaching firms",
+      "text": "ALV coaches for long-range career direction rather than résumé fixes, and priced by plan: two sessions a month for $379 — $189.50 a session — or 12- and 24-session bundles at $1,933 and $3,638. Our competitor workstream found three firms with a similar pitch charging $225 to $450 a session, so there was room to charge more.\n\nThe catch: at every renewal, a member can continue, stop, or downgrade to one session a month or a cheaper community plan.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/alv/competitor-prices.webp",
+          "caption": "From the final client deck: ALV against three firms with a similar pitch (competitor workstream's slide).",
+          "kind": "screen"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "stage": "data",
+      "title": "Two datasets, one arriving mid-project",
+      "text": "We worked from ALV's own records. First, cancellation files from 2020 to 2024, each with the reason the member gave. Then, in mid-February, an export of membership history: every move from one plan to another, more than 2,000 of them. I did my analysis in R.\n\nThe files needed work before they could talk — plan names typed inconsistently, some members missing a start date — and the revenue-by-product data our workstream requested in January never shows as received in the request tracker.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "approach",
+      "stage": "approach",
+      "title": "Follow the downgrades, not just the cancellations",
+      "text": "My first task was to test, with a small churn model, whether the reasons members gave for cancelling tracked the plan they were on. Useful for retention, but it couldn't settle price: a cancellation says someone left, not how much of the plan they still wanted.\n\nSo when the plan-change history arrived in February, I turned to the members who hadn't quit: when they switched, in which direction, and to what. A downgrade is a member telling you what a plan is worth to them — the price signal cancellations can't give.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "analysis",
+      "stage": "analysis",
+      "title": "Plan changes ran one way: down",
+      "text": "The history was lopsided: downgrades outnumbered upgrades and unchanged renewals many times over. And the moves went down the ladder, mostly to the virtual plan — 69% of changes out of the one-month subscription, 75% out of 2×-monthly and 83% out of 1×-monthly ended there, while 55% of changes out of 4×-monthly stepped down to 2×.\n\nOur project manager read my first charts and asked for exactly those percentages; my charts on where members moved became two slides of the final client deck.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/alv/plan-changes-direction.webp",
+          "caption": "Final client deck: every plan change by type.",
+          "kind": "chart"
+        },
+        {
+          "src": "assets/projects/alv/plan-changes-length.webp",
+          "caption": "Where members moved by plan length — my chart, restyled for the deck.",
+          "kind": "chart"
+        },
+        {
+          "src": "assets/projects/alv/plan-changes-frequency.webp",
+          "caption": "Where members moved by session frequency — my chart, restyled for the deck.",
+          "kind": "chart"
+        }
+      ]
+    },
+    {
+      "id": "recommendation",
+      "stage": "recommendation",
+      "title": "Raise the ceiling, and reward staying up",
+      "text": "The final deck joined two findings. From the benchmark: a $250 ceiling per session with the old bundle discounts kept, taking 12 sessions from $1,933 to $2,550 and 24 from $3,638 to $4,800. From my workstream: since members trade down, make staying up worth it — existing members keep their price by renewing for 12 months; new members get bigger discounts for more sessions and longer terms.\n\nMy own notes had argued for changing discounts instead of raising every price. The team did both.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/alv/bundle-prices-old-new.webp",
+          "caption": "The recommended ceiling and bundle prices (final client deck).",
+          "kind": "screen"
+        },
+        {
+          "src": "assets/projects/alv/two-step-plan-picker.webp",
+          "caption": "The plan picker we proposed for ALV's website: choose a frequency, then a length.",
+          "kind": "mockup"
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "stage": "next",
+      "title": "Test the ceiling on members, not rivals",
+      "text": "Two things I'd do differently. The $250 ceiling rests on four firms' list prices, not on how ALV's own members respond; the phased rollout we proposed — loyal members first, then everyone — could double as the price test, if downgrades are tracked cohort by cohort.\n\nAnd my early churn model deserved more suspicion. Every record in that file was a cancellation, so \"churn\" had to be defined from tenure — and tenure then \"predicted\" it. I'd rebuild it on what's known the day someone signs up.",
+      "layout": "text",
+      "media": []
+    }
+  ]
+}
