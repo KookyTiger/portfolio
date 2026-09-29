@@ -74,11 +74,20 @@ export class GitHubBackend {
   mode = 'github';
   constructor(token, onPicture) { this.gh = new GitHub(token); this.onPicture = onPicture || (() => {}); this.pics = new Map(); this.priv = null; this.pub = null; }
 
-  static async connect(token) {                                  // check the token can reach both repos before keeping it
+  static async connect(token) {                                  // check the token can read AND write both repos before keeping it
     const gh = new GitHub(token);
     const me = await gh.user();
-    await gh.api(`/repos/${REPOS.priv}`); await gh.api(`/repos/${REPOS.pub}`);
+    await GitHubBackend.checkWrite(gh);
     return me.login;
+  }
+  // a throwaway blob (never committed) proves write access; GitHub's own error ("Resource not accessible…") doesn't say what's missing
+  static async checkWrite(gh) {
+    for (const repo of [REPOS.priv, REPOS.pub]) {
+      try { await gh.api(`/repos/${repo}`); }
+      catch (e) { throw new Error(`the token can't see ${repo}. Edit the token → Repository access → select both portfolio and portfolio-studio-private.`); }
+      try { await gh.api(`/repos/${repo}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: 'studio write check', encoding: 'utf-8' }) }); }
+      catch (e) { throw new Error(`the token can read ${repo} but not write to it. Edit the token → Permissions → Repository permissions → Contents → change "Read-only" to "Read and write".`); }
+    }
   }
 
   hashOf(slug, files = this.priv.files) { return `${files[`public/${slug}.json`] || '-'}:${files[`${slug}.json`] || '-'}`; }

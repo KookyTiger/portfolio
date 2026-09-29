@@ -66,6 +66,9 @@ async function boot() {
   }
   const ic = await fetch('../vendor/tool-icons.json').then((r) => r.json()).catch(() => ({}));
   S.studio = st.studio; S.projects = st.projects; S.hashes = st.hashes; S.icons = ic.icons || {};
+  if (B.mode === 'github') GitHubBackend.checkWrite(B.gh).catch((e) => {       // a read-only token would lose every save: say so now
+    S.writeProblem = e.message; renderEditor(); setSave();
+  });
   $('tb-site').href = B.siteURL();
   $('tb-publish').hidden = B.mode !== 'github';
   $('tb-out').hidden = B.mode !== 'github';
@@ -174,9 +177,10 @@ function renderEditor(reset = false) {
 }
 
 function conflictBanner(key) {
-  const c = S.conflicts[key]; if (!c) return '';
-  if (c.kind === 'local') return `<div class="banner"><b>Unsaved edits from last time.</b> They never reached the files (the Studio server was off?).<span class="sp"></span><button class="btn sm dark" data-act="cf-mine" data-key="${key}">Use my edits</button><button class="btn sm" data-act="cf-drop" data-key="${key}">Throw them away</button></div>`;
-  return `<div class="banner"><b>Claude changed this while you were editing.</b> Your latest edits are not saved yet.<span class="sp"></span><button class="btn sm" data-act="cf-theirs" data-key="${key}">Load Claude's version</button><button class="btn sm dark" data-act="cf-mine" data-key="${key}">Keep mine (overwrite)</button></div>`;
+  const w = S.writeProblem ? `<div class="banner"><b>Your edits are NOT reaching GitHub.</b> ${esc(S.writeProblem)} They're kept in this browser and will save once the token works.<span class="sp"></span><a class="btn sm" href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">Edit the token ↗</a><button class="btn sm dark" data-act="reconnect">Reconnect</button></div>` : '';
+  const c = S.conflicts[key]; if (!c) return w;
+  if (c.kind === 'local') return w + `<div class="banner"><b>Unsaved edits from last time.</b> They never reached the files (the Studio server was off?).<span class="sp"></span><button class="btn sm dark" data-act="cf-mine" data-key="${key}">Use my edits</button><button class="btn sm" data-act="cf-drop" data-key="${key}">Throw them away</button></div>`;
+  return w + `<div class="banner"><b>Claude changed this while you were editing.</b> Your latest edits are not saved yet.<span class="sp"></span><button class="btn sm" data-act="cf-theirs" data-key="${key}">Load Claude's version</button><button class="btn sm dark" data-act="cf-mine" data-key="${key}">Keep mine (overwrite)</button></div>`;
 }
 
 const optionList = (pairs, cur) => pairs.map(([v, l]) => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(l)}</option>`).join('');
@@ -452,6 +456,7 @@ function setSave() {
   const sync = S.sync && !S.sync.ok;
   el.classList.toggle('bad', Object.keys(S.conflicts).length > 0 || sync);
   el.title = sync ? `Syncing with GitHub failed: ${S.sync.error}` : '';
+  if (S.writeProblem) { el.classList.add('bad'); el.textContent = 'NOT saving — token can’t write ↓'; return; }
   el.textContent = Object.keys(S.conflicts).length ? 'needs your decision ↓' : n ? `saving${where}…` : sync ? 'saved here · GitHub sync problem (hover)' : `all saved${where}`;
   const pb = $('tb-publish');
   if (B?.mode === 'local') { pb.hidden = !S.publishPending; pb.textContent = `Publish · ${S.publishPending}`; }
@@ -463,7 +468,9 @@ async function save(key) {
   let r;
   try { r = key === '_studio' ? await B.saveStudio(docOf(key), S.hashes[key]) : await B.saveProject(key, docOf(key), S.hashes[key]); }
   catch (e) {
-    S.saving.delete(key); S.dirty.add(key); toast(e.message || 'Save failed', true);
+    S.saving.delete(key); S.dirty.add(key);
+    if (e.status === 403 || e.status === 401) { S.writeProblem = `GitHub refused the save: ${e.message}. Most likely the token's Contents permission is "Read-only" — it must be "Read and write", for both repos.`; renderEditor(); }
+    else toast(e.message || 'Save failed', true);
     S.timers[key] = setTimeout(() => save(key), 8000); setSave(); return;
   }
   S.saving.delete(key);
@@ -568,6 +575,7 @@ document.addEventListener('click', async (e) => {
     case 'pick-skills': return pickSkills(p);
     case 'pick-pics': return pickPictures(p, i);
     case 'new-project': e.preventDefault(); return newProject();
+    case 'reconnect': store.del('studio.gh'); location.reload(); return;   // unsaved edits stay in this browser and come back after signing in
     case 'cf-theirs': { const c = S.conflicts[b.dataset.key]; delete S.conflicts[b.dataset.key]; if (b.dataset.key === '_studio') { const st = await B.getStudio(); S.studio = st.data; S.hashes._studio = st.hash; } else { S.projects[b.dataset.key] = c.data; S.hashes[b.dataset.key] = c.hash; } store.del('studio.unsaved.' + b.dataset.key); renderSide(); renderEditor(); renderPreview(); setSave(); return; }
     case 'cf-mine': { const k = b.dataset.key, c = S.conflicts[k]; delete S.conflicts[k]; if (c.kind === 'local') { if (k === '_studio') S.studio = c.data; else S.projects[k] = c.data; } else S.hashes[k] = c.hash; markDirty(k); renderEditor(); renderPreview(); return; }
     case 'cf-drop': { delete S.conflicts[b.dataset.key]; store.del('studio.unsaved.' + b.dataset.key); renderEditor(); setSave(); return; }
