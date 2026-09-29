@@ -20,6 +20,7 @@ publishes approved write-ups into the public working tree; POST /api/publish com
   GET  /api/hashes                  {hashes, sync, publish}
   PUT  /api/project/<slug>          {data, base} → {hash}; 409 {data, hash} if the files changed since `base`
   PUT  /api/studio                  {data, base}
+  GET/PUT /api/site                 the site's copy (merge/writeups/_site.json): cards, floors, archive, all other text
   POST /api/upload/<slug>[?to=vision]  raw bytes, header X-Filename → a picture (or video) in pictures/<slug>/
   POST /api/promote/<slug>          {src: candidates/<slug>/x} → copied into pictures/<slug>/
   GET  /api/pictures/<slug>         {used, candidates}
@@ -100,6 +101,7 @@ def slugs():
 
 
 def project_paths(slug): return WORK / f'{slug}.json', PRIV / f'{slug}.json'
+SITE = LIVE / '_site.json'                                     # the site's own copy (cards, floors, all other text) — public, edited in the Studio
 def studio_paths(): return LIVE / '_studio.json', PRIV / '_studio.json'
 
 
@@ -248,6 +250,14 @@ def save_studio(data):
     return file_hash(a, b)
 
 
+def save_site(data):
+    keep_history('_site', (SITE,))
+    SITE.write_text(dump(data))
+    try: writeups_export.export(ROOT / 'merge')
+    except Exception as e: sys.stderr.write(f'writeups.js not refreshed: {e}\n')
+    return file_hash(SITE)
+
+
 def clean_name(name):
     return re.sub(r'[^a-z0-9]+', '-', pathlib.Path(name).stem.lower()).strip('-')[:48] or 'picture'
 
@@ -350,13 +360,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             if r == ['state']:
                 studio, sh = load_studio(); projects, hashes = {}, {'_studio': sh}
                 for s in slugs(): projects[s], hashes[s] = load_project(s)
-                self.send_json({'studio': studio, 'projects': projects, 'hashes': hashes, 'mode': 'local'})
+                hashes['_site'] = file_hash(SITE)
+                self.send_json({'studio': studio, 'projects': projects, 'site': read_json(SITE, {}), 'hashes': hashes, 'mode': 'local'})
             elif r == ['hashes']:
-                h = {'_studio': file_hash(*studio_paths())}
+                h = {'_studio': file_hash(*studio_paths()), '_site': file_hash(SITE)}
                 h.update({s: file_hash(*project_paths(s)) for s in slugs()})
                 self.send_json({'hashes': h, 'sync': SYNC.state if SYNC.enabled() else None, 'publish': {'pending': publish_pending()}})
             elif len(r) == 2 and r[0] == 'project' and SLUG.match(r[1]):
                 d, h = load_project(r[1]); self.send_json({'data': d, 'hash': h})
+            elif r == ['site']:
+                self.send_json({'data': read_json(SITE, {}), 'hash': file_hash(SITE)})
             elif len(r) == 2 and r[0] == 'pictures' and SLUG.match(r[1]):
                 self.send_json(pictures(r[1]))
             else: self.send_json({'error': 'not found'}, 404)
@@ -366,7 +379,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         r = self.route()
         def run():
             msg = json.loads(self.body() or b'{}')
-            if r == ['studio']:
+            if r == ['site']:
+                cur = file_hash(SITE)
+                if msg.get('base') and msg['base'] != cur:
+                    return self.send_json({'conflict': True, 'data': read_json(SITE, {}), 'hash': cur}, 409)
+                self.send_json({'hash': save_site(msg['data'])})
+            elif r == ['studio']:
                 cur = file_hash(*studio_paths())
                 if msg.get('base') and msg['base'] != cur:
                     d, h = load_studio(); return self.send_json({'conflict': True, 'data': d, 'hash': h}, 409)

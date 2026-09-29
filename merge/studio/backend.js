@@ -55,6 +55,8 @@ export class LocalBackend {
   poll() { return this.call('/api/hashes'); }
   getProject(slug) { return this.call(`/api/project/${slug}`); }
   async getStudio() { const s = await this.load(); return { data: s.studio, hash: s.hashes._studio }; }
+  getSite() { return this.call('/api/site'); }
+  saveSite(data, base) { return this.call('/api/site', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, base }) }); }
   upload(slug, file, vision) { return this.call(`/api/upload/${slug}${vision ? '?to=vision' : ''}`, { method: 'POST', headers: { 'X-Filename': encodeURIComponent(file.name) }, body: file }); }
   promote(slug, src) { return this.call(`/api/promote/${slug}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src }) }); }
   pictures(slug) { return this.call(`/api/pictures/${slug}`); }
@@ -116,7 +118,8 @@ export class GitHubBackend {
     for (let i = 0; i < list.length; i += 6) {                  // a few at a time, gently
       await Promise.all(list.slice(i, i + 6).map(async (s) => { projects[s] = await this.readProject(s); hashes[s] = this.hashOf(s); }));
     }
-    return { studio: await this.readStudio(), projects, hashes, mode: 'github' };
+    hashes._site = this.pub.files['merge/writeups/_site.json'] || '-';
+    return { studio: await this.readStudio(), projects, site: await this.json(REPOS.pub, this.pub.files['merge/writeups/_site.json']) || {}, hashes, mode: 'github' };
   }
 
   async saveProject(slug, data, base) {
@@ -185,12 +188,26 @@ export class GitHubBackend {
     const [ph, uh] = await Promise.all([this.gh.head(REPOS.priv), this.gh.head(REPOS.pub)]);
     if (ph !== this.priv.head) this.priv = await this.gh.tree(REPOS.priv, ph);
     if (uh !== this.pub.head) this.pub = await this.gh.tree(REPOS.pub, uh);
-    const hashes = { _studio: this.studioHash() };
+    const hashes = { _studio: this.studioHash(), _site: this.pub.files['merge/writeups/_site.json'] || '-' };
     this.slugs().forEach((s) => { hashes[s] = this.hashOf(s); });
     return { hashes, sync: null, publish: null };
   }
   async getProject(slug) { return { data: await this.readProject(slug), hash: this.hashOf(slug) }; }
   async getStudio() { return { data: await this.readStudio(), hash: this.studioHash() }; }
+  async getSite() { return { data: await this.json(REPOS.pub, this.pub.files['merge/writeups/_site.json']) || {}, hash: this.pub.files['merge/writeups/_site.json'] || '-' }; }
+  // the site's text goes straight to the public repo: the site rebuilds itself a minute or two later
+  async saveSite(data, base) {
+    try {
+      const r = await this.gh.commit(REPOS.pub, [{ path: 'merge/writeups/_site.json', text: dump(data) }], 'Studio: site text',
+        base ? { 'merge/writeups/_site.json': base === '-' ? null : base } : null);
+      this.pub = { ...this.pub, head: r.head, files: r.files };
+      return { hash: this.pub.files['merge/writeups/_site.json'], published: r.changed };
+    } catch (e) {
+      if (!(e instanceof Conflict)) throw e;
+      this.pub = await this.gh.tree(REPOS.pub);
+      return { conflict: true, ...(await this.getSite()) };
+    }
+  }
 
   async upload(slug, file, vision) {
     let bytes, ext;

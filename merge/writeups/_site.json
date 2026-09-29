@@ -1,0 +1,275 @@
+{
+  "cards": {
+    "levelup": {
+      "name": "LevelUp",
+      "category": "Product design",
+      "year": "2025",
+      "tags": "DSGN 308 · prototype",
+      "desc": "A clip-on bubble level for barbells, narrowed from 70 written ideas and 21 sketches to one printed clip.",
+      "take": "My grocery-bag problem lost the vote to a crooked barbell, 63 to 82.5."
+    },
+    "notipclip": {
+      "name": "No-Tip-Clip",
+      "category": "Product design",
+      "year": "2024",
+      "tags": "DTC · clinical",
+      "desc": "An anti-tip caster for wheelchairs carrying halo-traction patients at Shriners Children’s.",
+      "take": "The weight bag steadied the chair but was hard to place the same way twice. The wheel promised one size for all. $62.26 in parts."
+    },
+    "slidemaster": {
+      "name": "Slide Master",
+      "category": "Product design",
+      "year": "2024",
+      "tags": "DTC · wood",
+      "desc": "A wheelchair-to-shower transfer board where the seat slides, so the user’s skin doesn’t have to.",
+      "take": "The plywood started to crack before our tester put his full weight on it. We chose pine by sitting on it."
+    },
+    "gamejam": {
+      "name": "Northwestern Game Jam",
+      "category": "Games",
+      "year": "2026",
+      "tags": "game jam · Unity",
+      "desc": "A Taoist exorcist hired to cleanse a haunted show-home, and the grandmother who refused to leave.",
+      "take": "The concept pivoted three times. The question never changed: who has more claim to a home."
+    },
+    "giftme": {
+      "name": "GiftMe",
+      "category": "App",
+      "year": "2026",
+      "tags": "co-founder · iOS",
+      "desc": "An iOS app for saving what you want into wishlists friends and family can see — idea to App Store in two months.",
+      "take": "A beta of 13 friends and family shaped the UI before launch. The idea came from our own frustration with gift-giving."
+    },
+    "plu": {
+      "name": "People Like Us",
+      "category": "Motion",
+      "year": "2026",
+      "tags": "client · motion",
+      "desc": "A logo animation rebuilt from a 900 × 900 GIF: two counter-rotating eight-lobed forms that morph into each other on contact.",
+      "take": "The original GIF was the only asset — no source file — so it was a rebuild, not an edit."
+    },
+    "neighbors": {
+      "name": "Neighbors",
+      "category": "Film",
+      "year": "2026",
+      "tags": "RTVF · VR",
+      "desc": "A VR film. You cannot cut. You can only wait.",
+      "take": "In VR the edit is the viewer."
+    },
+    "scenic": {
+      "name": "隐藏的宝藏",
+      "category": "Scenic design",
+      "year": "2026",
+      "tags": "theatre · scenic design",
+      "desc": "A 3 m × 6 m mobile reveal wall for a student production: a cardboard exterior tears open to a fake-cash cavity backed by projection cloth.",
+      "take": "Plautus’s Aulularia nested inside a contemporary Shanghai developer story — two worlds, one wall."
+    },
+    "onebirth": {
+      "name": "One Birth Too Many",
+      "category": "Games",
+      "year": "2026",
+      "tags": "RTVF 360 · Twine",
+      "desc": "A Twine game set in a 1983 Chinese village under the One-Child Policy. One Friday morning, six perspectives, one dinner table.",
+      "take": "Choices in one character’s morning silently change another’s. You find out at dinner."
+    },
+    "austin": {
+      "name": "Austin Vaccine Siting",
+      "category": "Analytics",
+      "year": "2025",
+      "tags": "IEMS 313 · optimization",
+      "desc": "Clustered 44 Austin ZIP areas to site vaccine distribution: k-medoids first, then two Gurobi integer programs.",
+      "take": "We handed back two answers and said which one to pick depending on what you care about."
+    },
+    "alv": {
+      "name": "CASE × Ama La Vida",
+      "category": "Analytics",
+      "year": "2025",
+      "tags": "consulting · pricing",
+      "desc": "Pricing and retention strategy for a virtual career-coaching company, from five years of churn data.",
+      "take": "Members kept stepping down to cheaper plans. We raised the ceiling and rewarded staying up."
+    },
+    "yello": {
+      "name": "CASE × Yello",
+      "category": "Analytics",
+      "year": "2024",
+      "tags": "consulting · partnerships",
+      "desc": "Mapped the HR-tech landscape for a campus-recruiting platform and picked partners it could grow with.",
+      "take": "98.8% of the Fortune 500 already run an ATS. The opening isn’t displacement, it’s adjacency."
+    },
+    "amg": {
+      "name": "AMG-786",
+      "category": "Analytics",
+      "year": "2024",
+      "tags": "CIV_ENV 205 · Excel",
+      "desc": "Financial analysis of a drug candidate: development costs, pricing, ten years of sales and NPV.",
+      "take": "“Proceed, but wary of Phase II.” I priced it against Wegovy, Mounjaro, Zepbound and Ozempic."
+    }
+  },
+  "sections": [
+    {
+      "num": "01",
+      "title": "ENGINEERING",
+      "sub": "product · mechanical · clinical",
+      "value": [
+        "T-SHAPED.",
+        "WIDE ACROSS,",
+        "DEEP IN",
+        "ONE STEM."
+      ]
+    },
+    {
+      "num": "02",
+      "title": "DESIGN & INTERACTION",
+      "sub": "games · apps · motion · vr · stage",
+      "value": [
+        "{N_UP} MONSTERS.",
+        "EVERY ONE",
+        "HAD A",
+        "DEADLINE."
+      ]
+    },
+    {
+      "num": "03",
+      "title": "ANALYTICS & STRATEGY",
+      "sub": "optimization · pricing · market sizing · finance",
+      "value": [
+        "HALF OF PRICING",
+        "IS DECIDING",
+        "WHAT NOT",
+        "TO COUNT."
+      ]
+    }
+  ],
+  "copy": {
+    "nav": {
+      "name": "KookyTiger",
+      "sub": "Zishu Kay Tu",
+      "links": [
+        "Work",
+        "About",
+        "Archives"
+      ],
+      "tagline": "Product, film, games, analytics"
+    },
+    "entry": {
+      "hint": "Click the tiger",
+      "hintTouch": "Tap the tiger",
+      "sub": "or scroll"
+    },
+    "header": {
+      "statement": [
+        "{N_CAP} floors down.",
+        "A monster on each."
+      ],
+      "scroll": "Scroll to descend"
+    },
+    "hero": {
+      "words": [
+        "KOOKY",
+        "T-SHAPED",
+        "TIGER"
+      ],
+      "reveal": [
+        "MADE + RTVF",
+        "NORTHWESTERN ’27",
+        "WUHAN → EVANSTON"
+      ],
+      "indication": "(Click the tiger)"
+    },
+    "intro": {
+      "who": "KOOKYTIGER",
+      "pages": [
+        [
+          "你好.",
+          "I make products, films, games and spreadsheets — which is either four things or one thing, depending on which floor you catch me on."
+        ],
+        [
+          "T-shaped, as in wide across and deep in one stem."
+        ],
+        [
+          "Also as in Tu. Also as in: every project below was a monster once. I went down and dealt with it."
+        ]
+      ]
+    },
+    "shore": {
+      "words": [
+        "THE OTHER",
+        "SHORE"
+      ],
+      "sub": "{N} floors down · grass, finally",
+      "sayhi": "Say hi ↗",
+      "tiger": "peace. for now."
+    },
+    "talents": {
+      "hint": "psst — click me",
+      "trigger": "Ask for a trick",
+      "title": "Talent show"
+    },
+    "archives": {
+      "title": "Archives",
+      "note": "monsters too small to mention"
+    },
+    "section": {
+      "projects": "projects"
+    },
+    "footer": {
+      "words": [
+        "{N_UP} DOWN.",
+        "BRING",
+        "YOUR BOSS"
+      ],
+      "sayhi": "Say hi ↗",
+      "email": "kaytu2027@u.northwestern.edu",
+      "bottom": [
+        "Zishu Kay Tu",
+        "Northwestern MaDE + RTVF",
+        "© 2026"
+      ]
+    },
+    "cursor": {
+      "tiger": "click the tiger",
+      "card": "open"
+    },
+    "panel": {
+      "ask": "Ask me for the full report ↗"
+    }
+  },
+  "archive": [
+    {
+      "name": "Running",
+      "line": "AI-assisted short — the storyboard survived, the model didn’t",
+      "course": "RTVF 376",
+      "year": "2026"
+    },
+    {
+      "name": "WIND × DFA",
+      "line": "Tech-literacy curriculum for justice-impacted women",
+      "course": "Design for America",
+      "year": "2024"
+    },
+    {
+      "name": "Bike caliper",
+      "line": "Rear brake caliper, 115 g → 60 g, road-tested",
+      "course": "ME 240",
+      "year": "2026"
+    },
+    {
+      "name": "Prosthetic foot",
+      "line": "3D-printed PLA foot, loaded to failure",
+      "course": "MaDE",
+      "year": "2025"
+    },
+    {
+      "name": "Reverie",
+      "line": "Dream journaling app",
+      "course": "Personal",
+      "year": "2026"
+    },
+    {
+      "name": "MiraclePlus",
+      "line": "Investment analyst intern",
+      "course": "Beijing",
+      "year": "2025"
+    }
+  ]
+}

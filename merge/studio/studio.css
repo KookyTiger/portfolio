@@ -235,3 +235,11 @@ body.login .edit { grid-column: 1 / -1; }
 .login-box li { margin: 0 0 6px; }
 .login-box code, .lead code { font-family: var(--mono); font-size: 12px; background: var(--line-2); padding: 1px 5px; border-radius: 4px; }
 body[data-mode="github"] .top .logo::after { content: "online"; font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-left: 10px; vertical-align: middle; }
+
+/* the card on a project's page */
+.card-ed .card-pv { float: right; width: 260px; margin: 0 0 10px 16px; padding: 14px 16px; background: #E9E4D8; border-radius: 8px; font-size: 13px; line-height: 1.35; }
+.card-ed .card-pv b { display: block; font-weight: 400; font-size: 22px; letter-spacing: -.01em; margin: 6px 0 6px; }
+.card-ed .card-pv p { margin: 0 0 6px; }
+.card-ed .card-pv .tk { color: var(--ink-2); font-size: 12px; }
+.card-ed .card-pv .k { font-size: 9.5px; }
+.card-ed::after { content: ""; display: block; clear: both; }

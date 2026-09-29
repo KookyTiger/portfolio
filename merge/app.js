@@ -9,7 +9,7 @@
 import * as THREE from './vendor/three.module.min.js';
 import { GLTFLoader } from './vendor/GLTFLoader.js';
 import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, VALUE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_TEXT_AT, INTRO_SCREENS, MEADOW_SCREENS, LAND_AT, RATE, CAMERA, TIGER, LEDGE_X, DECK, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT } from './content.js';
-import { WRITEUPS, WRITEUP_LIB, TOOL_ICONS } from './writeups.js';
+import { WRITEUPS, WRITEUP_LIB, TOOL_ICONS, SITE_TEXT } from './writeups.js';
 import { renderWriteup } from './writeup-view.js';
 
 const $ = (id) => document.getElementById(id);
@@ -18,6 +18,20 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 const seg = (v, [a, b]) => clamp((v - a) / (b - a), 0, 1);
 const frac = (v) => v - Math.floor(v);
+// The site copy Kay edits in the Studio (merge/writeups/_site.json → SITE_TEXT) replaces content.js's text: cards, floors, archive, everything else.
+(function applySiteText(t) {
+  if (!t) return;
+  PIECES.forEach((p) => { const c = t.cards?.[p.slug]; if (!c) return;
+    if (c.name) p.name = c.name; if (c.category) p.catName = c.category; if (c.year != null) p.year = c.year;
+    if (c.tags != null) p.meta = String(c.tags).split('·').map((x) => x.trim()).filter(Boolean);
+    if (c.desc != null) p.desc = c.desc; if (c.take != null) p.take = c.take; });
+  (t.sections || []).forEach((s, i) => { const S = SECTIONS[i]; if (!S) return;
+    ['title', 'sub'].forEach((k) => { if (s[k] != null) S[k] = s[k]; }); if (Array.isArray(s.value) && s.value.length) S.value = s.value; });
+  const deep = (to, from) => Object.entries(from || {}).forEach(([k, v]) => { if (v && typeof v === 'object' && !Array.isArray(v)) deep(to[k] ||= {}, v); else if (v != null) to[k] = v; });
+  deep(COPY, t.copy);
+  if (Array.isArray(t.archive)) ARCHIVE.splice(0, ARCHIVE.length, ...t.archive.map((r) => [r.name, r.line, r.course, r.year]));
+})(SITE_TEXT);
+const catName = (p) => p.catName || catName(p);
 const NP = PIECES.length;
 const PARAMS = new URLSearchParams(location.search); const SNAP = PARAMS.has('snap');
 // the opening is the top of the page: never restore a mid-page scroll on reload (it would open on blank paper with no tiger)
@@ -36,7 +50,7 @@ $('vh-a').textContent = matchMedia('(hover: none)').matches ? COPY.entry.hintTou
 $('bubble-who').textContent = COPY.intro.who; $('intro').style.setProperty('--n', INTRO_SCREENS);
 $('intro').innerHTML = `<div class="sr-only">${COPY.intro.pages.map((pg) => `<p>${pg.join(' ')}</p>`).join('')}</div>`;
 $('nav-brand').innerHTML = `${COPY.nav.name}<span>${COPY.nav.sub}</span>`;
-$('nav-links').textContent = 'Product, film, games, analytics';
+$('nav-links').textContent = COPY.nav.tagline || 'Product, film, games, analytics';
 $('nav-right').innerHTML = COPY.nav.links.map((l, i) => `<a href="#" data-to="${['title0', 'intro', 'archives'][i]}">${l}</a>`).join('');
 $('h-statement').innerHTML = COPY.header.statement.map(tpl).join('<br>');
 $('h-scroll').textContent = COPY.header.scroll;
@@ -46,7 +60,7 @@ $('hero-r').innerHTML = `Northwestern ’27<br>MaDE + RTVF`;
 const cardArt = (p) => { const src = CARD_ART === 'photo' ? (p.img || p.silImg) : (p.silImg || p.img); return src ? `<img src="${src}" alt="${p.name}" loading="lazy" decoding="async">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg><figcaption>placeholder · silhouette of the object</figcaption>`; };
 const body = $('body'); let html = '';
 const deckIdx = SECTIONS.findIndex((x) => x.deck);
-const projText = (p, pi) => `<div class="text"><p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span></p>
+const projText = (p, pi) => `<div class="text"><p class="eyebrow mono"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${catName(p)}</span><span>${p.year}</span></p>
     <h2>${p.name}</h2><p class="desc">${p.desc}</p><p class="take">${p.take}</p><p class="more mono">${COPY.cursor.card} ↗</p></div>`;
 SECTIONS.forEach((sec, w) => {
   const last = w === SECTIONS.length - 1; const idx = sec.pieces; const dark = THEMES[sec.theme].ink === 'light';
@@ -68,7 +82,7 @@ meadowEl.innerHTML = `<div class="shore-text" style="--i:${SHORE_TEXT_AT}"><div 
 // the computer's screen (floor 03): a fixed overlay laid over the projected screen plane every frame; one preview per screen of scroll
 const deckEl = $('deck');
 if (deckIdx >= 0) { const sec = SECTIONS[deckIdx], n = sec.pieces.length;
-  deckEl.innerHTML = `<div class="screen" style="--n:${n}"><div class="strip" id="deck-strip">${sec.pieces.map((pi, j) => { const p = PIECES[pi]; return `<article class="slide" data-p="${pi}" data-j="${j}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}"><div class="bar mono"><span class="dots"><i></i><i></i><i></i></span><span class="name">${p.name}</span><span>${CATS[p.cat].name}</span></div><div class="body"><figure>${cardArt(p)}</figure>${projText(p, pi)}</div></div></article>`; }).join('')}</div>
+  deckEl.innerHTML = `<div class="screen" style="--n:${n}"><div class="strip" id="deck-strip">${sec.pieces.map((pi, j) => { const p = PIECES[pi]; return `<article class="slide" data-p="${pi}" data-j="${j}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}"><div class="bar mono"><span class="dots"><i></i><i></i><i></i></span><span class="name">${p.name}</span><span>${catName(p)}</span></div><div class="body"><figure>${cardArt(p)}</figure>${projText(p, pi)}</div></div></article>`; }).join('')}</div>
     <div class="hud mono"><span id="deck-n">01 / ${String(n).padStart(2, '0')}</span><span class="track"><i id="deck-bar"></i></span><span class="keys">← → · drag</span></div></div>`; }
 $('arch-head').innerHTML = `<span class="split">${COPY.archives.title}</span><span class="mono">${COPY.archives.note}</span>`;
 $('arch-table').innerHTML = ARCHIVE.map((r, i) => `<tr><td>${String(i + 1).padStart(2, '0')}</td><td><b>${r[0]}</b><span>${r[1]}</span></td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
@@ -94,7 +108,7 @@ function openPanel(pi, from) { const p = PIECES[pi], d = p.detail || {}, L = COP
     panelInner.querySelectorAll('.wu > :not(.wu-block)').forEach((el) => el.classList.add('blk'));   // the head reveals like the old panel; the stages sit below the fold
   } else {
   const sec = (k, v, cls = '') => v ? `<div class="sec blk ${cls}"><span class="k mono">${k}</span><p>${v}</p></div>` : '';
-  panelInner.innerHTML = `<p class="eyebrow mono blk"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${CATS[p.cat].name}</span><span>${p.year}</span><span>${p.meta.join(' · ')}</span></p>
+  panelInner.innerHTML = `<p class="eyebrow mono blk"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${catName(p)}</span><span>${p.year}</span><span>${p.meta.join(' · ')}</span></p>
     <h2 id="panel-title" class="blk">${p.name}</h2><p class="line blk">${d.line || p.desc}</p>
     ${sec(L.role, d.role)}${sec(L.tools, d.tools)}${sec(L.numbers, d.numbers)}${sec(L.one, d.one || p.take, 'one')}
     <figure class="blk">${p.img ? `<img src="${p.img}" alt="${p.name}">` : `<svg viewBox="0 0 200 140" role="img" aria-label="${p.name}">${SIL[p.sil]}</svg>`}</figure>

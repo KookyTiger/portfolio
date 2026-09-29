@@ -37,7 +37,7 @@ function setPath(o, path, v) {
   ks.slice(0, -1).forEach((k, i) => { if (a[k] == null) a[k] = /^\d+$/.test(ks[i + 1]) ? [] : {}; a = a[k]; });
   a[ks.at(-1)] = v;
 }
-const docOf = (key) => (key === '_studio' ? S.studio : S.projects[key]);
+const docOf = (key) => (key === '_studio' ? S.studio : key === '_site' ? S.site : S.projects[key]);
 let B = null;                                                          // the backend: LocalBackend | GitHubBackend
 const pic = (src) => (B ? B.picURL(src) : '');
 let redrawTimer = 0;
@@ -65,7 +65,7 @@ async function boot() {
     $('edit').innerHTML = `<h1>Studio can't load</h1><p class="lead">${esc(e.message)}</p>`; return;
   }
   const ic = await fetch('../vendor/tool-icons.json').then((r) => r.json()).catch(() => ({}));
-  S.studio = st.studio; S.projects = st.projects; S.hashes = st.hashes; S.icons = ic.icons || {};
+  S.studio = st.studio; S.projects = st.projects; S.site = st.site || {}; S.hashes = st.hashes; S.icons = ic.icons || {};
   if (B.mode === 'github') GitHubBackend.checkWrite(B.gh).catch((e) => {       // a read-only token would lose every save: say so now
     S.writeProblem = e.message; renderEditor(); setSave();
   });
@@ -73,7 +73,7 @@ async function boot() {
   $('tb-publish').hidden = B.mode !== 'github';
   $('tb-out').hidden = B.mode !== 'github';
   // edits that never reached the server (it was down, the tab closed mid-save)
-  for (const key of [...Object.keys(S.projects), '_studio']) {
+  for (const key of [...Object.keys(S.projects), '_studio', '_site']) {
     const saved = store.get('studio.unsaved.' + key);
     if (saved && JSON.stringify(saved) !== JSON.stringify(docOf(key)))
       S.conflicts[key] = { kind: 'local', data: saved };
@@ -117,7 +117,7 @@ function route() {
   const [a, b] = h.split('/');
   if (a === 'p' && S.projects[b]) S.sel = { type: 'project', id: b };
   else if (a === 'f' && (S.studio.floors || []).some((f) => f.id === b)) S.sel = { type: 'floor', id: b };
-  else if (['classes', 'software', 'skills', 'templates', 'notes', 'inbox', 'help'].includes(a)) S.sel = { type: a };
+  else if (['site', 'classes', 'software', 'skills', 'templates', 'notes', 'inbox', 'help'].includes(a)) S.sel = { type: a };
   else S.sel = { type: 'inbox' };
   S.focusBlock = null;
   document.body.classList.toggle('wide-edit', !['project', 'floor'].includes(S.sel.type));   // library pages use the full width
@@ -140,6 +140,7 @@ function renderSide() {
   const inboxN = Object.values(S.projects).reduce((n, p) => n + openQs(p), 0);
   const pj = (p) => `<a class="pj ${on('project', p.slug)}" href="#p/${esc(p.slug)}"><span class="dot ${esc(p.status || 'draft')}"></span><span class="nm">${esc(p.name || p.slug)}</span>${openQs(p) ? `<span class="badge">${openQs(p)}</span>` : ''}</a>`;
   let h = `<a class="${on('inbox')}" href="#inbox"><span class="nm">Inbox</span>${inboxN ? `<span class="badge">${inboxN}</span>` : ''}</a>`;
+  h += `<h4 class="k">The site</h4><a class="${on('site')}" href="#site"><span class="nm">Site text · cards, floors, about me</span></a>`;
   h += `<h4 class="k">Floors</h4>`;
   for (const f of S.studio.floors || []) {
     h += `<a class="fl ${on('floor', f.id)}" href="#f/${f.id}"><span class="num">${esc(f.num)}</span><span class="nm">${esc(FLOOR_NAMES[f.id] || f.title)}</span></a>`;
@@ -167,7 +168,7 @@ function renderEditor(reset = false) {
   const t = S.sel.type;
   ed.innerHTML = t === 'project' ? projectEditor(S.projects[S.sel.id]) : t === 'floor' ? floorEditor() : t === 'classes' ? classesEditor()
     : t === 'software' ? softwareEditor() : t === 'skills' ? skillsEditor() : t === 'templates' ? templatesEditor() : t === 'notes' ? notesEditor()
-    : t === 'help' ? helpView() : inboxView();
+    : t === 'help' ? helpView() : t === 'site' ? siteEditor() : inboxView();
   ed.scrollTop = keep;
   if (focusK) {
     const el = ed.querySelector(`[data-doc="${focusK.doc}"] [data-k="${CSS.escape(focusK.k)}"], [data-doc="${focusK.doc}"][data-k="${CSS.escape(focusK.k)}"]`);
@@ -211,6 +212,7 @@ function projectEditor(p) {
       <a class="btn sm ghost" href="${esc(B.sourcesURL(p.slug))}" target="_blank" rel="noopener" title="Claude's notes on the Drive sources (private)">Source notes ↗</a>
     </div>
     <input class="name" data-k="name" data-side="1" value="${esc(p.name || '')}" placeholder="Project name">
+    ${cardEditor(p)}
     <label class="f" style="margin-top:8px"><span>One-liner (under 20 words)</span><textarea data-k="oneLiner" rows="2">${esc(p.oneLiner || '')}</textarea></label>
     <div class="grid2" style="margin-top:10px">
       <label class="f" style="grid-column:1/-1"><span>My role</span><input data-k="context.role" value="${esc(c.role || '')}" placeholder="What I did myself, in one line"></label>
@@ -290,6 +292,50 @@ function wordDiff(a, b) {
   while (i < n) out += `<del>${esc(A[i++])}</del>`;
   while (j < m) out += `<ins>${esc(B[j++])}</ins>`;
   return out;
+}
+
+const lines = (v) => esc(Array.isArray(v) ? v.join('\n') : v || '');
+const pages = (v) => esc((v || []).map((pg) => pg.join('\n')).join('\n\n'));
+const liveNote = () => B.mode === 'github' ? 'Changes here go live on the site a minute or two after you stop typing.' : 'Changes here are saved on this Mac; click Publish in the top bar to put them live.';
+
+// the card: what a project shows on the site before it's opened
+function cardEditor(p) {
+  const c = S.site?.cards?.[p.slug];
+  if (!c) return p.onSite ? `<p class="hint" style="margin:8px 0 0">No card on the site for this project yet (the site's list of projects lives in content.js — ask Claude to add it).</p>` : '';
+  const k = (f) => `cards.${p.slug}.${f}`;
+  return `<div class="sec card-ed" data-doc="_site"><span class="k">The card — what the site shows before it's opened · ${liveNote()}</span>
+    <div class="card-pv"><p class="k"><span>01 / 13</span> ${esc(c.category)} ${esc(c.year)}</p><b>${esc(c.name)}</b><p>${esc(c.desc)}</p><p class="tk">${esc(c.take)}</p><p class="k">Open ↗</p></div>
+    <div class="grid3"><label class="f"><span>Name on the card</span><input data-k="${k('name')}" value="${esc(c.name)}"></label>
+      <label class="f"><span>Category</span><input data-k="${k('category')}" value="${esc(c.category)}"></label>
+      <label class="f"><span>Year</span><input data-k="${k('year')}" value="${esc(c.year)}"></label></div>
+    <label class="f" style="margin-top:8px"><span>Line 1 — what it is</span><textarea data-k="${k('desc')}" rows="2">${esc(c.desc)}</textarea></label>
+    <label class="f" style="margin-top:8px"><span>Line 2 — the take (grey, shorter)</span><textarea data-k="${k('take')}" rows="2">${esc(c.take)}</textarea></label>
+    <label class="f" style="margin-top:8px"><span>Tags (in the panel header), separated by ·</span><input data-k="${k('tags')}" value="${esc(c.tags)}"></label></div>`;
+}
+
+const SITE_FIELDS = [
+  ['About me — the tiger\'s speech bubble', [['copy.intro.who', 'Who is speaking'], ['copy.intro.pages', 'What it says: one line per line, a blank line starts a new page', 'pages', 8]]],
+  ['Opening & header', [['copy.entry.hint', 'Opening hint (computer)'], ['copy.entry.hintTouch', 'Opening hint (phone)'], ['copy.entry.sub', 'Under the hint'], ['copy.header.statement', 'Header statement, one line per line', 'lines', 2], ['copy.header.scroll', 'Scroll hint']]],
+  ['Hero', [['copy.hero.words', 'The big words, one per line', 'lines', 3], ['copy.hero.reveal', 'What each big word turns into on hover, one per line', 'lines', 3], ['copy.hero.indication', 'Small line under them']]],
+  ['Top bar', [['copy.nav.name', 'Name'], ['copy.nav.sub', 'Under the name'], ['copy.nav.tagline', 'Tagline'], ['copy.nav.links', 'Links (Work / About / Archives), one per line', 'lines', 3]]],
+  ['The landing — the other shore', [['copy.shore.words', 'Big words, one per line', 'lines', 2], ['copy.shore.sub', 'Under them'], ['copy.shore.sayhi', 'Link'], ['copy.shore.tiger', 'What the tiger says'], ['copy.talents.hint', 'Talent-show hint'], ['copy.talents.trigger', 'Talent-show button'], ['copy.talents.title', 'Talent-show title']]],
+  ['Archives & footer', [['copy.archives.title', 'Archives title'], ['copy.archives.note', 'Archives note'], ['copy.footer.words', 'Footer big words, one per line', 'lines', 3], ['copy.footer.sayhi', 'Footer link'], ['copy.footer.email', 'Email'], ['copy.footer.bottom', 'Bottom line, one part per line', 'lines', 3]]],
+  ['Small labels', [['copy.cursor.tiger', 'Cursor over the tiger'], ['copy.cursor.card', 'Cursor over a project'], ['copy.panel.ask', 'Link at the end of a project'], ['copy.section.projects', 'Word after the project count on a floor title']]],
+];
+function siteEditor() {
+  const t = S.site || {}, get = (path) => path.split('.').reduce((a, k) => a?.[k], t);
+  const field = ([path, label, fmt, rows]) => fmt ? `<label class="f"><span>${esc(label)}</span><textarea data-k="${path}" data-fmt="${fmt}" rows="${rows || 3}">${fmt === 'pages' ? pages(get(path)) : lines(get(path))}</textarea></label>`
+    : `<label class="f"><span>${esc(label)}</span><input data-k="${path}" value="${esc(get(path) ?? '')}"></label>`;
+  const floors = (t.sections || []).map((s, i) => `<div class="blk"><div class="bh"><span class="num">${esc(s.num)}</span><span class="k">Floor title band + its statement</span></div>
+      <div class="grid2"><label class="f"><span>Title (" & " breaks the line)</span><input data-k="sections.${i}.title" value="${esc(s.title)}"></label><label class="f"><span>Subtitle</span><input data-k="sections.${i}.sub" value="${esc(s.sub)}"></label></div>
+      <label class="f" style="margin-top:8px"><span>The big statement over the room (the "quote"), one line per line</span><textarea data-k="sections.${i}.value" data-fmt="lines" rows="4">${lines(s.value)}</textarea></label></div>`).join('');
+  const arch = (t.archive || []).map((r, j) => `<tr><td><input data-k="archive.${j}.name" value="${esc(r.name)}"></td><td><input data-k="archive.${j}.line" value="${esc(r.line)}"></td><td><input data-k="archive.${j}.course" value="${esc(r.course)}"></td><td style="width:80px"><input data-k="archive.${j}.year" value="${esc(r.year)}"></td><td style="width:34px"><button class="ib" data-act="arr-del" data-k="archive" data-j="${j}" title="Remove">✕</button></td></tr>`).join('');
+  return `<div data-doc="_site">${conflictBanner('_site')}
+    <h1>Site text</h1><p class="lead">Every word on the site outside the write-ups. ${liveNote()} Each project's card is on its own page (top of the project). <code>{N}</code>, <code>{N_UP}</code>, <code>{N_CAP}</code> become the number of projects.</p>
+    ${SITE_FIELDS.map(([title, fs]) => `<div class="sec"><span class="k">${esc(title)}</span><div class="grid2">${fs.map((f) => `<div style="${f[2] ? 'grid-column:1/-1' : ''}">${field(f)}</div>`).join('')}</div></div>`).join('')}
+    <div class="sec"><span class="k">The three floors</span>${floors}</div>
+    <div class="sec"><span class="k">Archives — small projects listed near the end</span><table class="lib"><tr><th>Name</th><th>Line</th><th>Course / where</th><th>Year</th><th></th></tr>${arch}</table><button class="add" data-act="arch-add" style="margin-top:8px">＋ row</button></div>
+  </div>`;
 }
 
 function floorEditor() {
@@ -449,7 +495,7 @@ $('edit').addEventListener('focusin', (e) => { const card = e.target.closest('.b
 function markDirty(key) {
   S.dirty.add(key); setSave();
   store.set('studio.unsaved.' + key, docOf(key));
-  clearTimeout(S.timers[key]); S.timers[key] = setTimeout(() => save(key), B.mode === 'github' ? 2500 : 700);   // online: one commit per pause, not per keystroke
+  clearTimeout(S.timers[key]); S.timers[key] = setTimeout(() => save(key), B.mode !== 'github' ? 700 : key === '_site' ? 6000 : 2500);   // online: one commit per pause, not per keystroke
 }
 function setSave() {
   const el = $('save'), n = S.dirty.size + S.saving.size, where = B?.mode === 'github' ? ' to GitHub' : '';
@@ -466,7 +512,7 @@ async function save(key) {
   if (S.saving.has(key)) { S.timers[key] = setTimeout(() => save(key), 400); return; }
   S.saving.add(key); S.dirty.delete(key); setSave();
   let r;
-  try { r = key === '_studio' ? await B.saveStudio(docOf(key), S.hashes[key]) : await B.saveProject(key, docOf(key), S.hashes[key]); }
+  try { r = key === '_studio' ? await B.saveStudio(docOf(key), S.hashes[key]) : key === '_site' ? await B.saveSite(docOf(key), S.hashes[key]) : await B.saveProject(key, docOf(key), S.hashes[key]); }
   catch (e) {
     S.saving.delete(key); S.dirty.add(key);
     if (e.status === 403 || e.status === 401) { S.writeProblem = `GitHub refused the save: ${e.message}. Most likely the token's Contents permission is "Read-only" — it must be "Read and write", for both repos.`; renderEditor(); }
@@ -477,7 +523,8 @@ async function save(key) {
   if (r.conflict) { S.conflicts[key] = { kind: 'remote', data: r.data, hash: r.hash }; renderEditor(); }
   else {
     S.hashes[key] = r.hash; if (!S.dirty.has(key)) store.del('studio.unsaved.' + key);
-    if (r.published) toast(`${docOf(key)?.status === 'approved' ? 'Published' : 'Taken off the site'}: ${docOf(key)?.name}. The site updates in a minute or two.`, false, 5000);
+    if (r.published && key === '_site') { if (!S.siteToast) toast('Site text saved — live on the site in a minute or two.', false, 5000); S.siteToast = true; }
+    else if (r.published) toast(`${docOf(key)?.status === 'approved' ? 'Published' : 'Taken off the site'}: ${docOf(key)?.name}. The site updates in a minute or two.`, false, 5000);
   }
   setSave();
 }
@@ -489,8 +536,9 @@ async function poll() {
   for (const [key, h] of Object.entries(r.hashes)) {
     if (h === S.hashes[key] || S.saving.has(key)) continue;
     if (S.dirty.has(key)) continue;                                   // our save will get the 409 and ask
-    let d; try { d = key === '_studio' ? await B.getStudio() : await B.getProject(key); } catch { continue; }
+    let d; try { d = key === '_studio' ? await B.getStudio() : key === '_site' ? await B.getSite() : await B.getProject(key); } catch { continue; }
     if (key === '_studio') { S.studio = d.data; S.hashes._studio = d.hash; }
+    else if (key === '_site') { S.site = d.data; S.hashes._site = d.hash; }
     else { const isNew = !S.projects[key]; S.projects[key] = d.data; S.hashes[key] = d.hash; toast(isNew ? `New project: ${d.data.name}` : `${d.data.name} changed elsewhere (Claude or your other device) — loaded`); }
     redraw = true;
   }
@@ -513,8 +561,13 @@ addEventListener('keydown', (e) => {
 document.addEventListener('input', (e) => {
   const el = e.target.closest('[data-k]'); if (!el || el.closest('.modal')) return;
   const key = el.closest('[data-doc]')?.dataset.doc; if (!key || !docOf(key)) return;
-  setPath(docOf(key), el.dataset.k, el.type === 'checkbox' ? el.checked : el.value);
+  const fmt = el.dataset.fmt, raw = el.type === 'checkbox' ? el.checked : el.value;   // lines = one item per line; pages = pages split by a blank line
+  setPath(docOf(key), el.dataset.k, fmt === 'lines' ? raw.split('\n') : fmt === 'pages' ? raw.split(/\n\s*\n/).map((pg) => pg.split('\n').filter((l) => l.trim())).filter((pg) => pg.length) : raw);
   markDirty(key);
+  if (key === '_site' && el.closest('.card-ed')) {                    // keep the little card preview in step while typing
+    const c = S.site.cards?.[S.sel.id], pv = el.closest('.card-ed').querySelector('.card-pv');
+    if (c && pv) pv.innerHTML = `<p class="k"><span>01 / 13</span> ${esc(c.category)} ${esc(c.year)}</p><b>${esc(c.name)}</b><p>${esc(c.desc)}</p><p class="tk">${esc(c.take)}</p><p class="k">Open ↗</p>`;
+  }
   if (el.dataset.side) renderSide();
   if (el.dataset.rerender) renderEditor();
   if (S.sel.type === 'inbox' && el.dataset.k.includes('.questions.')) renderSide();
@@ -575,9 +628,10 @@ document.addEventListener('click', async (e) => {
     case 'pick-skills': return pickSkills(p);
     case 'pick-pics': return pickPictures(p, i);
     case 'new-project': e.preventDefault(); return newProject();
+    case 'arch-add': (S.site.archive ||= []).push({ name: '', line: '', course: '', year: '' }); markDirty('_site'); renderEditor(); return;
     case 'reconnect': store.del('studio.gh'); location.reload(); return;   // unsaved edits stay in this browser and come back after signing in
-    case 'cf-theirs': { const c = S.conflicts[b.dataset.key]; delete S.conflicts[b.dataset.key]; if (b.dataset.key === '_studio') { const st = await B.getStudio(); S.studio = st.data; S.hashes._studio = st.hash; } else { S.projects[b.dataset.key] = c.data; S.hashes[b.dataset.key] = c.hash; } store.del('studio.unsaved.' + b.dataset.key); renderSide(); renderEditor(); renderPreview(); setSave(); return; }
-    case 'cf-mine': { const k = b.dataset.key, c = S.conflicts[k]; delete S.conflicts[k]; if (c.kind === 'local') { if (k === '_studio') S.studio = c.data; else S.projects[k] = c.data; } else S.hashes[k] = c.hash; markDirty(k); renderEditor(); renderPreview(); return; }
+    case 'cf-theirs': { const c = S.conflicts[b.dataset.key]; delete S.conflicts[b.dataset.key]; if (b.dataset.key === '_studio') { const st = await B.getStudio(); S.studio = st.data; S.hashes._studio = st.hash; } else if (b.dataset.key === '_site') { S.site = c.data; S.hashes._site = c.hash; } else { S.projects[b.dataset.key] = c.data; S.hashes[b.dataset.key] = c.hash; } store.del('studio.unsaved.' + b.dataset.key); renderSide(); renderEditor(); renderPreview(); setSave(); return; }
+    case 'cf-mine': { const k = b.dataset.key, c = S.conflicts[k]; delete S.conflicts[k]; if (c.kind === 'local') { if (k === '_studio') S.studio = c.data; else if (k === '_site') S.site = c.data; else S.projects[k] = c.data; } else S.hashes[k] = c.hash; markDirty(k); renderEditor(); renderPreview(); return; }
     case 'cf-drop': { delete S.conflicts[b.dataset.key]; store.del('studio.unsaved.' + b.dataset.key); renderEditor(); setSave(); return; }
   }
 });
