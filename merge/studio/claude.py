@@ -126,7 +126,8 @@ def cmd_check():
                 found = (ROOT / src).exists() or (S.PICS / slug / pathlib.Path(src).name).exists()
                 if src and not found: out.append(f'[{b["id"]}] missing picture {src}')
                 if src.startswith(('assets/src/', 'candidates/')): out.append(f'[{b["id"]}] {src} is a candidate — promote it into pictures/{slug}/')
-        if p.get('cover') and not (ROOT / p['cover']).exists(): out.append(f'missing cover {p["cover"]}')
+        cov = p.get('cover') or ''
+        if cov and not ((ROOT / cov).exists() or (S.PICS / slug / pathlib.Path(cov).name).exists()): out.append(f'missing cover {cov}')
         for s in p.get('skills', []):
             if s.get('evidence') and s['evidence'] not in ids: out.append(f'skill “{s["name"]}” points at missing block {s["evidence"]}')
         if out: problems += len(out); print(f'{slug}:\n' + '\n'.join('  ' + o for o in out))
