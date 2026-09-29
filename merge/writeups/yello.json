@@ -1,0 +1,131 @@
+{
+  "slug": "yello",
+  "name": "CASE × Yello",
+  "floor": "analytics",
+  "onSite": true,
+  "order": 2,
+  "template": "analytics",
+  "status": "approved",
+  "oneLiner": "Where a campus-recruiting software company could grow by partnering instead of competing.",
+  "context": {
+    "course": "",
+    "when": "Fall 2024",
+    "team": "Six analysts (five on the final deck), two project managers",
+    "partner": "Yello, through CASE (Consulting Advising Student Enterprise)",
+    "role": "Strategy Analyst — partnerships & expansion"
+  },
+  "software": [
+    "slides"
+  ],
+  "skills": [
+    {
+      "name": "Problem framing",
+      "evidence": "question"
+    },
+    {
+      "name": "Secondary research",
+      "evidence": "approach"
+    },
+    {
+      "name": "Competitive analysis",
+      "evidence": "analysis"
+    },
+    {
+      "name": "Posters & presentations",
+      "evidence": "recommendation"
+    }
+  ],
+  "classes": [],
+  "cover": "assets/projects/yello.webp",
+  "blocks": [
+    {
+      "id": "question",
+      "stage": "question",
+      "title": "Map the market, then pick Yello's partners",
+      "text": "Yello sells recruiting software built around early talent: the tools employers use at a campus career fair to capture candidates, schedule interviews and keep in touch. In fall 2024 it asked CASE, a Northwestern student consulting group, to map the HR-tech ecosystem it plays in, commercial and federal, and to recommend where it could partner, including the size of each opportunity.\n\nWe split into two workstreams. I was one of three analysts on partnership identification and expansion; the other three mapped competitors.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/yello/project-overview.webp",
+          "caption": "The project on one slide: client background and our two workstreams (final deck).",
+          "kind": "screen"
+        }
+      ]
+    },
+    {
+      "id": "context",
+      "stage": "context",
+      "title": "Yello works beside the ATS, not against it",
+      "text": "In the commercial market Yello isn't the system of record. It plugs into the big applicant tracking systems (ATS) and handles the top of the funnel. At our first client meeting the message was plain: the goal is not to replace Workday but to be used alongside an ATS, and a complementary partner is the easiest path to growth.\n\nYello also holds FedRAMP authorization, which lets it sell to federal agencies, and the brief asked for the federal market to be mapped on its own.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "data",
+      "stage": "data",
+      "title": "Public research, estimated numbers, no client data",
+      "text": "We had no client data to crunch. The deck rests on secondary research: Gartner's market guide for recruiting technology, Deloitte and McKinsey reports, J.P. Morgan equity research on Workday, PitchBook SaaS figures, Federal Reserve employment data, and Yello's own sales deck and campus-recruiting report.\n\nThat set the limits. Market shares came partly from vendor blogs, and every valuation in the deck is an estimate. My own starting file was simpler: the list of 24 companies Yello already partnered with.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "approach",
+      "stage": "approach",
+      "title": "Start from the partners Yello already has",
+      "text": "The ecosystem team profiled competitors, one company each. On our side, each analyst brought one candidate and had to justify it. I started from Yello's existing partners — ATS vendors, assessment tools, integration firms — and looked for what was missing around campus recruiting.\n\nMy pick was Handshake. Yello's own blog says most of its customers already use Handshake alongside Yello, so a formal tie would follow behaviour that was already there. Teammates took the public sector: government internship channels and a defense contractor.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "analysis",
+      "stage": "analysis",
+      "title": "The big market is locked; the middle isn't",
+      "text": "The ecosystem team's numbers framed everything. Over 98.8% of Fortune 500 companies already use an ATS, with Workday at 37.1% and SuccessFactors at 13.1%, and high switching costs leave little room there for a small vendor. The mid-market is fragmented and integration-friendly: Greenhouse, its largest player at 19.3%, offers over 450 pre-built integrations, Yello's among them. Beside its closest CRM rivals Yello was the small one, at an estimated $136M valuation to Beamery's $1B. Growth meant plugging in, not displacing.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/yello/crm-alternatives.webp",
+          "caption": "Yello against its closest CRM alternatives (ecosystem workstream's slide).",
+          "kind": "screen"
+        },
+        {
+          "src": "assets/projects/yello/mid-market-ats.webp",
+          "caption": "The mid-market: fragmented, and built on integrations (ecosystem workstream's slide).",
+          "kind": "screen"
+        }
+      ]
+    },
+    {
+      "id": "recommendation",
+      "stage": "recommendation",
+      "title": "Partner sideways, and use the federal badge",
+      "text": "We recommended partnerships over head-on competition. Service peers: Handshake for its campus network, RippleMatch for AI-driven sourcing, Pymetrics for game-based soft-skill assessments that support fairer hiring. Federal: GoGovernment, which gathers federal internships in one place, and Leidos, the defense industry's largest IT services provider, where Yello's FedRAMP authorization counts.\n\nA teammate's comment in the final week sharpened the pitch: stop measuring Yello against Workday, and present it as a mid-market tool that works alongside the big suites.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/yello/partner-peers.webp",
+          "caption": "Three service peers to partner with (final deck, slide 15).",
+          "kind": "screen"
+        },
+        {
+          "src": "assets/projects/yello/government-channels.webp",
+          "caption": "The public-sector channels (teammate's slide).",
+          "kind": "screen"
+        },
+        {
+          "src": "assets/projects/yello/key-findings.webp",
+          "caption": "Synthesis: the three takeaways we closed on.",
+          "kind": "screen"
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "stage": "next",
+      "title": "We named partners but never sized them",
+      "text": "The brief asked for the size of each opportunity, and our deck never gave one. The only hard number on the partnership slide — RippleMatch freeing up to 25% of recruiter time and $50,000 a year — has no source behind it, and first reached review typed as \"$5,0000\". Pymetrics, meanwhile, was already on the partner list I had compiled, so the slide should have said whether we meant a new tie or a deeper one. Next time I'd size each partner, even roughly, from shared customers or event volume.",
+      "layout": "text",
+      "media": []
+    }
+  ]
+}
