@@ -55,7 +55,7 @@ Layout at 1440×900 (screens): header 0–2 · hero 2–3 · intro window 3–5.
 
 ## Open todo (2026-09-27)
 
-1. Photos still needed (see `assets/projects/README.md`): giftme, plu (People Like Us), onebirth, austin, alv, yello, amg. The No-Tip-Clip source is 315px — a bigger photo would be sharper. Placeholder SVG silhouettes show until then (they read as pale blobs in the dark rooms; fine for now).
+1. Photos still needed (see `assets/projects/README.md`): giftme, onebirth, austin, alv, yello, amg. The No-Tip-Clip source is 315px — a bigger photo would be sharper. Placeholder SVG silhouettes show until then (they read as pale blobs in the dark rooms; fine for now).
 2. Kay to review the copy for GiftMe, People Like Us, 隐藏的宝藏 (see their `detail.todo`), and Neighbors / Running (nothing verified beyond the one-liners).
 3. The GLB tiger: the back of the texture is repainted (2026-09-28, `tools/tiger_paint.py`). No blink, ear or tail motion yet (would need extra bones). The ladder's rungs are dense because the climb clip steps two rungs at a time. The hover/click interactions with the project objects (Kay's idea, 2026-09-27) are not built yet; candidate clips are in `assets/src/tiger/gestures/`. A photo of Kay for the intro hover: set `COPY.intro.photo`. The desktop catwalk is short: the clear patch between the shore words and the pier is small, so `planWalk` shortens the clip's own path (0.45–0.6); on phones it is shorter still. The fallback rig's meadow spot is at the right edge (only seen if the GLB fails).
 4. Later: real photos for the panel; performance pass for low-end laptops (DPR cap, 1024 shadow map); OG image refresh (`og.png` at the root).

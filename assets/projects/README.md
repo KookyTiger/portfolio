@@ -10,7 +10,7 @@ done  neighbors       Neighbors — the mouse, cut from the still
 done  scenic          隐藏的宝藏 — the lit reveal wall keyed off the black stage (reads best in the dark bar section)
 
 done  giftme          GiftMe — the App Store icon (400px, transparent corners kept; --flat)
-done  plu             People Like Us — the Lulu label (587px source; --flat). Note: the card copy talks about the two-lobed logo animation; a frame of that GIF would match it better
+done  plu             People Like Us — Kay's mockup of the three character cans (Lulu, Carl, Astrid; 2000px source in assets/src/projects/plu-cans.webp, rembg cut-out, 2026-09-28)
 done  austin          Austin Vaccine Siting — the two cluster maps (512×225 source: soft; a bigger export would be sharper; --flat)
 done  alv             CASE × Ama La Vida — the "members switch into lower frequency plans" slide (--flat)
 done  yello           CASE × Yello — the "SaaS growth has largely kept pace" slide (--flat)
