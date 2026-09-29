@@ -12,7 +12,7 @@
     "when": "Spring 2024",
     "team": "Team of 4",
     "partner": "Shriners Children's Chicago",
-    "role": "User researcher & technical writer — interviews, mockup testing, documentation"
+    "role": "User researcher & technical writer — interviews, mockup testing, SolidWorks modelling, documentation"
   },
   "software": [
     "solidworks",
@@ -46,6 +46,14 @@
     {
       "name": "Risk assessment",
       "evidence": "next"
+    },
+    {
+      "name": "CAD modelling",
+      "evidence": "final"
+    },
+    {
+      "name": "3D printing (FDM)",
+      "evidence": "final"
     }
   ],
   "classes": [
@@ -149,7 +157,7 @@
       "id": "final",
       "stage": "final",
       "title": "A $62 training wheel that clamps on",
-      "text": "The No-Tip-Clip is a two-piece clamp, modelled in SolidWorks and printed at 95% infill in about 50 hours. It bolts around the wheelchair's lowest rear rod; an oval hole about 1.5 times the radius of standard frame tubing lets one clamp grip different frames. A ⅞-inch bolt through its side carries a caster: turn it until the wheel just touches the floor, then lock two nuts. Although we planned to weld the bolt to the caster, for technical limitations, we used a band-sawn polycarbonate plate to join them instead. The costs for those parts came with a total of $62.26, which was well within our $150 budget.",
+      "text": "The No-Tip-Clip is a two-piece clamp that I helped model in SolidWorks, printed at 95% infill in about 50 hours. It bolts around the wheelchair's lowest rear rod; an oval hole about 1.5 times the radius of standard frame tubing lets one clamp grip different frames. A ⅞-inch bolt through its side carries a caster: turn it until the wheel just touches the floor, then lock two nuts. Although we planned to weld the bolt to the caster, for technical limitations, we used a band-sawn polycarbonate plate to join them instead. The costs for those parts came with a total of $62.26, which was well within our $150 budget.",
       "layout": "gallery",
       "media": [
         {
