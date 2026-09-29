@@ -193,9 +193,7 @@
     },
     "shore": {
       "words": [
-        "Nice to finally meet you here.",
-        "I am always up for another adventure,",
-        "WITH YOU!"
+        "Nice to finally meet you here."
       ],
       "sub": "{N} That means please hire me...",
       "sayhi": "Say hi ↗",
@@ -215,9 +213,8 @@
     },
     "footer": {
       "words": [
-        "{N_UP} DOWN.",
-        "BRING",
-        "YOUR BOSS"
+        "{N_UP} I am always up for another adventure,",
+        "WITH YOU!"
       ],
       "sayhi": "Say hi ↗",
       "email": "kaytu2027@u.northwestern.edu",
