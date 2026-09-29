@@ -112,7 +112,8 @@ export function renderWriteup(p, lib, icons, opts = {}) {
   const kit = [tools && ['Tools', tools], skills.length && ['Skills', `<div class="wu-chips">${skills.map((s) => `<a class="wu-chip" href="#wu-${esc(s.evidence || '')}">${esc(s.name)}</a>`).join('')}</div>`], classes && ['Classes', classes]]
     .filter(Boolean).map(([k, v]) => `<span class="wu-k">${k}</span><div>${v}</div>`).join('');
   const blocks = (p.blocks || []).filter((b) => opts.showEmpty || (b.text && b.text.trim()) || (b.media || []).some((m) => m.src));
-  const numbered = blocks.map((b) => { const st = b.layout !== 'quote' ? stages[b.stage] : null; return { b, st, num: st ? st.n : null }; });
+  let n = 0;                                                           // numbered by position, so deleting a block never leaves a gap
+  const numbered = blocks.map((b) => { const st = b.layout !== 'quote' ? stages[b.stage] : null; return { b, st, num: st ? ++n : null }; });
   const steps = numbered.filter((x) => x.st);
   const seen = new Set();
   const stepsHTML = steps.length > 2 ? `<nav class="wu-steps" aria-label="Process">${steps.filter((x) => !seen.has(x.b.stage) && seen.add(x.b.stage)).map((x) => `<a href="#wu-${esc(x.b.id)}"><span class="n">${String(x.num).padStart(2, '0')}</span>${esc(x.st.label)}</a>`).join('')}</nav>` : '';

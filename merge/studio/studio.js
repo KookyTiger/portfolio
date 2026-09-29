@@ -227,7 +227,7 @@ function projectEditor(p) {
     <div class="sec"><span class="k">Cover (the cut-out on the site)</span><div class="row"><input data-k="cover" value="${esc(p.cover || '')}" style="max-width:420px">${p.cover ? `<img src="${esc(pic(p.cover))}" alt="" style="height:44px">` : ''}</div></div>
     ${legacy}
     <div class="sec"><span class="k">The page, block by block — ${esc(tpl.name || p.template)}</span>
-      ${(p.blocks || []).map((b, i) => blockCard(p, b, i, stages, tpl)).join('')}
+      ${(() => { let n = 0; return (p.blocks || []).map((b, i) => blockCard(p, b, i, stages, tpl, b.layout !== 'quote' && stages[b.stage] ? ++n : null)).join(''); })()}
       <div class="addblk">${addBtns}<button class="add" data-act="add-block" data-stage="__quote">＋ Quote</button><button class="add" data-act="add-block" data-stage="">＋ Free block</button></div>
     </div>
     <div class="sec"><span class="k">Vision — show Claude what you imagine for this page (private)</span>
@@ -242,9 +242,9 @@ function projectEditor(p) {
   </div>`;
 }
 
-function blockCard(p, b, i, stages, tpl) {
+function blockCard(p, b, i, stages, tpl, seq) {
   const st = stages[b.stage];
-  const num = b.layout === 'quote' ? '❝' : st ? String(st.n).padStart(2, '0') : '··';
+  const num = b.layout === 'quote' ? '❝' : seq ? String(seq).padStart(2, '0') : '··';   // same numbers as the page: by position
   const stageOpts = optionList([...tpl.stages.map((s) => [s.key, s.label]), ['', '— free block —']], st ? b.stage : '');
   const layouts = LAYOUTS.map(([key, label, svg]) => `<button data-act="layout" data-i="${i}" data-v="${key}" class="${(b.layout || 'text') === key ? 'on' : ''}" title="${label}">${svg}</button>`).join('');
   const changed = b.draft != null && b.draft !== (b.text || '');
