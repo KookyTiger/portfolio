@@ -1,0 +1,187 @@
+{
+  "slug": "notipclip",
+  "name": "No-Tip-Clip",
+  "floor": "engineering",
+  "onSite": true,
+  "order": 1,
+  "template": "engineering",
+  "status": "approved",
+  "oneLiner": "A 3D-printed clamp and caster that works like a training wheel for back-heavy halo-traction wheelchairs.",
+  "context": {
+    "course": "DSGN 106-2 · Design Thinking & Communication 2",
+    "when": "Spring 2024",
+    "team": "Team of 4",
+    "partner": "Shriners Children's Chicago",
+    "role": ""
+  },
+  "software": [
+    "solidworks",
+    "cura"
+  ],
+  "skills": [
+    {
+      "name": "User interviews",
+      "evidence": "research"
+    },
+    {
+      "name": "Client communication",
+      "evidence": "research"
+    },
+    {
+      "name": "Sketching",
+      "evidence": "brainstorm"
+    },
+    {
+      "name": "Low-fi mockups",
+      "evidence": "prototype"
+    },
+    {
+      "name": "Proxy-user testing",
+      "evidence": "prototype"
+    },
+    {
+      "name": "Technical writing",
+      "evidence": "final"
+    },
+    {
+      "name": "Risk assessment",
+      "evidence": "next"
+    }
+  ],
+  "classes": [
+    "dsgn106-2"
+  ],
+  "cover": "assets/projects/notipclip.webp",
+  "blocks": [
+    {
+      "id": "problem",
+      "stage": "problem",
+      "title": "When the chair tips, the pull goes sideways",
+      "text": "Shriners Children's Chicago prepares children with severe scoliosis and kyphosis for spinal fusion with halo traction: a ring pinned to the skull, a rope over a boom on the back of a walker or wheelchair, and weights that slowly stretch the spine. The boom makes the wheelchair back-heavy, and a child is often too light to hold it down. When the chair tips, the weights sway and pull diagonally instead of straight up. Our partner, a clinician there, listed six problems with the equipment. We took this one, with ten weeks and a $150 class budget.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/notipclip/traction-wheelchair-back.webp",
+          "caption": "A traction wheelchair at Shriners Children's Chicago, from behind: the boom rises from the backrest and the traction rope runs down the back. Site visit, April 2024.",
+          "kind": "photo"
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "stage": "research",
+      "title": "The current fix: sandbags that slip",
+      "text": "We started with secondary research on halo traction. I set up our partner interview and site visit by email, wrote the interview guide, and was its lead interviewer on the Zoom call. On April 11 three of us visited the hospital; no patients were there, so we measured, photographed and handled the equipment. The hospital's fix for tipping is weight: cuff weights and sandbags velcroed or taped to the frame, 8–10 lb for a child. They slip, and they get in the way of the front wheels. We also learned that the clamps holding the traction frame on are no longer made.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/notipclip/cuff-weight-fix.webp",
+          "caption": "The hospital's fix: a cuff weight strapped to the frame with Velcro.",
+          "kind": "photo"
+        },
+        {
+          "src": "assets/projects/notipclip/worn-circular-clamp.webp",
+          "caption": "A worn circular clamp, measured on site. Its supplier no longer makes it.",
+          "kind": "photo"
+        }
+      ]
+    },
+    {
+      "id": "needs",
+      "stage": "needs",
+      "title": "From improving everything to one clamp",
+      "text": "Our first mission statement promised a safer, more durable device overall. Three revisions later it named one part: a modular clamp with an adjustable nut-and-bolt height. Every spec but the budget came from our partner.\n\n!Need | Spec\nStops tipping | The wheelchair does not tip\nDetachable | Clips on and off\nQuick | Under 5 minutes to set up\nLight | Under 3 lb\nDurable | Takes rough use without losing effect\nAffordable | Under $150 (class budget)\n\nWe would judge the mockups on size, weight, safety, effectiveness and modularity.",
+      "layout": "facts",
+      "media": []
+    },
+    {
+      "id": "brainstorm",
+      "stage": "brainstorm",
+      "title": "Our first instinct: fight weight with weight",
+      "text": "Each of us took three needs and sketched ten ideas for each. My thirty ran from a rubber lining for the slipping clamps to gym-style pin holes for height, plus ten answers to the weight imbalance, seven of them adding or moving weight. We pooled our lists, ranked our top fives in private and agreed on eight ideas. Our first matrix compared only weight concepts; the professors asked for broader options, checked against duration, stability and feasibility. I then drew mockup plans for three concepts: a training wheel, an adjustable weight bag and a weight-balance calculator.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/notipclip/kay-ideas-weight.webp",
+          "caption": "My ten ideas for the weight imbalance. Seven add or move weight.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/notipclip/kay-ideas-clamp.webp",
+          "caption": "My ten ideas for clamps that wear out and slide, starting with a rubber friction lining.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/notipclip/mockup-plan-training-wheel.webp",
+          "caption": "Mockup plan, April 25: three places a training wheel could attach.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/notipclip/mockup-plan-weight-bag.webp",
+          "caption": "Mockup plan: where adjustable weights could sit under the seat.",
+          "kind": "sketch"
+        }
+      ]
+    },
+    {
+      "id": "prototype",
+      "stage": "prototype",
+      "title": "Past five kilos, the bag stopped helping",
+      "text": "In May we tested two mockups in the Segal Prototyping Lab and outdoors, as proxy users; the calculator never left paper. I helped rig the weight bag under the chair, against a 7 kg hanging weight, and wrote the report.\n\n!Weight bag | 1 kg | 3 kg | 5 kg | 10 kg\nStability | 2/10 | 5/10 | 8/10 | 8/10\nFlexibility | 5/10 | 7/10 | 6/10 | 4/10\n\nPast 5 kg, extra weight bought no stability and cost flexibility, and the bag was hard to place the same way twice. The wheel steadied the chair and promised one size for all. We decided to move forward with that.",
+      "layout": "facts",
+      "media": [
+        {
+          "src": "assets/projects/notipclip/training-wheel-mockup.webp",
+          "caption": "The training-wheel mockup held to the back of a wheelchair. Its row of holes set the height, and left thin metal between them.",
+          "kind": "mockup"
+        }
+      ]
+    },
+    {
+      "id": "quote",
+      "stage": "",
+      "title": "",
+      "text": "Instead of adding weight, we added a point of contact with the floor.",
+      "layout": "quote",
+      "media": []
+    },
+    {
+      "id": "final",
+      "stage": "final",
+      "title": "A $62 training wheel that clamps on",
+      "text": "The No-Tip-Clip is a two-piece clamp, modelled in SolidWorks and printed at 95% infill in about 50 hours. It bolts around the wheelchair's lowest rear rod; an oval hole about 1.5 times the radius of standard frame tubing lets one clamp grip different frames. A ⅞-inch bolt through its side carries a caster: turn it until the wheel just touches the floor, then lock two nuts. Although we planned to weld the bolt to the caster, for technical limitations, we used a band-sawn polycarbonate plate to join them instead. The costs for those parts came with a total of $62.26, which was well within our $150 budget.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/notipclip/cad-render.webp",
+          "caption": "The final design in CAD: printed clamp, ⅞-inch bolt, caster.",
+          "kind": "cad"
+        },
+        {
+          "src": "assets/projects/notipclip/installed.webp",
+          "caption": "The prototype on the lowest rear rod of a wheelchair, wheel just touching the floor.",
+          "kind": "prototype"
+        },
+        {
+          "src": "assets/projects/notipclip/setting-height.webp",
+          "caption": "Setting the height: turn the wheel on the bolt, then lock the nuts. From the instructions for use.",
+          "kind": "prototype"
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "stage": "next",
+      "title": "Next version: no tools, no tilt",
+      "text": "Our closing slide ticked three of four requirements; fitting different equipment stayed unticked. On a sloped rod the wheel leans, so angle and attachment top our next steps, with Velcro clips, an improved wheel, and metal or a weld in place of the plastic plate. The safety evaluation we drafted ranked vibration through the clamp as the top risk, so add damping, plus the load test we promised at the design review. ",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/notipclip/sloped-rod-tilt.webp",
+          "caption": "On a sloped rod the wheel leans. The angle is the next problem to solve.",
+          "kind": "prototype"
+        }
+      ]
+    }
+  ]
+}
