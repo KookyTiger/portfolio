@@ -1,0 +1,153 @@
+{
+  "slug": "bike-caliper",
+  "name": "Nylon Bike Caliper",
+  "floor": "engineering",
+  "onSite": true,
+  "template": "engineering",
+  "status": "approved",
+  "oneLiner": "Nylon rear brake caliper arms, 47.7% lighter on the second print, and a lesson in leverage.",
+  "context": {
+    "course": "MECH_ENG 240 · Mechanical Design & Manufacturing",
+    "when": "Spring 2026",
+    "team": "Team of 6 (Group 18)",
+    "partner": "",
+    "role": "Mechanical designer — right-arm CAD & FEA optimization; documentation lead"
+  },
+  "software": [
+    "nx"
+  ],
+  "skills": [
+    {
+      "name": "User needs → specs",
+      "evidence": "needs"
+    },
+    {
+      "name": "Competitive analysis",
+      "evidence": "research"
+    },
+    {
+      "name": "FEA & topology optimization",
+      "evidence": "final"
+    },
+    {
+      "name": "CAD modelling",
+      "evidence": "final"
+    },
+    {
+      "name": "Performance testing",
+      "evidence": "prototype"
+    },
+    {
+      "name": "Technical writing",
+      "evidence": "prototype"
+    },
+    {
+      "name": "Manufacturing planning",
+      "evidence": "next"
+    }
+  ],
+  "classes": [
+    "mecheng240"
+  ],
+  "cover": "assets/projects/bike-caliper/final-pair-render.webp",
+  "blocks": [
+    {
+      "id": "problem",
+      "stage": "problem",
+      "title": "Judged on stopping power and grams",
+      "text": "The brief was two parts: a replacement pair of rear rim-brake caliper arms for a test bike, printed in Nylon 12 on a Formlabs Fuse 1+ SLS printer. They had to fit a fixed mount (an M6 pivot 47.5 mm above the pad hole, inside a 15 × 12 × 6 cm box), survive the braking load, and would be scored on stopping power and weight in two braking tests, in weeks 8 and 10.\n\nSix of us split the leads; I led documentation.",
+      "layout": "text",
+      "media": []
+    },
+    {
+      "id": "research",
+      "stage": "research",
+      "title": "Only two lengths were ours to choose",
+      "text": "We benchmarked four commercial calipers (Shimano Tiagra BR-4700 at 193 g up to Shimano BR-R451 at 203 g) and took the test methods from ISO 4210-2 and 4210-4.\n\nThen the hand calculations: moment balances at the brake lever, the caliper and the wheel, plus conservation of energy, linking hand force to stopping distance. Of the ten variables in that equation, only two were ours: r_pad (pivot to pad) and r_cable (pivot to cable). Hand force rises with r_pad and falls with r_cable. We wrote that down in HW 2. It took two test days to believe it.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/bike-caliper/hand-calcs-lever-to-pad-force.webp",
+          "caption": "Moment balance from lever to pad: the whole design lives in r_pad and r_cable.",
+          "kind": "diagram"
+        }
+      ]
+    },
+    {
+      "id": "needs",
+      "stage": "needs",
+      "title": "Nineteen needs, six numbers FEA could check",
+      "text": "Our 19 needs became 19 metrics; these are the ones a simulation or a test day could check.\n! Metric | Ideal | Marginal | From\nMass of the pair | 193 g | 200 g | four benchmarked calipers\nStopping distance, dry, from 25 km/h | 12 m | 15 m | ISO 4210-2\nHand force at the lever | < 100 N | < 180 N | ISO 4210, grip-strength data\nFatigue life | 30,000 cycles | 20,000 cycles | about 10 brakings a mile\nAllowable stress | 21.9 MPa | | SLS Nylon-12 fatigue curve, safety factor 1.5\nCombined deflection of both arms | < 7.33 mm | | 11 mm geometry limit ÷ 1.5\nDesign loads: 219.6 N cable tension, 195.6 N pad friction.",
+      "layout": "facts",
+      "media": []
+    },
+    {
+      "id": "brainstorm",
+      "stage": "brainstorm",
+      "title": "Sketch the load path, then let TO argue",
+      "text": "Before modelling, we sketched each arm with its forces marked: cable tension in, pivot reaction, pad friction out, so we could see the path the load had to take.\n\nThen topology optimization in NX. The tutorial setup used arbitrary forces and a lone pinned hole; we noted it should carry our real 219.6 N and 195.6 N loads instead. The result read clearly on both arms: the load runs along the outer edges, and the middle of each arm barely works. That is an I-beam or C-channel in disguise, so we hollowed the middles and kept material at the edges.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/bike-caliper/topology-optimization-right-arm.webp",
+          "caption": "Topology optimization of the right arm: the material stays on the edges.",
+          "kind": "cad"
+        }
+      ]
+    },
+    {
+      "id": "prototype",
+      "stage": "prototype",
+      "title": "The first print stopped fast, pulled hard",
+      "text": "Our first CAD arms were blocks. FEA put the right one at 81.67 MPa inside the pivot hole, far over our 21.9 MPa limit; curving its corners and cutting where topology optimization found little load brought it to 19.41 MPa.\n\nThe first SLS pair weighed 115.0 g. On test day it stopped in about 10.5 m, locking the wheel in 2 of 3 runs, but took 205 N at the lever against a 180 N limit. The pads were thicker than modelled and the cable had no path, so we drilled a hole through the right arm. My test notes became the next print's to-do list.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/bike-caliper/fea-right-arm-first-print-stress.webp",
+          "caption": "NX stress plot of the first-print right arm (week 7). The hot spot is the pivot hole.",
+          "kind": "screen"
+        },
+        {
+          "src": "assets/projects/bike-caliper/first-print-drilled-cable-hole.webp",
+          "caption": "The first print after testing, with the cable hole we drilled on the day.",
+          "kind": "prototype"
+        }
+      ]
+    },
+    {
+      "id": "final",
+      "stage": "final",
+      "title": "Half the mass, almost the same squeeze",
+      "text": "For the second print I reshaped the right arm, working from our test notes: thinner, clear of the real pads, the cable routed straight down. It got a gradual curve around the left arm and a cable hole clamped under the arm instead of a bolt, and went from 74.5 g to 36.3 g — about 70% of the pair's saving. The left arm dropped to 0.5 in thick, its cut-outs tuned over 8 quick FEA rounds.\n\nThe pair went from 115.0 g to 60.2 g (−47.7%). Combined deflection rose to 5.670 mm, under 7.33 mm. On the bike: 12.5 m and 200 N.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/bike-caliper/right-arm-first-print-vs-final-render.webp",
+          "caption": "The right arm: first print (74.5 g) and my final design (36.3 g), same scale. Rendered from our STL files.",
+          "kind": "render"
+        },
+        {
+          "src": "assets/projects/bike-caliper/final-pair-render.webp",
+          "caption": "The final pair, 60.2 g together. Rendered from our STL files.",
+          "kind": "render"
+        }
+      ]
+    },
+    {
+      "id": "quote",
+      "stage": "final",
+      "title": "Stiffness was never the lever",
+      "text": "Lighter arms flexed more, but the hand force barely moved: only the lever ratio could fix that.",
+      "layout": "quote",
+      "media": []
+    },
+    {
+      "id": "next",
+      "stage": "next",
+      "title": "Next time, move the cable, not material",
+      "text": "Lever force only fell from 205 to 200 N, still over the 180 N limit, because hand force follows the ratio of r_pad to r_cable, not stiffness. The next arm should shorten r_pad or lengthen r_cable, then re-test until both land in the ideal range. Stress peaks of 23.4 and 22.5 MPa, just over 21.9, need bigger fillets; longer pad-bolt bosses would stop the pads tilting.\n\nIn aluminium, the route depends on who buys: die casting for 50,000 entry-level bikes a year, CNC machining for pricier bikes, printing for custom builds. Our materials search pointed to Al 8090-T851.",
+      "layout": "text",
+      "media": []
+    }
+  ]
+}
