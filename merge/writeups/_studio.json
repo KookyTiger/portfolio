@@ -1090,7 +1090,8 @@
       "CAD modelling",
       "Mechanism design",
       "Hardware sourcing",
-      "Manufacturing planning"
+      "Manufacturing planning",
+      "Version control & debugging"
     ],
     "Testing": [
       "User testing",
