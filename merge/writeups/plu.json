@@ -1,0 +1,300 @@
+{
+  "slug": "plu",
+  "name": "People Like Us",
+  "floor": "design",
+  "onSite": true,
+  "order": 2,
+  "template": "design",
+  "status": "approved",
+  "oneLiner": "Brand system for a Copenhagen brewery where most staff are neurodivergent: one dot, same area, any shape.",
+  "context": {
+    "course": "DIS Copenhagen · Graphic Design Foundations Studio",
+    "when": "Summer 2026 (presented July 31)",
+    "team": "Solo studio project",
+    "partner": "People Like Us (PLU), Copenhagen — the studio’s client",
+    "role": "Brand designer — research, identity system, packaging, posters; web tool built with Claude Code"
+  },
+  "software": [
+    "indesign",
+    "illustrator",
+    "photoshop",
+    "aftereffects",
+    "claude",
+    "html",
+    "javascript",
+    "github"
+  ],
+  "skills": [
+    {
+      "name": "Secondary research",
+      "evidence": "research"
+    },
+    {
+      "name": "Sketching",
+      "evidence": "concept"
+    },
+    {
+      "name": "Concept selection",
+      "evidence": "concept"
+    },
+    {
+      "name": "Worldbuilding",
+      "evidence": "iterate"
+    },
+    {
+      "name": "Visual identity",
+      "evidence": "final"
+    },
+    {
+      "name": "Posters & presentations",
+      "evidence": "final"
+    }
+  ],
+  "classes": [
+    "dis2026"
+  ],
+  "cover": "assets/projects/plu/can-mockup-three-characters.webp",
+  "blocks": [
+    {
+      "id": "premise",
+      "stage": "premise",
+      "title": "A bar where nobody has to hide",
+      "text": "People Like Us (PLU) is a Copenhagen brewery with a hashtag for a mission, #SOCIALREVOLUTIONBYBEER: a real workplace where neurodivergent people can work without hiding who they are. 70% of its staff are neurodivergent, and they develop the beer, can it and pour it. Its next step is Denmark’s first non-alcoholic bar and microbrewery, and in summer 2026 my DIS graphic design studio designed for it.\n\nI framed the goals as two: meaningful jobs for neurodivergent people, and public awareness of neurodivergence. My answer was a design rule: an interactive system that builds understanding by making the idea personal and fun to take part in.",
+      "layout": "full",
+      "media": [
+        {
+          "src": "assets/projects/plu/plot-lulu-105cm.webp",
+          "kind": "render",
+          "caption": "My 105 × 105 cm plot, the studio’s final format: Lulu, the three cans, colour, type and the flow on one sheet."
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "stage": "research",
+      "title": "Small breweries can afford strange cans",
+      "text": "The studio began with a beer tasting and a meeting with PLU; the instructor’s brief set the angles. My slides started from what PLU already had: a pink bar, a bold logo, playful beer names. It works like a phantom brewery, brewing its recipes with other microbreweries, and wants the bar to be a hub for music, quizzes, knitting circles and poetry, more than a pub.\n\nSorting cans into interesting and not interesting to look at settled one thing: the dull ones were the big brands, and small breweries can afford strong names and odd illustrations. PLU lacked one identity across cans, posters, menus, merch and the room.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/plu/research-cans-interesting-vs-not.webp",
+          "kind": "diagram",
+          "caption": "From my research slides: cans I found interesting to look at, and cans I didn’t."
+        }
+      ]
+    },
+    {
+      "id": "concept",
+      "stage": "concept",
+      "title": "Everyone gets the same pour",
+      "text": "The class agreed on three flavours: a fruity cider, a wheaty amber ale and a dark chocolate porter. My first concept gave each one a character from Nordic myth who was misjudged or mistreated in their story: Ratatoskr, Þjálfi and Ótr, drawn in black ink in week three.\n\nThe idea that lasted came from the tasting itself. In a flight, every glass holds the same pour: people like you + people like me = people like us. So the brand became one shape that always keeps the same area and changes shape freely, in loud colour. Everyone gets the same amount; the difference is the shape.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/plu/first-direction-nordic-characters.webp",
+          "kind": "sketch",
+          "caption": "Week three: Ratatoskr, Þjálfi and Ótr, one misjudged character per flavour."
+        },
+        {
+          "src": "assets/projects/plu/tasting-flight-poster.webp",
+          "kind": "sketch",
+          "caption": "July 13: the characters in a tasting flight. Same glass, same pour."
+        }
+      ]
+    },
+    {
+      "id": "rule",
+      "stage": "concept",
+      "title": "The one thing the system refuses",
+      "text": "You can stretch it, spike it, throw it off balance — the one thing the system refuses to let you do is make yourself smaller.",
+      "layout": "quote",
+      "media": []
+    },
+    {
+      "id": "build",
+      "stage": "build",
+      "title": "Three variables and one rule",
+      "text": "I built the dot maker by directing Claude, not by typing the code: 19 conversations, 10 coding sessions, over 350 prompts, then 40 commits from July 14 to 30. Claude wrote the code; my prompts decided what each feature is and the rule it can't break.\n\nThe first prompt was the rule itself: the dots \"should fit in a box and default as a circle. You can pinch the shape but the area stays the same — one part goes in, another comes out.\" Shape, colour and how sharp the lines are: \"these three variables are easy to write\", so instead of drawing the dots myself I asked for an interface where visitors pinch their own.\n\nUnder it, a dot is 96 radii around a centre. A drag pulls the radii near your finger toward it, smooths them, then rescales all of them until the area is the circle's again, which is why the badge can say \"Area = 100% · always\". On July 14 I asked Claude to put it on GitHub \"so it opens in a browser as a small app — mobile display is the priority.\"",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/plu/dot-maker-first-online-jul14.webp",
+          "kind": "screen",
+          "caption": "The first version online (July 14), re-run from the repo: \"Push it in somewhere, it comes out somewhere else — the area never changes.\""
+        }
+      ]
+    },
+    {
+      "id": "dress",
+      "stage": "build",
+      "title": "Dressing without changing the person",
+      "text": "Every feature after that came as a prompt with its rule attached.\n\n- **Eyes**: left, right or centre, with sliders for size, gap and height; then \"Cyclops and Googly are the only two I need.\"\n- **Clothes**: an ID-photo torso, about a third of the chest, whose shape and position never change; outfits are only patterns inside it. Their colours are muted sorbets so they never upstage the neon face, because the face is the person: \"the torso and clothes are external dressing.\"\n- **Hair** (July 19): ten girl and ten boy hairstyles as abstract geometric shapes. A hair colour too close to the face colour is greyed out, so hair never melts into a face.\n- **Hats** (July 22): hair or a hat, never both, including the chef's toque Carl wears, plus seven more outfits.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/plu/dot-maker-demo.mp4",
+          "kind": "screen",
+          "caption": "My screen recording of the dot maker: pinch the dot (the area stays 100%), add eyes, try outfits, hair and hats."
+        }
+      ]
+    },
+    {
+      "id": "hair",
+      "stage": "build",
+      "title": "When the face skews, the hair floats",
+      "text": "Pinch a face hard enough and the first hairstyles floated: they were drawn for a circle, so a stretched head poked out of the hair. I asked for \"a few approaches\" to guarantee the hair covers the top of the head, and chose two to try first. Twenty minutes after hair went in, the fix: the fringe is the face's own deformed outline, scaled up about 7% and clipped to a band at the top, so it covers the scalp by construction, and buns, tails and puffs attach to the real edge of the face.\n\nHalf an hour later, the eyes: \"Half-covered is actually kind of cute, but fully covered obviously can't happen.\" Now a fringe can cut no lower than the eyes' centre line.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/plu/hair-fix-before-after.webp",
+          "kind": "screen",
+          "caption": "One pinched face, rendered by the app at each commit on July 19: 16:54, the head pokes out of the hair; 17:16, the fringe follows the face. With the eyes set high: 17:16, the fringe hides them; 17:51, it stops at their centre line."
+        }
+      ]
+    },
+    {
+      "id": "match",
+      "stage": "build",
+      "title": "People like me + people like you",
+      "text": "The brand's formula became a feature. After you join the pool, \"Find people like me\" looks for the dot most like yours and draws a card: your name + theirs = People Like Us, and how alike you are, \"— the rest is the interesting part.\" The score is 70% shape, 15% face colour and 15% eyes, clothes and hair. Shape is compared at all 96 rotations of the outline, so what counts is how you're pinched, not which way you lean. If the pool is empty: \"You're the first one here. Someone like you will show up.\"",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/plu/find-people-like-me-card.webp",
+          "kind": "screen",
+          "caption": "A card from the app, made for this page with two test dots named after my characters."
+        }
+      ]
+    },
+    {
+      "id": "live",
+      "stage": "build",
+      "title": "From a web page to a bar",
+      "text": "Then it had to live in a bar. I asked for a white page with a kiosk in the middle, \"very realistic\" and not flat, with every display and button still visible, and one condition: \"Always make sure the dot maker's functionality is not impaired.\" A button on the kiosk opens the Cleveland Clinic's page on neurodivergence, so the machine also explains what the bar is about.\n\nNext, the loop the whole system rests on: people \"scan a QR code to make their own person, put it in the pool, see themselves on the big screen (metro ad). There won't be a real metro ad… but I still want the real-time update mechanism. What is the easiest way to achieve that?\" The answer was Firestore, a cloud database: every phone adds its dot to one shared list and the screen listens to it. Anyone can read the list and add to it; no one can delete from it. Without a connection, the app syncs between browser tabs on one computer instead. On July 27 every phone's pool joined the same list; dots have no IDs, so the app tells them apart by their shape, colour, clothes and name.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/plu/dot-maker-face-and-dress.webp",
+          "kind": "screen",
+          "caption": "The dot maker inside the kiosk: every display and button still works."
+        },
+        {
+          "src": "assets/projects/plu/big-screen-first-live-wall-jul24.webp",
+          "kind": "screen",
+          "caption": "The first live wall (July 24, 00:37), re-run with test dots: everyone in the pool, and a QR to join."
+        }
+      ]
+    },
+    {
+      "id": "screens",
+      "stage": "iterate",
+      "title": "One night, eight screens",
+      "text": "Making the screen look like PLU took one night. Between 00:37 and 02:23 on July 24 I went through eight looks: a grid of everyone; a drifting crowd that parts for each newcomer, with the formula in the middle; a portrait poster in the six can colours, reverted ten minutes later; a two-colour silhouette field; faces and personal colours back, in American Typewriter; dark, heads only; acid-green rules with film grain, scanlines and a vignette; a condensed display face with glitches.\n\nIn my presentation this is the \"visual coherence\" step, and I quoted myself: \"This is too ugly, I'll do it myself.\" By noon the screen was my poster, drawn in Illustrator, and the app only filled its boxes with the live parts: a see-through kiosk, the QR and the feed of new dots. That afternoon I had it export any dot in the pool as a transparent PNG, so the characters could leave the app for my own layouts, the cans included. On July 30, the night before the presentation, the poster half went and the screen became one full-bleed live feed.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/plu/big-screen-one-night.webp",
+          "kind": "screen",
+          "caption": "The big screen at each version, re-run from the repo with test dots: July 24 from 01:04 to 02:23, my Illustrator poster at 12:29, and the live feed of July 30."
+        }
+      ]
+    },
+    {
+      "id": "logo",
+      "stage": "build",
+      "title": "I want the collision",
+      "text": "The logo is two eight-lobed splats spinning against each other, and the kiosk shows it animated. Rebuilding that animation in code, I had to choose between two designs, and I said so: \"The deep hug and the lobe-on-lobe collision are two different designs. I want the collision.\"\n\nBlending the shapes where they touch (a smooth minimum) couldn't give me that: a blend strong enough to join them where they meet also joins the neighbouring lobes, which leaves only a few pixels of settings that work, and I pointed that out before we tuned it. Pushing them apart after each hit did work, but 45 px of recoil made the whole logo throb and competed with the squash: \"I want the squash to be the visible thing.\" Before it rendered 48 frames, I asked for the clearance at each step from t = 0 to 5, to check the gap first.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/plu/logo-rebuild-impact-frame.webp",
+          "kind": "render",
+          "caption": "An impact frame: the lobes squash against each other instead of melting into one blob."
+        }
+      ]
+    },
+    {
+      "id": "terminal",
+      "stage": "build",
+      "title": "A design terminal, to talk to Claude in pictures",
+      "text": "By the last week, describing colours and outfits in words had become the slow part. So I asked for \"my own design terminal, just for myself, so it's easier to communicate to you visually\": a hidden panel on the app where I add, delete and retune face colours, hair colours and outfits and see them live. My edits stay in my browser; the panel turns them into a spec, a change list I hand back to Claude to apply to the real app.\n\nThe first version could manage outfits but not draw one: \"The terminal doesn't let me design the outfit like a brush.\" Twenty-six minutes later it had an Outfit Lab, where I paint a fit with dots and stripes I can drag; saved, it appears in the outfit picker.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/plu/design-terminal-outfit-lab.webp",
+          "kind": "screen",
+          "caption": "The design terminal beside the kiosk: the Outfit Lab with a test fit, notes, and the spec for Claude."
+        }
+      ]
+    },
+    {
+      "id": "awareness",
+      "stage": "build",
+      "title": "Awareness in small moments",
+      "text": "My second goal was public awareness of neurodivergence. On July 30, the night before the presentation, it went into the app as small moments:\n\n! Where | What\nAfter you join | “Your dot is 100% — same as everyone's. Just shaped differently.”\nSaved PNG | A strip with the slogan “there's always a spot for people like us”\nBig screen | 200 short facts about neurodivergence, one at a time, only while nobody is joining (a new dot always wins the screen); every seventh is the house slogan\nThe eyes | Rare blinks and sideways glances on the live dot, off for people who turn off motion; saved dots keep their eyes open\nRecording | A clean mode that hides the on-screen text, for filming the screen",
+      "layout": "facts",
+      "media": []
+    },
+    {
+      "id": "iterate",
+      "stage": "iterate",
+      "title": "The birth of Carl, Lulu, and Astrid.",
+      "text": "The cans took four rounds in ten days, where I built character from the tool I built and then use them to design cans. On July 20 his label told a story in a paragraph (his bakery opens at six, he sells one kind of bread) and ended in a line you finish yourself: “People like us: like Carl and…”, beside an empty frame for your sticker. Two days later, a wheat pattern. By July 24 he stood behind his bread and the words were down to a name, a job and a flavour. The final label dropped the nutrition panel too.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/plu/carl-label-1-story-jul20.webp",
+          "kind": "render",
+          "caption": "July 20: a story, and a frame for your sticker."
+        },
+        {
+          "src": "assets/projects/plu/carl-label-2-wheat-jul22.webp",
+          "kind": "render",
+          "caption": "July 22: the wheat pattern."
+        },
+        {
+          "src": "assets/projects/plu/carl-label-3-bakery-jul24.webp",
+          "kind": "render",
+          "caption": "July 24: Carl at work; name, job, flavour."
+        },
+        {
+          "src": "assets/projects/plu/carl-label-4-final-jul30.webp",
+          "kind": "render",
+          "caption": "July 30: the print file."
+        }
+      ]
+    },
+    {
+      "id": "final",
+      "stage": "final",
+      "title": "Your dot ends up on the can",
+      "text": "I presented the system on July 31. A poster asks you to scan a QR code and join Social Revolution By Beer. On your phone you pinch your dot, dress it and join the pool. A big screen shows you arrive in real time through a Firestore database, and a printer at the bar turns your dot into a sticker for the empty frame on your can. The screen (a metro ad) and the printer exist only in my mock-ups.\n\nThe cans carry Lulu the cashier, Carl the baker and Astrid the barista, whom I made with the same tool guests use. A tote and a T-shirt carry them too.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/plu/flow-kiosk-phone-printer.webp",
+          "kind": "mockup",
+          "caption": "The flow, in mock-ups: the metro-ad screen, the dot maker at the bar, the sticker printer."
+        },
+        {
+          "src": "assets/projects/plu/poster-social-revolution-by-beer.webp",
+          "kind": "render",
+          "caption": "The poster: QR code, a pile of dots, Social Revolution By Beer."
+        },
+        {
+          "src": "assets/projects/plu/tote-9am-9pm-mockup.webp",
+          "kind": "mockup",
+          "caption": "Tote: 9 AM coffee, 9 PM beer, same bar."
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "stage": "next",
+      "title": "",
+      "text": "",
+      "layout": "text",
+      "media": []
+    }
+  ]
+}
