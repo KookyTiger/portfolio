@@ -1,0 +1,217 @@
+{
+  "slug": "peek-a-boo-house",
+  "name": "Peek-a-Boo House",
+  "floor": "design",
+  "onSite": true,
+  "template": "design",
+  "status": "approved",
+  "oneLiner": "A family house on a busy street that decides what passers-by get to see.",
+  "context": {
+    "course": "CIV_ENV 385-1 · Architectural Engineering & Design 1: Fundamentals",
+    "when": "Fall 2025",
+    "team": "Solo",
+    "partner": "",
+    "role": "Sole designer, from site analysis to drawings and renders"
+  },
+  "software": [
+    "revit",
+    "slides",
+    "rhino"
+  ],
+  "skills": [
+    {
+      "name": "Problem framing",
+      "evidence": "premise"
+    },
+    {
+      "name": "Secondary research",
+      "evidence": "research"
+    },
+    {
+      "name": "Sketching",
+      "evidence": "concept"
+    },
+    {
+      "name": "Low-fi mockups",
+      "evidence": "iterate"
+    },
+    {
+      "name": "CAD modelling",
+      "evidence": "build"
+    },
+    {
+      "name": "Architectural drawing",
+      "evidence": "build"
+    },
+    {
+      "name": "Posters & presentations",
+      "evidence": "iterate"
+    }
+  ],
+  "classes": [
+    "civenv385-1"
+  ],
+  "cover": "assets/projects/peek-a-boo-house/final-spiral-stair-render.webp",
+  "blocks": [
+    {
+      "id": "premise",
+      "stage": "premise",
+      "title": "A house for a street that stares",
+      "text": "My house for CIV_ENV 385-1 sat on a real lot with three problems: heavy foot traffic and noise out front, a garage on the east side throwing sound and glare, and strong morning sun on the front façade. The obvious answer to all three is a wall. I wanted a house that could decide what the street gets to see, and when. Hence the name: Peek-a-Boo House. Now you see me, now you don't.",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/peek-a-boo-house/site-model-in-context.webp",
+          "caption": "The house in its lot: garden, playset and fence around it.",
+          "kind": "render"
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "stage": "research",
+      "title": "Three lines of site analysis did the work",
+      "text": "I started with the lot, not the house: an aerial view, a sun-path diagram and a white massing model of the block, with a big parking area next door. It all boiled down to three lines: limited privacy, sound and glare from the east, strong morning sun on the front. For the midterm I pinned up benchmarks, two modern box houses and the Nakagin Capsule Tower; for the final, two white modernist houses as precedents. [What each one taught me.]",
+      "layout": "text-media",
+      "media": [
+        {
+          "src": "assets/projects/peek-a-boo-house/site-massing-east-lot.webp",
+          "caption": "Massing model of the block: the lot beside the parking to the east.",
+          "kind": "diagram"
+        }
+      ]
+    },
+    {
+      "id": "concept",
+      "stage": "concept",
+      "title": "Sort the family by how public",
+      "text": "Before any walls I drew graphic programs: rooms as rough blocks on dot-grid paper, stacked and reshuffled level by level. The idea that held was to sort the house by how public each room is. The ground floor takes everything a guest sees: entry, dining, kitchen, two living rooms, an office, a powder room, the garage. The parents get a level of their own. The children get the one above, half a floor higher.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/peek-a-boo-house/graphic-program-sketch-1.webp",
+          "caption": "Graphic program, first pass over the lot.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/graphic-program-sketch-2.webp",
+          "caption": "Graphic program: two levels stacked.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/graphic-program-sketch-3.webp",
+          "caption": "Graphic program with a curved room.",
+          "kind": "sketch"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/graphic-program-sketch-4.webp",
+          "caption": "Graphic program: two levels side by side.",
+          "kind": "sketch"
+        }
+      ]
+    },
+    {
+      "id": "iterate",
+      "stage": "iterate",
+      "title": "The peek-a-boo house that never peeked",
+      "text": "From the sketches I cut foam massing models, then built a furnished digital model in Rhino for the midterm. One cut worked: a see-through run for the public spaces, from the garage to the living room to the stair. The front did not. With the TV room and bathroom enclosed, the façade read as a solid block, and my own slide said so. My answer went into the section: a lofted children's bedroom, to bring openness and continuity into the structure.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/peek-a-boo-house/midterm-see-through-public-spaces.webp",
+          "caption": "Midterm: see-through public spaces, garage to living room to stair.",
+          "kind": "render"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/midterm-front-solid-block.webp",
+          "caption": "Midterm: the front façade reads as a solid block.",
+          "kind": "render"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/midterm-lofted-childrens-level.webp",
+          "caption": "Midterm: the lofted children's bedroom.",
+          "kind": "render"
+        }
+      ]
+    },
+    {
+      "id": "quote",
+      "stage": "iterate",
+      "title": "",
+      "text": "But here it reveals nothing.",
+      "layout": "quote",
+      "media": []
+    },
+    {
+      "id": "build",
+      "stage": "build",
+      "title": "From foam blocks to a Revit set",
+      "text": "The making ran from hand to model to drawings. Foam blocks let me test the stacking fast; the digital model carried furniture and the see-through views. For the final I built the house in Revit: a plan per level and sections looking west and north, then rendered it in Rhino. My Drive keeps four saves of the Revit file from December 6 to 9, growing from 71 to 151 MB as the set came together. The section shows the split: Level 1 at 3 feet, the parents at 16, the children at 21.",
+      "layout": "gallery",
+      "media": [
+        {
+          "src": "assets/projects/peek-a-boo-house/foam-massing-models.webp",
+          "caption": "Foam massing models.",
+          "kind": "mockup"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/plans-three-levels.webp",
+          "caption": "Final plans: Level 1 public, Level 2 adults, Level 2.5 children.",
+          "kind": "cad"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/section-looking-north.webp",
+          "caption": "Section looking north, with the level heads.",
+          "kind": "cad"
+        }
+      ]
+    },
+    {
+      "id": "final",
+      "stage": "final",
+      "title": "The public rooms get the glass",
+      "text": "The final house is 2,183 sq ft on three levels: 1,191 of public rooms on the ground floor; 512 for the parents on Level 2 (bedroom, bath, closet, balcony); 480 for the two children on Level 2.5 (two bedrooms, a shared bath, an enclosed balcony). In the renders a curved glass corner opens the dining room, the piano platform, the spiral stair and the loft above to view, under upper volumes that stay mostly closed. The house peeks where the family gathers.",
+      "layout": "full",
+      "media": [
+        {
+          "src": "assets/projects/peek-a-boo-house/final-spiral-stair-render.webp",
+          "caption": "",
+          "kind": "photo"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/render-living-room.webp",
+          "caption": "",
+          "kind": "photo"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/final-primary-bedroom-render.webp",
+          "caption": "",
+          "kind": "photo"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/render-loft-stair.webp",
+          "caption": "",
+          "kind": "photo"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/render-dining-piano-interior.webp",
+          "caption": "",
+          "kind": "photo"
+        },
+        {
+          "src": "assets/projects/peek-a-boo-house/render-side-entry.webp",
+          "caption": "",
+          "kind": "photo"
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "stage": "next",
+      "title": "The midterm to-do list, checked",
+      "text": "At the midterm I listed what the final still needed: structural integrity and load distribution, window placements, square-footage limits including indoor and outdoor circulation, the landscape and site relationship, and a basement. The final deck answers some of these on its face: an area count per level, a backyard with a playset and picnic table, glazing placed on the public rooms. Structure and the basement don't appear. [What I learned, and what I'd do next.]",
+      "layout": "text",
+      "media": []
+    }
+  ]
+}
