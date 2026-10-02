@@ -60,6 +60,8 @@ function applyType(style) {
   deep(COPY, t.copy);
   if (Array.isArray(t.archive)) ARCHIVE.splice(0, ARCHIVE.length, ...t.archive.map((r) => [r.name, r.line, r.course, r.year]));
 })((STUDIO && studioDraft()) || SITE_TEXT);
+const FLOOR_IDS = SECTIONS.map((s) => s.id);                     // the floors in content.js's order: the Studio's site text addresses them by this place (`at`)
+SECTIONS.forEach((s, i) => { s.at = i; });
 if (SECTIONS.some((s) => !s.pieces.length) && SECTIONS.some((s) => s.pieces.length)) {
   for (let i = SECTIONS.length - 1; i >= 0; i--) if (!SECTIONS[i].pieces.length) SECTIONS.splice(i, 1);
   SECTIONS.forEach((s, i) => { s.num = String(i + 1).padStart(2, '0'); });
@@ -83,15 +85,18 @@ const tpl = (t) => t.replace(/\{N_UP\}/g, NWORD.toUpperCase()).replace(/\{N_CAP\
 // ───────────────────────── The visitor's progress (Kay, 2026-10-01): what you have seen unlocks the tiger's acts and wardrobe ─────────────────────────
 // localStorage `kooky.progress`: projects seen (slugs), achievements said, what the tiger wears, visits, the floor you were last on, time here.
 // Never in the Studio's preview. ptl fills {n}-style slots in the copy.
-const PROG = (() => { let d = {}; try { d = JSON.parse(localStorage.getItem('kooky.progress')) || {}; } catch (e) {}
-  return { seen: new Set(d.seen || []), ach: new Set(d.ach || []), wear: new Set(d.wear || []), visits: d.visits || 0, lastFloor: d.lastFloor ?? -1, secs: d.secs || 0, back: (d.visits || 0) > 0 && !STUDIO }; })();
+// Floors are remembered by id, since the Studio can take one away ('floor0'-style keys from 2026-10-01 were positions in content.js's order).
+const PROG = (() => { let d = {}; try { d = JSON.parse(localStorage.getItem('kooky.progress')) || {}; } catch (e) {} if (!d || typeof d !== 'object') d = {};
+  const arr = (v) => (Array.isArray(v) ? v : []), floorId = (k) => (typeof k === 'number' ? FLOOR_IDS[k] ?? null : k ?? null);
+  return { seen: new Set(arr(d.seen)), ach: new Set(arr(d.ach).map((a) => (/^floor\d+$/.test(a) && FLOOR_IDS[+a.slice(5)] ? 'floor-' + FLOOR_IDS[+a.slice(5)] : a))), wear: new Set(arr(d.wear)),
+    visits: +d.visits || 0, lastFloor: floorId(d.lastFloor === -1 ? null : d.lastFloor), secs: +d.secs || 0, back: (+d.visits || 0) > 0 && !STUDIO }; })();
 function progSave() { if (STUDIO) return; try { localStorage.setItem('kooky.progress', JSON.stringify({ seen: [...PROG.seen], ach: [...PROG.ach], wear: [...PROG.wear], visits: PROG.visits, lastFloor: PROG.lastFloor, secs: Math.round(PROG.secs) })); } catch (e) {} }
 if (!STUDIO) { PROG.visits++; progSave(); }
 addEventListener('pagehide', progSave);
 const PL = COPY.progress, ptl = (t, o) => tpl(String(t || '')).replace(/\{(\w+)\}/g, (m, k) => (k in o ? o[k] : m));
 const toastEl = $('toast'); const toastQ = []; let toastT = null;
-function toast(text) { toastQ.push(text); if (!toastT) toastNext(); }
-function toastNext() { const t = toastQ.shift(); if (!t) { toastT = null; return; } toastEl.textContent = t; toastEl.classList.add('on'); toastT = setTimeout(() => { toastEl.classList.remove('on'); toastT = setTimeout(toastNext, 450); }, 3200); }
+function toast(text) { toastQ.push(text); if (!toastT && !panelOpen) toastNext(); }   // an open panel covers the toast: it waits for the close
+function toastNext() { if (panelOpen) { toastT = null; return; } const t = toastQ.shift(); if (!t) { toastT = null; return; } toastEl.textContent = t; toastEl.classList.add('on'); toastT = setTimeout(() => { toastEl.classList.remove('on'); toastT = setTimeout(toastNext, 450); }, 3200); }
 function ach(id, text) { if (PROG.ach.has(id)) return; PROG.ach.add(id); progSave(); toast(text); }
 const seenKey = (pi) => PIECES[pi].slug || 'p' + pi;
 const seenN = () => PIECES.reduce((n, p, i) => n + (PROG.seen.has(seenKey(i)) ? 1 : 0), 0);   // of the projects on the site now
@@ -99,7 +104,7 @@ const needOf = (k) => Math.min(k || 0, NP);                                     
 function markSeen(pi) { const key = seenKey(pi); if (PROG.seen.has(key)) return; PROG.seen.add(key); progSave(); progUI();
   const n = seenN(), A = PL.ach;
   if (n === 1) ach('first', A.first);
-  SECTIONS.forEach((sec, i) => { if (sec.pieces.every((k) => PROG.seen.has(seenKey(k)))) ach('floor' + i, ptl(A.floor, { f: sec.num })); });
+  SECTIONS.forEach((sec, i) => { if (sec.pieces.every((k) => PROG.seen.has(seenKey(k)))) ach('floor-' + sec.id, ptl(A.floor, { f: sec.num })); });
   if (n >= Math.ceil(NP / 2) && n < NP) ach('half', A.half);
   if (n === NP) ach('all', tpl(A.all)); }
 function progUI() { $('lift-seen').textContent = ptl(PL.seen, { n: String(seenN()).padStart(2, '0'), t: String(NP).padStart(2, '0') }); renderTalents(); renderWardrobe(); }
@@ -146,7 +151,8 @@ SECTIONS.forEach((sec, w) => {
   if (!sec.deck) idx.forEach((pi, j) => { const p = PIECES[pi]; html += `<article class="card${p.wide ? ' wide' : ''}${show ? ' show-' + show : ''}" style="--i:${j * SCREEN_PER_CARD}" data-p="${pi}"><div class="in" role="button" tabindex="0" aria-label="Open ${p.name}">
     ${floorArt(p, show)}${cardText(p, pi)}</div></article>`; });
   // the value statement: over the room, char by char (Léo's library statement) — never paper on paper
-  html += `<div class="value-text${dark ? '' : ' halo'}" style="--i:${span}"><div class="big" id="value-big${w}" data-style="${FLOOR_STYLE[sec.theme]?.value || ''}">${sec.value.map((l) => `<span class="line">${tpl(l)}</span>`).join('')}</div></div>`;
+  const said = sec.value.some((l) => String(l).trim());          // Kay can empty a statement in the Studio: then no halo either
+  html += `<div class="value-text${dark || !said ? '' : ' halo'}" style="--i:${span}"><div class="big" id="value-big${w}" data-style="${FLOOR_STYLE[sec.theme]?.value || ''}">${sec.value.map((l) => `<span class="line">${tpl(l)}</span>`).join('')}</div></div>`;
   html += `</section>`;
 });
 body.innerHTML = html;
@@ -199,7 +205,11 @@ function fly(fromRect, toRect, srcEl, dur, done, cross) {
   if (cross) tw.to(el, { opacity: 0, duration: 0.35, ease: 'power1.out' });
   flight = { el, tw, done };
 }
-function openPanel(pi, from) { const p = PIECES[pi], d = p.detail || {}, L = COPY.panel; panelFrom = from || null; markSeen(pi);
+// the panel is modal: the page, the nav and the computer's screen behind it are inert while it is open
+const modalBg = (on) => { for (const el of [$('page'), document.querySelector('.nav')]) if (el) el.inert = on; deckLock(); };
+function settlePanel() { if (flight) { const f = flight; flight = null; f.tw.kill(); f.el.remove(); f.done && f.done(); }
+  if (flownFrom) { flownFrom.closest('figure')?.classList.remove('away'); flownFrom = null; } if (flyTgt) { flyTgt.style.opacity = ''; flyTgt = null; } }
+function openPanel(pi, from) { if (panelOpen) settlePanel(); const p = PIECES[pi], d = p.detail || {}, L = COPY.panel; panelFrom = from || null;
   const draft = DRAFTS.on && DRAFTS.lib && DRAFTS.w[p.slug], w = draft || WRITEUPS[p.slug];
   const src = artSrc(p), obj = `<figure class="obj" aria-hidden="true">${src ? `<img src="${src}" alt="">` : `<svg viewBox="0 0 200 140">${SIL[p.sil]}</svg>`}</figure>`;
   let cross = false;
@@ -224,7 +234,8 @@ function openPanel(pi, from) { const p = PIECES[pi], d = p.detail || {}, L = COP
       fly(a, { left: b.left - dx, top: b.top, width: b.width, height: b.height }, s0, 0.9, () => { tgt.style.opacity = ''; }, cross);
       if (cross) gsap.fromTo(tgt, { opacity: 0 }, { opacity: 1, duration: 0.35, delay: 0.9, ease: 'power1.in' });
       flownFrom = s0; s0.closest('figure').classList.add('away'); tgt.style.opacity = '0'; } }   // after fly(): a flight it cut short has already sent its object home
-  panel.classList.add('open'); panel.inert = false; panel.setAttribute('aria-hidden', 'false'); panelScrim.classList.add('on'); panelOpen = true; panel.scrollTop = 0;
+  panel.classList.add('open'); panel.inert = false; panel.setAttribute('aria-hidden', 'false'); panelScrim.classList.add('on'); panelOpen = true; panel.scrollTop = 0; modalBg(true);
+  markSeen(pi);                                                   // after panelOpen: its achievements wait for the close (the panel would cover them)
   panelInner.querySelector('.obj-in')?.classList.remove('blk');               // the cover the object lands in holds still
   gsap.fromTo(panelInner.querySelectorAll('.blk'), { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'reveal', stagger: 0.05, delay: 0.12, overwrite: true });
   lenis.stop(); setTimeout(() => $('panel-close').focus({ preventScroll: true }), 50); }
@@ -235,7 +246,8 @@ function closePanel() { if (!panelOpen) return; panelOpen = false;
     // the room's own object flies home (not the cover it may have dissolved into), from wherever it is now
     if (b && b.width > 4 && b.bottom > 0 && b.top < vh) { if (tgt) gsap.killTweensOf(tgt); fly(b, a, back, 0.75, home); if (tgt) tgt.style.opacity = '0'; }
     else { if (flight) { const f = flight; flight = null; f.tw.kill(); f.el.remove(); } home(); } }
-  panel.classList.remove('open'); panel.inert = true; panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true }); }
+  panel.classList.remove('open'); panel.inert = true; panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); modalBg(false); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true });
+  setTimeout(() => { if (!toastT && !panelOpen) toastNext(); }, 450); }
 document.querySelectorAll('.card .in, .slide .in').forEach((el) => { const pi = +el.closest('[data-p]').dataset.p; el.addEventListener('click', () => openPanel(pi, el)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(pi, el); } }); });
 panel.inert = true; $('panel-close').addEventListener('click', closePanel); panelScrim.addEventListener('click', closePanel);
 panelInner.addEventListener('click', (e) => { const a = e.target.closest('a[href^="#wu-"]'); if (!a) return;   // a write-up's process strip and skills jump inside the panel
@@ -243,8 +255,13 @@ panelInner.addEventListener('click', (e) => { const a = e.target.closest('a[href
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
 // the screen's own controls (floor 03): ← → keys, horizontal wheel / trackpad, drag — each maps onto page scroll, which drives the strip
 const deckStrip = deckIdx >= 0 ? $('deck-strip') : null;
+let deckLive = false; deckEl.inert = true;                        // nothing on a black screen can be hovered, clicked or tabbed to
+function deckLock() { const v = panelOpen || !deckLive; if (deckEl.inert !== v) deckEl.inert = v; }
 if (deckIdx >= 0) { const lo = () => world.hold.s0 * vh, hi = () => (world.hold.s0 + world.hold.len) * vh;
-  const toSlide = (k) => lenis.scrollTo((world.hold.s0 + clamp(k, 0, world.hold.len)) * vh, { duration: 0.9, easing: (t) => 1 - Math.pow(1 - t, 4) });
+  const toSlide = (k) => (REW.autoUntil = performance.now() / 1000 + 1.2, lenis.scrollTo((world.hold.s0 + clamp(k, 0, world.hold.len)) * vh, { duration: 0.9, easing: (t) => 1 - Math.pow(1 - t, 4) }));
+  // Tab between previews: the browser would scroll the overflow-hidden box itself; keep it still and bring the focused preview round
+  deckEl.addEventListener('scroll', (e) => { const el = e.target; if (el.scrollLeft || el.scrollTop) { el.scrollLeft = 0; el.scrollTop = 0; } }, true);
+  deckEl.addEventListener('focusin', (e) => { const sl = e.target.closest?.('.slide'); if (sl && !panelOpen && e.target.matches(':focus-visible')) toSlide(+sl.dataset.j); });   // keyboard focus only: a click opens it where it is
   const cur = () => Math.round(scroll / vh - world.hold.s0);
   window.addEventListener('keydown', (e) => { if (!T.deckOn || panelOpen) return; if (e.key === 'ArrowRight') { e.preventDefault(); toSlide(cur() + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); toSlide(cur() - 1); } });
   deckEl.addEventListener('wheel', (e) => { if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || Math.abs(e.deltaX) < 2) return; e.preventDefault(); lenis.scrollTo(clamp((lenis.targetScroll ?? scroll) + e.deltaX * 1.5, lo(), hi())); }, { passive: false });
@@ -269,6 +286,7 @@ document.querySelectorAll('.split').forEach((el) => makeText(el));
 // the value statements: still letter by letter, but each floor says it its own way (FLOOR_STYLE.value, Kay 2026-10-01) — the workshop
 // stamps the letters on, the bar's flicker on like neon, the computer types them behind a cursor
 const chars = [];
+const placeChars = (c) => c.chars?.forEach((ch) => { ch.style.setProperty('--cx', ch.offsetLeft + 'px'); ch.style.setProperty('--cy', ch.offsetTop + 'px'); });   // each letter's place, for the glow (C-g)
 document.querySelectorAll('.st .big, .value-text .big').forEach((el) => { const c = { el, title: !!el.closest('.st'), shown: false, style: REDUCE ? '' : el.dataset.style || '', tl: null }; SplitText.create(el, { type: 'chars', charsClass: 'char', onSplit(self) { c.chars = self.chars; gsap.set(self.chars, { opacity: c.shown ? 1 : 0 }); self.chars.forEach((ch) => { ch.style.setProperty('--cx', ch.offsetLeft + 'px'); ch.style.setProperty('--cy', ch.offsetTop + 'px'); }); } });   // --cx/--cy: each letter's place, for the glow (C-g)
   if (c.style === 'type') { c.caret = document.createElement('i'); c.caret.className = 'caret'; c.caret.setAttribute('aria-hidden', 'true'); el.appendChild(c.caret); }
   // a statement Kay emptied in the Studio has no letters: reveal and hide have nothing to do
@@ -281,6 +299,7 @@ document.querySelectorAll('.st .big, .value-text .big').forEach((el) => { const 
     else c.tl = gsap.to(ch, { opacity: 1, duration: 0.5, stagger: 0.014, ease: 'power2.out' }); };
   c.hide = () => { if (!c.shown || !c.chars?.length) return; c.shown = false; c.tl?.kill(); el.classList.remove('lit'); c.caret?.classList.remove('on');
     gsap.to(c.chars, { opacity: 0, duration: 0.3, overwrite: true, onComplete: () => { if (!c.shown) gsap.set(c.chars, { yPercent: 0, rotate: 0 }); } }); }; chars.push(c); });
+document.fonts.ready.then(() => chars.forEach(placeChars));
 const heroWords = [...document.querySelectorAll('.hero .word')];
 gsap.set(heroWords.map((w) => w.querySelector('.main')), { yPercent: 110 });
 let heroShown = false;
@@ -292,7 +311,7 @@ heroWords.forEach((w) => { const main = w.querySelector('.main'), alt = w.queryS
 const lenis = new Lenis({ lerp: 0.1, smoothWheel: true }); window.__lenis = lenis;
 lenis.stop();
 let scroll = 0, vh = innerHeight, vw = innerWidth;
-document.querySelectorAll('.nav a[data-to]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); lenis.scrollTo('#' + a.dataset.to, { duration: 1.6, easing: (t) => 1 - Math.pow(1 - t, 4) }); }));
+document.querySelectorAll('.nav a[data-to]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); REW.autoUntil = performance.now() / 1000 + 1.9; lenis.scrollTo('#' + a.dataset.to, { duration: 1.6, easing: (t) => 1 - Math.pow(1 - t, 4) }); }));
 
 // ───────────────────────── Three: a light world ─────────────────────────
 const canvas = $('gl');
@@ -545,6 +564,7 @@ function buildWorld() {
   const X = TIGER.x, L = TIGER.ledgeY;
   // the landing: just after the meadow window arrives; the camera then settles a little lower so the grass and the whole tiger are in frame
   world.landS = R.meadow.top / vh + LAND_AT; world.camYMin = camYAt(world.landS) - (GT.ready ? (LAY.mobile ? GB.settleMobile : GB.settle) : 0);
+  const landedTop = world.camYMin + (CAMERA.z + 2.8) * Math.tan(CAMERA.pitch + LAY.fov * Math.PI / 360);   // the landed frame's top edge on the back wall
   // the grass is just under the tiger's feet on its last rung: at the landing it only has to put its feet down, stand (hips at the mount
   // clip's first pose) and turn — and it stays in the lower right of the clamped frame, like the rig did
   const rigMode = !GT.ready, LM = ladderMetrics(); world.groundY = hipsGlued(world.landS) - (rigMode ? 1.05 : LM.mountStart + 0.03);   // the rig keeps its own numbers
@@ -579,7 +599,8 @@ function buildWorld() {
     if (i > 0) { const yS = yTop; const slabM = new THREE.MeshStandardMaterial({ color: th.ink === 'light' ? 0x2a2622 : 0xb8b2a4, roughness: 0.95 });   // the slab above this room (its ceiling), with a hatch for the ladder
       for (const [x0, x1] of [[-16, Math.max(X - 1.2, X - TIGER.pier)], [X + 1.2, 16]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, 0.3, 5.3), slabM); m.position.set((x0 + x1) / 2, yS, -0.15); m.receiveShadow = true; m.castShadow = true; g.add(m); }
 }   // (no rim board at the hatch: now that the slab is seen, it cut across the tiger climbing through)
-    PROPS[name] && PROPS[name](g, yTop - (i > 0 ? 0.15 : 0), yBot + (i < skins.length - 1 ? 0.15 : 0));
+    const yProps = i === skins.length - 1 && name !== 'computer' ? Math.min(yTop - 3, Math.max(yBot, landedTop + 0.3)) : yBot;   // the meadow is tuned for the computer room
+    PROPS[name] && PROPS[name](g, yTop - (i > 0 ? 0.15 : 0), yProps + (i < skins.length - 1 ? 0.15 : 0));
     // the room's lamps and glowing things, for the lights coming on as you arrive (B1): each keeps its own base, position and turn in the order
     if (i > 0) { const seen = new Set(); let n = 0; g.updateMatrixWorld(true);
       g.traverse((o) => { const isLamp = o.isPointLight, m = o.isMesh && o.material && o.material.emissive && o.material.emissive.getHex() !== 0 && o.material.emissiveIntensity > 0 ? o.material : null;
@@ -598,6 +619,7 @@ function buildWorld() {
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 1.3, 6), postMat); post.position.set(tx, y + 0.65, -2.2); post.castShadow = true; g.add(post);
     const flame = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), new THREE.MeshStandardMaterial({ color: th.torch, emissive: th.torch, emissiveIntensity: 1.2, roughness: 1 })); flame.position.set(tx, y + 1.36, -2.2); g.add(flame);
     const light = new THREE.PointLight(th.torch, th.torchI, LIGHT.torch.distance, 2); light.position.set(tx, y + 1.5, -1.6); g.add(light);
+    if (y - 0.5 < landedTop) g.userData.hidden = true;             // the last project's ledge would stand in the landed meadow when no computer floor comes between
     world.ledges.push({ s: sC, el, seed: Math.random() * 10, flame, light, base: th.torchI, glanced: false, floor: +el.closest('.window').id.slice(3), p: flame.getWorldPosition(new THREE.Vector3()), r: frac(Math.sin(sC * 91.7) * 4375.85), st: lampState('torch:' + el.dataset.p), ann: el.classList.contains('on') }); });
   if (world.deck) document.querySelectorAll('#deck .slide').forEach((el, j) => world.ledges.push({ s: world.hold.s0 + j, el, seed: 0, flame: null, light: null, base: 0, glanced: false, slide: true }));
   // the shore (meadow at the bottom)
@@ -633,7 +655,9 @@ function measure() {
   R.inks = [{ top: R.intro.top, h: R.intro.h, theme: 'stone', fl: -1 }, ...R.windows.map((w, i) => ({ ...w, fl: i })), { top: R.meadow.top, h: R.meadow.h, theme: SECTIONS[SECTIONS.length - 1].theme, fl: -1 }];
   world.hold = deckIdx >= 0 ? { s0: R.windows[deckIdx].top / vh + DECK.entry, len: SECTIONS[deckIdx].pieces.length - 1 } : { s0: 0, len: 0 };
   texts.forEach((t) => { const r = t.el.getBoundingClientRect(); t.top = r.top + sy; t.h = r.height; });
-  chars.forEach((c) => { const r = c.el.getBoundingClientRect(); c.top = r.top + sy; c.h = r.height; });
+  chars.forEach((c) => { const r = c.el.getBoundingClientRect(); c.top = r.top + sy; c.h = r.height; placeChars(c); });
+  R.nav = [...document.querySelectorAll('.nav .brand, .nav .links, .nav .right')].map((el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
+  T.gx = null;                                                    // the glow re-measures on the next frame
   tune(); renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.fov = LAY.fov; camera.updateProjectionMatrix();
   buildWorld();
 }
@@ -658,7 +682,7 @@ const ray = new THREE.Raycaster(); let hoverTiger = false; const clickNdc = new 
 // click the tiger: the paper and window sections sit over the canvas, so listen on the window and cast from the click itself
 // (this also makes a tap work on phones, where there is no hover to rely on)
 const pokeTiger = (e) => { if (ENTRY.phase !== 'done') { entryPoke(); return; } if (panelOpen || !T.inWorld) return;
-  if (e.target?.closest?.('a, button, .card .in, .slide .in, .nav, .panel, #deck, #talents, #wardrobe')) return;
+  if (e.target?.closest?.('a, button, .card .in, .slide .in, .nav, .panel, #panel-scrim, #deck, #talents, #wardrobe')) return;
   clickNdc.set((e.clientX / vw) * 2 - 1, -((e.clientY / vh) * 2 - 1)); ray.setFromCamera(clickNdc, camera); if (!ray.intersectObject(tigerHit).length) { if (T.menu) talents(false); if (T.wmenu) wardrobe(false); return; }
   if (GT.ready && state === 'sit' && T.sit > 0.8) { talents(!T.menu); return; }                    // on the meadow: the talent show
   if (state === 'idle') T.wave = T.waveLen = 1.6; glance(1.9, 0.6); T.waveAt = 0; say(['kooky.', 'again?', 'which floor is this.', 'that tickles.'][Math.floor(Math.random() * 4)]); };
@@ -872,6 +896,9 @@ function talents(open) { const was = T.menu; T.menu = open; if (open && T.wmenu)
   if (open && !was) { T.menuFrom = document.activeElement; setTimeout(() => talentsEl.querySelector('button')?.focus({ preventScroll: true }), 30); }
   else if (!open && talentsEl.contains(document.activeElement)) { const f = T.menuFrom; T.menuFrom = null; if (f && f.focus && f !== document.body) f.focus({ preventScroll: true }); else document.activeElement.blur(); } }
 talentsEl.inert = true;
+const trapTab = (el) => el.addEventListener('keydown', (e) => { if (e.key !== 'Tab') return; const bs = [...el.querySelectorAll('button:not([disabled])')]; if (!bs.length) return;
+  e.preventDefault(); const i = bs.indexOf(document.activeElement); bs[(i + (e.shiftKey ? -1 : 1) + bs.length) % bs.length].focus({ preventScroll: true }); });
+trapTab(talentsEl);
 const trickEl = $('trick'); if (trickEl) { trickEl.textContent = COPY.talents.trigger; trickEl.addEventListener('click', (e) => { e.stopPropagation(); if (GT.ready && state === 'sit') talents(!T.menu); }); }
 // the catwalk's heading, planned when it starts (with this frame's camera): out along the clip's own curve and back, clear of the pier
 // face and the rails (z > 0.5 for the hips; the body is about 0.45 deep), the whole tiger in frame, off the shore words on a wide screen,
@@ -897,7 +924,7 @@ function perform(kind) { const a = COPY.talents.acts.find((x) => x[0] === kind);
 talentsEl.addEventListener('click', (e) => { const b = e.target.closest('button[data-act]'); if (!b) return; e.stopPropagation(); perform(b.dataset.act); });
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (T.menu) talents(false); if (T.wmenu) wardrobe(false); } });
 // ───────────────────────── The wardrobe (G2, Kay's pieces): what the tiger wears, chosen on the meadow, kept between visits ─────────────────────────
-const wardrobeEl = $('wardrobe'), wearEl = $('wear'); wardrobeEl.inert = true;
+const wardrobeEl = $('wardrobe'), wearEl = $('wear'); wardrobeEl.inert = true; trapTab(wardrobeEl);
 const WORN = {};                                               // id → { meshes, loaded, loading }
 // a piece whose file is not there yet (Kay is still making it) shows, locked, as "soon"
 function renderWardrobe() { const n = seenN(), items = WEAR;
@@ -920,7 +947,7 @@ function wearItem(w, on) { const W = WORN[w.id] || (WORN[w.id] = { meshes: [], l
     undefined, () => { W.loading = false; console.warn('wardrobe: could not load', w.src); }); }
 function applyWear() { if (!GT.ready) return; for (const w of WEAR) if (w.src) wearItem(w, PROG.wear.has(w.id) && seenN() >= needOf(w.need)); }
 // ───────────────────────── The visitor's reward (G3): a nod when you stay on a project, a look-away when you rush past ─────────────────────────
-const REW = { cur: null, pi: -1, still: 0, said: false, nodded: new Set(), rushed: null, lastRush: -99 };
+const REW = { cur: null, pi: -1, still: 0, said: false, nodded: new Set(), rushed: null, lastRush: -99, autoUntil: 0 };
 function rewardW() { const R = T.rew; if (!R) return 0; const d = GT.dur[R.kind === 'nod' ? 'nodHead' : 'lookHead'] || 1; return smooth(Math.min(1, R.t / 0.3)) * (1 - smooth(seg(R.t, [d - 0.45, d - 0.05]))); }
 function rewardFrame(dt, t) { const L = REW.cur, pi = L ? +L.el.dataset.p : -1, still = Math.abs(vel) < 25 && !panelOpen;
   if (pi !== REW.pi) { REW.pi = pi; REW.still = 0; REW.said = false; } else if (L && still) REW.still += dt; else REW.still = 0;
@@ -931,19 +958,19 @@ function rewardFrame(dt, t) { const L = REW.cur, pi = L ? +L.el.dataset.p : -1, 
   if (REW.rushed) { const Lr = REW.rushed; REW.rushed = null; const rp = +Lr.el.dataset.p;
     if (can && !PROG.seen.has(seenKey(rp)) && !REW.nodded.has(rp) && t - REW.lastRush > REWARD.rushEvery) { REW.lastRush = t; T.rew = { kind: 'look', t: 0 }; const q = PL.quips.rush; say(q[Math.floor(t) % q.length], 2); } } }
 // C-d: the meadow's grass bends away from the cursor's spot on the ground and springs back; the flowers nod with it
-const _o = { ax: 0, az: 0 }, lampNdc = new THREE.Vector2();
+const _o = { ax: 0, az: 0, w: 0 }, lampNdc = new THREE.Vector2();
 function grassFrame(dt) { const Gs = world.grass, G = world.groundY; ray.setFromCamera(lampNdc.set(mouse.x, -mouse.y), camera); const o = ray.ray.origin, d = ray.ray.direction; const hit = d.y < -1e-4 ? (G - o.y) / d.y : -1;
   const hx = hit > 0 ? o.x + d.x * hit : 1e9, hz = hit > 0 ? o.z + d.z * hit : 1e9, R = 2.6, ease = Math.min(1, dt * 9); let dirty = false;
   const bend = (x, z, cur) => { const dx = x - hx, dz = z - hz, dd = Math.hypot(dx, dz); const want = dd < R && dd > 1e-3 ? (1 - dd / R) * (1 - dd / R) * 1.1 : 0;
-    if (want === 0 && cur < 1e-3) return -1; _o.ax = dz / (dd || 1); _o.az = -dx / (dd || 1); const tilt = cur + (want - cur) * ease; return tilt < 1e-3 ? 0 : tilt; };
-  for (let i = 0; i < Gs.n; i++) { const r = bend(Gs.px[i], Gs.pz[i], Gs.tilt[i]); if (r < 0) continue; if (r > 0) { Gs.ax[i] = _o.ax; Gs.az[i] = _o.az; } Gs.tilt[i] = r;
+    if (want === 0 && cur < 1e-3) return -1; _o.w = want; if (want > 0) { _o.ax = dz / (dd || 1); _o.az = -dx / (dd || 1); } const tilt = cur + (want - cur) * ease; return tilt < 1e-3 ? 0 : tilt; };
+  for (let i = 0; i < Gs.n; i++) { const r = bend(Gs.px[i], Gs.pz[i], Gs.tilt[i]); if (r < 0) continue; if (r > 0 && _o.w > 0) { Gs.ax[i] = _o.ax; Gs.az[i] = _o.az; } Gs.tilt[i] = r;
     _m.fromArray(Gs.base, i * 16); _q.setFromAxisAngle(_a.set(Gs.ax[i], 0, Gs.az[i]), r); _m2.makeRotationFromQuaternion(_q);
     _m3.makeTranslation(Gs.px[i], Gs.y0, Gs.pz[i]); _m2.premultiply(_m3); _m3.makeTranslation(-Gs.px[i], -Gs.y0, -Gs.pz[i]); _m2.multiply(_m3); _m2.multiply(_m); Gs.mesh.setMatrixAt(i, _m2); dirty = true; }
   if (dirty) Gs.mesh.instanceMatrix.needsUpdate = true;
-  for (const f of world.flowers || []) { const r = bend(f.x, f.z, f.tilt); if (r < 0) continue; if (r > 0) { f.ax = _o.ax; f.az = _o.az; } f.tilt = r; f.g.quaternion.setFromAxisAngle(_a.set(f.ax, 0, f.az), r); } }
+  for (const f of world.flowers || []) { const r = bend(f.x, f.z, f.tilt); if (r < 0) continue; if (r > 0 && _o.w > 0) { f.ax = _o.ax; f.az = _o.az; } f.tilt = r; f.g.quaternion.setFromAxisAngle(_a.set(f.ax, 0, f.az), r); } }
 // C-g: a light on the big words — the cursor's spot inside the letters (CSS .glow reads --lx/--ly); only for words near the pointer
 const glowEls = [...document.querySelectorAll('.value-text .big, .shore-text .big, .st.title .big, .footer .words')]; glowEls.forEach((el) => el.classList.add(el.closest('.value-text') || el.closest('.st') ? 'glow-c' : 'glow'));
-function glowFrame() { if (!mouse.seen || LAY.mobile || (mx.x === T.gx && mx.y === T.gy)) return; T.gx = mx.x; T.gy = mx.y;
+function glowFrame() { if (!mouse.seen || LAY.mobile || (mx.x === T.gx && mx.y === T.gy && scroll === T.gs)) return; T.gx = mx.x; T.gy = mx.y; T.gs = scroll;
   for (const el of glowEls) { const r = el.getBoundingClientRect(); const near = r.bottom > -260 && r.top < vh + 260 && mx.x > r.left - 260 && mx.x < r.right + 260 && mx.y > r.top - 260 && mx.y < r.bottom + 260;
     if (near) { el._g = true; el.style.setProperty('--lx', (mx.x - r.left).toFixed(0) + 'px'); el.style.setProperty('--ly', (mx.y - r.top).toFixed(0) + 'px'); } else if (el._g) { el._g = false; el.style.setProperty('--lx', '-999px'); } } }
 
@@ -972,7 +999,7 @@ function entryChrome() { if (ENTRY.chrome) return; ENTRY.chrome = true; document
   if (st) { st.stagger = MOTION.reveal.heroStagger; st.delay = QUIET ? 0 : 0.35; st.reveal(); } if (sc) setTimeout(() => sc.reveal(), QUIET ? 0 : 1100); }
 function entryDone() { ENTRY.phase = 'done'; ENTRY.k = 1; document.documentElement.classList.add('entering', 'entered'); lenis.start(); entryChrome(); tcard.classList.add('gone');
   if (!QUIET && !REDUCE) T.nod = OP.nod;
-  if (PROG.back && !QUIET) setTimeout(() => { say(PL.quips.back, 3); if (PROG.lastFloor >= 0 && SECTIONS[PROG.lastFloor]) toast(ptl(PL.ach.back, { f: SECTIONS[PROG.lastFloor].num })); }, 900); }
+  if (PROG.back && !QUIET) setTimeout(() => { say(PL.quips.back, 3); const lf = SECTIONS.find((x) => x.id === PROG.lastFloor); if (lf) toast(ptl(PL.ach.back, { f: lf.num })); }, 900); }
 window.addEventListener('wheel', entryPoke, { passive: true });
 window.addEventListener('touchmove', entryPoke, { passive: true });
 window.addEventListener('keydown', (e) => { if (ENTRY.phase !== 'done' && e.key === 'Tab') e.preventDefault(); });
@@ -1070,17 +1097,31 @@ function cardFrame(L, a, dt) { const el = L.el, abs = Math.abs(a);
 const arriveK = (i, s) => smooth(seg(s, [crossS(i) + LIGHTS.on[0], crossS(i) + LIGHTS.on[1] + 0.15]));
 function darkAt(y, s) { const w = R.inks.find((r) => scroll + y >= r.top && scroll + y < r.top + r.h); if (!w) return null;
   return { w, dark: THEMES[w.theme].ink === 'light' || (w.fl >= 0 && s > crossS(w.fl) - 0.35 && arriveK(w.fl, s) < 0.5) }; }
+// the lift sits low on the left: at the end of a light floor over a dark one it is over the floor itself — the next room's ceiling slab,
+// dark like that room. Is the ray through the lift's corner below the floor's top where it would meet the back wall (z = -2.8)?
+const inkRay = new THREE.Raycaster(), inkNdc = new THREE.Vector2();
+function overDarkFloor(w) { const nx = w.fl >= 0 ? SECTIONS[w.fl + 1] : null, yS = nx ? world.floors[w.fl + 1] : null;
+  if (yS == null || THEMES[nx.theme].ink !== 'light') return false;
+  inkRay.setFromCamera(inkNdc.set((40 / vw) * 2 - 1, -(((vh - 30) / vh) * 2 - 1)), camera); const o = inkRay.ray.origin, d = inkRay.ray.direction;
+  return d.z < -1e-4 && o.y + d.y * ((-2.8 - o.z) / d.z) < yS + 0.15; }
 function inkFrame(s, landed) { const top = darkAt(50, s), bottom = darkAt(vh - 30, s), meadowNav = !!top && top.w.top === R.meadow.top;
   const navMode = !top ? '' : landed && meadowNav ? 'split' : top.dark && !landed ? 'light' : '';
   if (navMode !== T.navMode) { T.navMode = navMode; document.documentElement.classList.toggle('nav-light', navMode === 'light'); document.documentElement.classList.toggle('nav-split', navMode === 'split'); }
-  liftEl.classList.toggle('light', !!bottom && bottom.dark); }
+  liftEl.classList.toggle('light', !!bottom && (bottom.dark || overDarkFloor(bottom.w)));
+  navOnPaper(); }
+// in a dark room the nav is paper-coloured; where an open panel or the computer's screen (both paper) lies under one of its parts,
+// that part goes back to ink (the parts' boxes are measured on resize; the deck's is the one laid over the glass this frame)
+const navParts = [...document.querySelectorAll('.nav .brand, .nav .links, .nav .right')];
+function navOnPaper() { const pw = panelOpen ? panel.offsetWidth : 0, dk = T.deckOn ? T.deckBox : null;
+  navParts.forEach((el, i) => { const r = R.nav?.[i]; const on = !!r && r.w > 0 && (pw > r.x + 4 || (!!dk && dk.y < r.y + r.h && dk.y + dk.h > r.y && dk.x < r.x + r.w && dk.x + dk.w > r.x));
+    if (el._paper !== on) { el._paper = on; el.classList.toggle('on-paper', on); } }); }
 // B2: the lift's display, bottom left: the floor number rolls like an elevator's (on time, as the camera passes each slab behind the
 // title paper), the depth runs with the camera; it fades while an object comes up underneath it and before the archives reach it
 const liftEl = $('lift'), liftRoll = $('lift-roll'), liftName = $('lift-name'), liftDepth = $('lift-depth');
 function liftFrame(s, camY, under) { const n = SECTIONS.length; let f = -1; for (let i = 0; i < n; i++) if (s >= crossS(i)) f = i;
   const on = ENTRY.phase === 'done' && s >= crossS(0) - 0.5 && scroll + vh - 80 < R.archives.top;
   liftEl.classList.toggle('on', on); liftEl.classList.toggle('under', under); if (!on) return;
-  const fi = Math.max(0, f); if (fi !== T.liftF) { T.liftF = fi; liftName.textContent = SECTIONS[fi].title; liftRoll.style.transform = `translate3d(0, ${(-fi * 100 / n).toFixed(3)}%, 0)`; PROG.lastFloor = fi; }
+  const fi = Math.max(0, f); if (fi !== T.liftF) { T.liftF = fi; liftName.textContent = SECTIONS[fi].title; liftRoll.style.transform = `translate3d(0, ${(-fi * 100 / n).toFixed(3)}%, 0)`; PROG.lastFloor = SECTIONS[fi].id; }
   const mins = Math.floor(PROG.secs / 60); if (mins !== T.liftM) { T.liftM = mins; $('lift-time').textContent = mins >= 1 ? ptl(PL.time, { m: mins }) : ''; }
   const d = `↓ ${Math.max(0, -camY).toFixed(1)} m`; if (d !== T.liftD) { T.liftD = d; liftDepth.textContent = d; } }
 const deckSlides = [...document.querySelectorAll('#deck .slide')], deckCrt = $('deck-crt');
@@ -1120,7 +1161,7 @@ function frame(now) {
   if (ENTRY.phase !== 'done') {                               // the opening: a close shot of the tiger on paper that backs out to the rail's first position
     const D = LAY.mobile ? 7.4 : 5.4, cy = TIGER.ledgeY + HS * 0.52;
     camera.position.lerp(_a.set(TIGER.x, cy + D * Math.sin(-CAMERA.pitch), GB.zStand + D * Math.cos(CAMERA.pitch)), 1 - ENTRY.k); }
-  { const show = ENTRY.phase === 'enter' || ENTRY.phase === 'done'; for (const o of world.objs) o.visible = show; }
+  { const show = ENTRY.phase === 'enter' || ENTRY.phase === 'done'; for (const o of world.objs) o.visible = show && !o.userData.hidden; }
   camera.updateMatrixWorld();                                   // overlays and the hover ray below use this frame's camera
 
   // ── which window are we in? (for the sky tint + the cards)
@@ -1135,7 +1176,8 @@ function frame(now) {
   const sl = world.landS; let next;
   if (s < TIGER.idleEnd) next = 'idle'; else if (s < TIGER.turnEnd) next = 'turn'; else if (s < TIGER.edgeEnd) next = 'edge'; else if (s < sl) next = 'climb';
   else if (s < sl + TIGER.landLen) next = 'land'; else if (s < sl + TIGER.landLen + TIGER.turnBackLen) next = 'turnBack'; else next = 'sit';
-  if (next !== state) { state = next; if (state === 'land' && !saidShore) { saidShore = true; say(COPY.shore.tiger, 5); ach('landed', PL.ach.landed); } if (state === 'climb') saidShore = false; }
+  if (next !== state) { state = next; if (state === 'climb') saidShore = false; }
+  if (!saidShore && s >= sl && ENTRY.phase === 'done') { saidShore = true; say(COPY.shore.tiger, 5); ach('landed', PL.ach.landed); }   // a big jump can skip 'land'
   T.sit += ((state === 'sit' ? 1 : 0) - T.sit) * Math.min(1, dt * 3.5);
   if (state === 'sit' && !T.perf) { T.waveAt -= dt; if (T.waveAt < 0) { T.waveAt = 6 + Math.random() * 5; T.wave = T.waveLen = 1.6; } } else if (state !== 'idle') T.wave = 0;
   if (T.perf) { T.perf.t += dt; if (state !== 'sit' && T.perf.fadeAt == null) T.perf.fadeAt = T.perf.t; }   // scrolled off the meadow spot: the act eases out (0.4 s), no jump
@@ -1155,7 +1197,7 @@ function frame(now) {
     if (!L.slide && Math.abs(a) < 1.4) cardFrame(L, a, dt);
     if (!L.slide && a > 0.28 && a < 0.85) underLift = true;                                // an object coming up under the lift's display
     if (Math.abs(a) < 0.3) REW.cur = L;                                                     // the project in the middle (G3)
-    if (a < 0.25 && L.aPrev >= 0.25) L.tIn = t; if (a < -0.25 && L.aPrev >= -0.25 && L.tIn != null && t - L.tIn < REWARD.rush) REW.rushed = L; L.aPrev = a;
+    if (a < 0.25 && L.aPrev >= 0.25) L.tIn = t; if (a < -0.25 && L.aPrev >= -0.25 && L.tIn != null && t - L.tIn < REWARD.rush && t > REW.autoUntil) REW.rushed = L; L.aPrev = a;
     if (a < 0.14 && a > -0.5 && !L.glanced && state === 'climb') { L.glanced = true; glance(TIGER.glance.yaw, TIGER.glance.pitch); }
     if (a > 0.3 || a < -0.6) L.glanced = false;
     if (!L.flame) continue;
@@ -1213,12 +1255,13 @@ function frame(now) {
   if (world.deck) { const D = world.deck, W = R.windows[D.win]; let on = false;
     if (scroll + vh > W.top && scroll < W.top + W.h && !landed) { v3.copy(D.tl).project(camera); const x = (v3.x + 1) / 2 * vw, y = (1 - v3.y) / 2 * vh; v3.copy(D.br).project(camera); const w = (v3.x + 1) / 2 * vw - x, h = (1 - v3.y) / 2 * vh - y;
       on = y < vh && y + h > 0;
-      if (on) { deckEl.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`; deckEl.style.width = w.toFixed(1) + 'px'; deckEl.style.height = h.toFixed(1) + 'px';
+      if (on) { deckEl.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`; deckEl.style.width = w.toFixed(1) + 'px'; deckEl.style.height = h.toFixed(1) + 'px'; T.deckBox = { x, y, w, h };
         const u = clamp((s - world.hold.s0) / Math.max(world.hold.len, 1e-3), 0, 1); deckStrip.style.transform = `translate3d(${(-u * (D.n - 1) * 100 / D.n).toFixed(3)}%, 0, 0)`;
         const k = Math.round(u * (D.n - 1)); if (k !== T.deckK) { T.deckK = k; $('deck-n').textContent = `${String(k + 1).padStart(2, '0')} / ${String(D.n).padStart(2, '0')}`; $('deck-bar').style.width = ((k + 1) / D.n * 100).toFixed(1) + '%'; }
           // (the preview's content follows its focus in CSS, --f: no pop from visible to hidden and back)
         deckSlides.forEach((el, j) => { const f = smooth(Math.min(1, Math.abs(u * (D.n - 1) - j))); if (Math.abs((el._f ?? -1) - f) > 0.002) { el._f = f; el.style.setProperty('--f', f.toFixed(3)); } });
-        const cx = crossS(D.win), cr = seg(s, [cx + 0.85, cx + 1.3]); setVar(deckCrt, '--c1', seg(cr, [0, 0.4])); setVar(deckCrt, '--c2', smooth(seg(cr, [0.4, 0.8]))); setVar(deckCrt, '--c3', seg(cr, [0.75, 1])); deckCrt.classList.toggle('off', cr >= 1); }
+        const cx = crossS(D.win), cr = seg(s, [cx + 0.85, cx + 1.3]); setVar(deckCrt, '--c1', seg(cr, [0, 0.4])); setVar(deckCrt, '--c2', smooth(seg(cr, [0.4, 0.8]))); setVar(deckCrt, '--c3', seg(cr, [0.75, 1])); deckCrt.classList.toggle('off', cr >= 1);
+        if ((cr >= 0.6) !== deckLive) { deckLive = cr >= 0.6; deckLock(); } }
     if (world.glass) world.glass.color.setHex(0x0D0E10).lerp(tmpC.setHex(0xECEBE4), smooth(seg(s, [crossS(D.win) + 0.85 + 0.18, crossS(D.win) + 1.3]))); }
     if (on !== T.deckOn) { T.deckOn = on; deckEl.classList.toggle('on', on); } }
 
@@ -1243,7 +1286,7 @@ function frame(now) {
   // ── cursor
   const under = document.elementFromPoint(mx.x, mx.y);
   ray.setFromCamera(new THREE.Vector2(mouse.x, -mouse.y), camera); hoverTiger = inWorld && mouse.seen && ray.intersectObject(tigerHit).length > 0; const overCard = !panelOpen && under?.closest?.('.card .in, .slide .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close');
-  const hot = !!(overCard || overLink || overClose || under?.closest?.('button, [role="button"]') || (hoverTiger && !panelOpen)); if (hot !== T.pawHot) { T.pawHot = hot; cursor.classList.toggle('hot', hot); }   // the dot grows over anything clickable
+  const hot = !!(overCard || overLink || overClose || under?.closest?.('button:not(:disabled), [role="button"]') || (hoverTiger && !panelOpen)); if (hot !== T.pawHot) { T.pawHot = hot; cursor.classList.toggle('hot', hot); }   // the dot grows over anything clickable
   setPill(ENTRY.phase !== 'done' ? (ENTRY.phase === 'void' && hoverTiger ? 'say hi' : '') : overClose ? COPY.panel.close : hoverTiger && !panelOpen ? (GT.ready && state === 'sit' ? 'talent show' : COPY.cursor.tiger) : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
 
   tigerPoint(v3, false); v3.project(camera);
@@ -1261,7 +1304,8 @@ if (STUDIO) {
   const mid = (el) => top(el) + el.getBoundingClientRect().height / 2 - vh / 2;       // the element's centre at the screen's centre
   const place = (target) => {
     const m = /^(title|value)(\d+)$/.exec(target || '');
-    if (m) { const el = m[1] === 'title' ? at('#title' + m[2]) : at('#value-big' + m[2])?.parentElement; return el ? mid(el) : null; }
+    if (m) { const k = SECTIONS.findIndex((x) => x.at === +m[2]); if (k < 0) return null;            // a floor the lineup left empty isn't built
+      const el = m[1] === 'title' ? at('#title' + k) : at('#value-big' + k)?.parentElement; return el ? mid(el) : null; }
     if (target === 'header') return 0;
     if (target === 'intro') return top(at('#intro')) + vh * 0.5;
     if (target === 'shore') return top(at('#meadow')) + (LAND_AT + 0.2) * vh;

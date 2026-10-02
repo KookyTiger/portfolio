@@ -23,7 +23,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # the branch head, not the commit that started this run: one Studio action can push several commits seconds apart
+      # (e.g. ↑ ↓ renumbers a floor), and the run queued behind the others must build all of them
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -33,11 +37,15 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html merge/dist/index.html merge/writeups.js
-          if git diff --cached --quiet; then echo "Site already up to date."; exit 0; fi
-          git commit -m "Build the site (write-ups from the Studio)"
-          git pull --rebase
-          git push
-          gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds" || true
+          for attempt in 1 2 3 4; do
+            git add index.html merge/dist/index.html merge/writeups.js
+            if git diff --cached --quiet; then echo "Site already up to date."; exit 0; fi
+            git commit -q -m "Build the site (write-ups from the Studio)"
+            if git push; then gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds" || true; exit 0; fi
+            # the Studio pushed in the meantime: build again on the new head (never rebase generated files)
+            git fetch -q origin main && git reset -q --hard origin/main
+            (cd merge && python3 build.py . dist && cp dist/index.html ../index.html)
+          done
+          echo "The build could not be pushed."; exit 1
         env:
           GH_TOKEN: ${{ github.token }}
