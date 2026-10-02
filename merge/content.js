@@ -13,6 +13,8 @@ export const CATS = {
   app:         { name: 'App',            tint: '#D9D2DC' },
   interactive: { name: 'Motion',         tint: '#D9D2DC' },
   stage:       { name: 'Scenic design',  tint: '#DDD3C8' },
+  mechanical:  { name: 'Mechanical design', tint: '#D6D9CF' },
+  architecture: { name: 'Architecture',   tint: '#DDD3C8' },
 };
 
 // Placeholder silhouettes: flat ink cut-outs of the object each project is about (viewBox 0 0 200 140).
@@ -62,6 +64,9 @@ export const PIECES = [
     detail: { line: 'Competitive landscape and partnership targets for a campus-recruiting software company, including the federal channels the client asked about.', role: 'Partnership Identification & Expansion workstream (with two other analysts).', tools: 'Competitive and SWOT analysis of ATS vendors · secondary research synthesis (Gartner, Deloitte, McKinsey, J.P. Morgan) · partnership target identification', numbers: '98.8% of the Fortune 500 already run an ATS, and Workday holds 37.1% of that market to SuccessFactors’ 13.1%. 55% of recruiting executives expect to spend more on recruiting tech; 80% of vendors are expected to embed AI by 2027.', one: 'The opening isn’t displacement, it’s adjacency.' } },
   { name: 'AMG-786',               slug: 'amg',         cat: 'analytics', year: '2024', sil: 'capsule', img: 'assets/projects/amg.webp', desc: 'Financial analysis of a drug candidate: development costs, pricing, ten years of sales and NPV.', meta: ['CIV_ENV 205', 'Excel'], take: '“Proceed, but wary of Phase II.” I priced it against Wegovy, Mounjaro, Zepbound and Ozempic.',
     detail: { line: 'A go / no-go on a drug candidate, priced against Wegovy, Mounjaro and Ozempic.', role: 'The team’s “Calculator”; wrote the pricing analysis (Wegovy $1,349/mo, Mounjaro $1,100, Zepbound $1,060, Ozempic $959.60; inflation-adjusted 2033 average $1,470.41).', tools: 'Excel · revenue forecasting · NPV and IRR · decision tree · comparable pricing', numbers: '$3.37B in revenue in year ten; NPV positive in every sales-growth case we ran ($6.9B–$12.1B); recommendation: proceed, but wary of Phase II.', one: 'We budgeted for the tail, not the average: pessimistic on purpose, and we had to defend it.' } },
+  // since 2026-10-01 (from the Studio, Kay approved): the card copy is the write-up's own — name, one-liner, when, course, software; the take is one of its sentences
+  { name: 'Nylon Bike Caliper',    slug: 'bike-caliper', cat: 'mechanical', year: '2026', sil: 'caster', img: 'assets/projects/bike-caliper.webp', lineImg: 'assets/projects/bike-caliper-line.webp', desc: 'Nylon rear brake caliper arms, 47.7% lighter on the second print, and a lesson in leverage.', meta: ['MECH_ENG 240', 'NX'], take: 'Lighter arms flexed more, but the hand force barely moved: only the lever ratio could fix that.' },
+  { name: 'Peek-a-Boo House',      slug: 'peek-a-boo-house', cat: 'architecture', year: '2025', sil: 'house', img: 'assets/projects/peek-a-boo-house.webp', desc: 'A family house on a busy street that decides what passers-by get to see.', meta: ['CIV_ENV 385-1', 'Revit'], take: 'The house peeks where the family gathers.' },
 ];
 
 // Page rhythm: paper / window / paper / window / paper / window (Léo), three windows share one shaft (Laurens).
@@ -70,10 +75,12 @@ export const LEDGE_X = [-6.0, -2.2];
 // Sections = floors of the building. Each: a title paper (140vh) → the world re-skinned → the projects → the value statement,
 // revealed char by char OVER the room (Léo's library statement) so two papers never touch. `deck: true` = the projects live on
 // the screen of one big computer that fills the floor; the camera holds in front of it while the previews slide left.
+// `id` = the floor's id in the Studio (merge/writeups/_studio.json): which projects stand on it, and in what order, comes from the
+// Studio (app.js → applyLineup); `pieces` here is only the fallback when no write-up is approved yet.
 export const SECTIONS = [
-  { num: '01', title: 'ENGINEERING',          sub: 'product · mechanical · clinical',            theme: 'workshop', pieces: [0, 1, 2],          value: ['T-SHAPED.', 'WIDE ACROSS,', 'DEEP IN', 'ONE STEM.'] },
-  { num: '02', title: 'DESIGN & INTERACTION', sub: 'games · apps · motion · vr · stage',         theme: 'bar',      pieces: [3, 4, 5, 6, 7, 8], value: ['{N_UP} MONSTERS.', 'EVERY ONE', 'HAD A', 'DEADLINE.'] },
-  { num: '03', title: 'ANALYTICS & STRATEGY', sub: 'optimization · pricing · market sizing · finance', theme: 'computer', deck: true, pieces: [9, 10, 11, 12], value: ['HALF OF PRICING', 'IS DECIDING', 'WHAT NOT', 'TO COUNT.'] },
+  { id: 'engineering', num: '01', title: 'ENGINEERING',          sub: 'product · mechanical · clinical',            theme: 'workshop', pieces: [0, 1, 2],          value: ['T-SHAPED.', 'WIDE ACROSS,', 'DEEP IN', 'ONE STEM.'] },
+  { id: 'design',      num: '02', title: 'DESIGN & INTERACTION', sub: 'games · apps · motion · vr · stage',         theme: 'bar',      pieces: [3, 4, 5, 6, 7, 8], value: ['{N_UP} MONSTERS.', 'EVERY ONE', 'HAD A', 'DEADLINE.'] },
+  { id: 'analytics',   num: '03', title: 'ANALYTICS & STRATEGY', sub: 'optimization · pricing · market sizing · finance', theme: 'computer', deck: true, pieces: [9, 10, 11, 12], value: ['HALF OF PRICING', 'IS DECIDING', 'WHAT NOT', 'TO COUNT.'] },
 ];
 export const TITLE_SCREENS = 1;                                    // each floor's title: a full-screen paper block (Kay, 2026-10-01: the transition between floors is the paper itself, Léo's way; the elevator doors were dropped)
 export const INTRO_SCREENS = 2.4;                                  // the intro window after the hero: the tiger leans off the ladder and talks (a game dialogue bubble)
@@ -150,10 +157,10 @@ export const COPY = {
                                       ['T-shaped, as in wide across and deep in one stem.'],
                                       ['Also as in Tu. Also as in: every project below was a monster once. I went down and dealt with it.']], photo: null },
   talents: { hint: 'psst — click me', trigger: 'Ask for a trick', title: 'Talent show', close: 'Close', locked: 'see {n} projects',
-             acts: [['dance', 'Dance', 'watch this.', 0], ['zombie', 'Zombie', 'braaains.', 4], ['catwalk', 'Catwalk', 'serving.', 8], ['thumbs', 'Thumbs up', 'all thirteen. respect.', 13]] },   // [id, label, quip, projects seen to unlock]
+             acts: [['dance', 'Dance', 'watch this.', 0], ['zombie', 'Zombie', 'braaains.', 4], ['catwalk', 'Catwalk', 'serving.', 8], ['thumbs', 'Thumbs up', 'all {N}. respect.', 13]] },   // [id, label, quip, projects seen to unlock — never more than are on the site]
   // the visitor's progress (Kay, 2026-10-01): projects seen unlock acts and the wardrobe; a few achievements, each said once; a return visit is noticed
   progress: { seen: '{n} / {t} seen', time: '{m} min', wardrobe: 'Wardrobe', wardrobeTitle: 'Wardrobe', nothing: 'nothing yet — see a project', lockedItem: 'see {n}', soon: 'soon',
-              ach: { first: 'first monster down', floor: 'floor {f} cleared', half: 'halfway. the zombie is yours', all: 'thirteen down. the trick is yours', landed: 'the other shore', back: 'welcome back · last time: floor {f}' },
+              ach: { first: 'first monster down', floor: 'floor {f} cleared', half: 'halfway. the zombie is yours', all: '{N} down. the trick is yours', landed: 'the other shore', back: 'welcome back · last time: floor {f}' },
               quips: { back: 'oh. you again.', nod: ['mm-hm.', 'that one was fun.', 'yeah. that one.', 'good eye.'], rush: ['...', 'too fast.', 'you missed one.'], stay: ['still here?', 'take your time.', 'i can wait.'] } },
   shore:  { words: ['THE OTHER', 'SHORE'], sub: '{N} floors down · grass, finally', sayhi: 'Say hi ↗', tiger: 'peace. for now.' },
   archives: { title: 'Archives', note: 'monsters too small to mention' },

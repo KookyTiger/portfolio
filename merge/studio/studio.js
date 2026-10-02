@@ -132,6 +132,12 @@ const onSiteOrder = () => {
   const fo = Object.fromEntries((S.studio.floors || []).map((f, i) => [f.id, i]));
   return Object.values(S.projects).filter((p) => p.onSite).sort((a, b) => (fo[a.floor] ?? 9) - (fo[b.floor] ?? 9) || (a.order ?? 99) - (b.order ?? 99) || a.name.localeCompare(b.name));
 };
+// what the site shows (app.js → applyLineup): ● Approved + on the site, by floor, then `order`, then name
+const siteLineup = () => {
+  const fo = Object.fromEntries((S.studio.floors || []).map((f, i) => [f.id, i]));
+  return Object.values(S.projects).filter((p) => p.status === 'approved' && p.onSite && p.floor in fo)
+    .sort((a, b) => fo[a.floor] - fo[b.floor] || (a.order ?? 99) - (b.order ?? 99) || String(a.name).localeCompare(String(b.name)));
+};
 const openQs = (p) => (p.blocks || []).reduce((n, b) => n + (b.questions || []).filter((q) => !String(q.a || '').trim()).length, 0);
 function projectsOn(fid) {
   return Object.values(S.projects).filter((p) => (fid === 'backlog' ? !p.onSite || p.floor === 'backlog' : p.onSite && p.floor === fid))
@@ -207,7 +213,8 @@ function projectEditor(p) {
     <div class="row" style="gap:6px;margin-bottom:6px">
       <select data-k="status" data-side="1" style="width:auto">${optionList([['draft', '○ Draft'], ['review', '◐ Kay reviewing'], ['approved', '● Approved']], p.status || 'draft')}</select>
       <select data-k="floor" data-side="1" data-rerender="1" style="width:auto">${optionList(floors, p.floor || 'backlog')}</select>
-      <label class="row" style="gap:5px;font-size:13px"><input type="checkbox" data-k="onSite" data-side="1" ${p.onSite ? 'checked' : ''}> on the site</label>
+      ${p.onSite && p.floor && p.floor !== 'backlog' ? `<span class="row" style="gap:0" title="Move it earlier or later on its floor (the site follows)"><button class="ib" data-act="ord" data-d="-1" aria-label="Earlier on its floor">↑</button><button class="ib" data-act="ord" data-d="1" aria-label="Later on its floor">↓</button></span>` : ''}
+      <label class="row" style="gap:5px;font-size:13px"><input type="checkbox" data-k="onSite" data-side="1" data-rerender="1" ${p.onSite ? 'checked' : ''}> on the site</label>
       <select data-k="template" data-rerender="1" style="width:auto" title="Process template">${optionList(Object.entries(lib.templates).map(([k, t]) => [k, t.name]), p.template)}</select>
       <span class="sp" style="flex:1"></span>
       ${drive.folder ? `<a class="btn sm ghost" href="https://drive.google.com/drive/folders/${esc(drive.folder)}" target="_blank" rel="noopener">Drive folder ↗</a>` : drive.path ? `<span class="hint">Drive: ${esc(drive.path)}</span>` : ''}
@@ -301,12 +308,18 @@ const pages = (v) => esc((v || []).map((pg) => pg.join('\n')).join('\n\n'));
 const liveNote = () => 'Nothing here goes live until you press Publish site text in the top bar; the Site text page shows it in the real site first.';
 
 // the card: what a project shows on the site before it's opened
+const cardOf = (p) => ({ name: p.name || '', category: '', year: (String(p.context?.when || '').match(/\d{4}/) || [''])[0], desc: p.oneLiner || '', take: '', tags: '', ...(S.site?.cards?.[p.slug] || {}) });
+function cardPv(p, c) {
+  const L = siteLineup(), i = L.indexOf(p);
+  return `<p class="k"><span>${i >= 0 ? String(i + 1).padStart(2, '0') : '—'} / ${L.length}</span> ${esc(c.category)} ${esc(c.year)}</p><b>${esc(c.name)}</b><p>${esc(c.desc)}</p><p class="tk">${esc(c.take)}</p><p class="k">Open ↗</p>`;
+}
 function cardEditor(p) {
-  const c = S.site?.cards?.[p.slug];
-  if (!c) return p.onSite ? `<p class="hint" style="margin:8px 0 0">No card on the site for this project yet (the site's list of projects lives in content.js — ask Claude to add it).</p>` : '';
+  if (!S.site?.cards?.[p.slug] && !p.onSite) return '';
+  const c = cardOf(p), live = siteLineup().includes(p);
+  const note = live ? '' : `<p class="hint" style="margin:6px 0 0">Not on the site yet: a project stands on its floor once it is ● Approved and ticked “on the site”.</p>`;
   const k = (f) => `cards.${p.slug}.${f}`;
-  return `<div class="sec card-ed" data-doc="_site"><span class="k">The card — what the site shows before it's opened · ${liveNote()}</span>
-    <div class="card-pv"><p class="k"><span>01 / 13</span> ${esc(c.category)} ${esc(c.year)}</p><b>${esc(c.name)}</b><p>${esc(c.desc)}</p><p class="tk">${esc(c.take)}</p><p class="k">Open ↗</p></div>
+  return `<div class="sec card-ed" data-doc="_site"><span class="k">The card — what the site shows before it's opened · ${liveNote()}</span>${note}
+    <div class="card-pv">${cardPv(p, c)}</div>
     <div class="grid3"><label class="f"><span>Name on the card</span><input data-k="${k('name')}" value="${esc(c.name)}"></label>
       <label class="f"><span>Category</span><input data-k="${k('category')}" value="${esc(c.category)}"></label>
       <label class="f"><span>Year</span><input data-k="${k('year')}" value="${esc(c.year)}"></label></div>
@@ -460,7 +473,8 @@ function helpView() {
     <p><b>Private vs public.</b> Everything you're working on — drafts, pictures, your notes, Claude's questions and sources — lives in the private repo <code>portfolio-studio-private</code>. Only what you approve reaches the public repo (and the site).</p>
     <p><b>Floors.</b> Each floor's title band can carry its software icons and classes — pick them on the floor's page; the preview shows the band at real size. The site doesn't use any of this yet: when you like the preview, tell Claude to wire it in.</p>
     <p><b>Two ways in.</b> Online at <code>kookytiger.github.io/portfolio/merge/studio/</code> from any computer or phone (sign in once per browser with your GitHub token; everything saves to GitHub). On your Mac, double-click <code>merge/studio/Open Studio.command</code> — the local Studio saves to the same private repo a few seconds later, so both always show the same drafts.</p>
-    <p><b>Going live.</b> Set a project to <b>● Approved</b>: online, it's published right away (the write-up and its pictures go to the public repo and the site rebuilds in a minute or two); on your Mac, click <b>Publish</b> in the top bar. Set it back to Draft and it comes off the site.</p></div>`;
+    <p><b>Going live.</b> Set a project to <b>● Approved</b>: online, it's published right away (the write-up and its pictures go to the public repo and the site rebuilds in a minute or two); on your Mac, click <b>Publish</b> in the top bar. Set it back to Draft, or untick “on the site”, and it comes off the site.</p>
+    <p><b>The lineup is yours.</b> The site shows exactly the projects that are ● Approved and ticked “on the site”, each on the floor you picked, in the order of the sidebar — move one with ↑ ↓ next to its floor. Its card (name, lines, year) is the one at the top of the project; until you edit it, the site builds it from the write-up. The floating object is its cut-out when Claude has made one, otherwise the cover.</p></div>`;
 }
 
 // ── preview ──
@@ -473,7 +487,7 @@ function renderPreview(reset = false) {
   document.querySelectorAll('#pv-mode button').forEach((b) => b.classList.toggle('on', b.dataset.m === mode));
   const avail = Math.max(200, pv.clientWidth - 36);
   if (S.sel.type === 'project') {
-    const p = S.projects[S.sel.id], order = onSiteOrder(), idx = order.indexOf(p);
+    const p = S.projects[S.sel.id], order = siteLineup(), idx = order.indexOf(p);
     const W = mode === 'wide' ? 1200 : mode === 'phone' ? 390 : 860;
     $('pv-title').textContent = `${p.name} · ${mode === 'wide' ? 'wide panel 1200' : mode === 'phone' ? 'phone 390' : 'site panel 860'}`;
     pv.innerHTML = `<div class="pv-frame ${mode === 'phone' ? 'phone' : 'panel'}" style="width:${W}px;zoom:${Math.min(1, avail / W)}">${renderWriteup(p, S.studio, S.icons, { index: idx >= 0 ? idx + 1 : null, total: order.length, showEmpty: true, resolve: pic })}</div>`;
@@ -660,8 +674,8 @@ document.addEventListener('input', (e) => {
   if (el.type === 'range') el.nextElementSibling && (el.nextElementSibling.textContent = raw + '%');
   markDirty(key);
   if (key === '_site' && el.closest('.card-ed')) {                    // keep the little card preview in step while typing
-    const c = S.site.cards?.[S.sel.id], pv = el.closest('.card-ed').querySelector('.card-pv');
-    if (c && pv) pv.innerHTML = `<p class="k"><span>01 / 13</span> ${esc(c.category)} ${esc(c.year)}</p><b>${esc(c.name)}</b><p>${esc(c.desc)}</p><p class="tk">${esc(c.take)}</p><p class="k">Open ↗</p>`;
+    const pj = S.projects[S.sel.id], pv = el.closest('.card-ed').querySelector('.card-pv');
+    if (pj && pv) pv.innerHTML = cardPv(pj, cardOf(pj));
   }
   if (el.dataset.side) renderSide();
   if (el.dataset.rerender) renderEditor();
@@ -685,6 +699,11 @@ document.addEventListener('click', async (e) => {
   switch (act) {
     case 'layout': p.blocks[i].layout = b.dataset.v; return done();
     case 'ok': p.blocks[i].ok = !p.blocks[i].ok; return done();
+    case 'ord': {                                                   // move this project on its floor; every project there gets an explicit order
+      const list = projectsOn(p.floor), k = list.indexOf(p), to = k + +b.dataset.d; if (k < 0 || to < 0 || to >= list.length) return;
+      [list[k], list[to]] = [list[to], list[k]];
+      list.forEach((x, n) => { if (x.order !== n) { x.order = n; markDirty(x.slug); } });
+      renderSide(); renderEditor(); schedulePreview(); return; }
     case 'up': case 'down': { const k = act === 'up' ? i - 1 : i + 1; if (k < 0 || k >= p.blocks.length) return; [p.blocks[i], p.blocks[k]] = [p.blocks[k], p.blocks[i]]; return done(); }
     case 'del': if (!confirm('Delete this block? (Claude keeps its draft in the save history.)')) return; p.blocks.splice(i, 1); return done();
     case 'draft': { const id = p.blocks[i].id; S.showDraft.has(id) ? S.showDraft.delete(id) : S.showDraft.add(id); return renderEditor(); }

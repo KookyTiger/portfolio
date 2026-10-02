@@ -103,6 +103,22 @@
       "tags": "CIV_ENV 205 · Excel",
       "desc": "Financial analysis of a drug candidate: development costs, pricing, ten years of sales and NPV.",
       "take": "“Proceed, but wary of Phase II.” I priced it against Wegovy, Mounjaro, Zepbound and Ozempic."
+    },
+    "bike-caliper": {
+      "name": "Nylon Bike Caliper",
+      "category": "Mechanical design",
+      "year": "2026",
+      "tags": "MECH_ENG 240 · NX",
+      "desc": "Nylon rear brake caliper arms, 47.7% lighter on the second print, and a lesson in leverage.",
+      "take": "Lighter arms flexed more, but the hand force barely moved: only the lever ratio could fix that."
+    },
+    "peek-a-boo-house": {
+      "name": "Peek-a-Boo House",
+      "category": "Architecture",
+      "year": "2025",
+      "tags": "CIV_ENV 385-1 · Revit",
+      "desc": "A family house on a busy street that decides what passers-by get to see.",
+      "take": "The house peeks where the family gathers."
     }
   },
   "sections": [

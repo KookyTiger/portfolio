@@ -31,6 +31,22 @@ function applyType(style) {
     root.setProperty(`--${g}-size`, String((+t.size || 100) / 100)); root.setProperty(`--${g}-weight`, String(+t.weight || 800));
     root.setProperty(`--${g}-case`, lower ? 'none' : 'uppercase'); root.setProperty(`--${g}-lh`, String(lower ? lh + 0.17 : lh)); });   // lowercase needs room for descenders
 }
+// The lineup comes from the Studio (Kay, 2026-10-01): a project is on the site when its write-up is ● Approved and ticked "on the site",
+// on the floor and in the order the Studio gives it (merge/writeups/*.json → WRITEUPS; the Studio sorts a floor by `order`, then name).
+// content.js's PIECES only lends a project its art (cut-out, line drawing) and its old copy; a project it doesn't know yet gets its card
+// from the write-up (name, one-liner, year) and its cover as the object. With no approved write-up at all, content.js's lineup stands.
+(function applyLineup() {
+  const fo = Object.fromEntries(SECTIONS.map((s, i) => [s.id, i]));
+  const on = Object.entries(WRITEUPS).map(([slug, w]) => ({ slug, w })).filter(({ w }) => w.floor in fo);
+  if (!on.length) return;
+  on.sort((a, b) => fo[a.w.floor] - fo[b.w.floor] || (a.w.order ?? 99) - (b.w.order ?? 99) || String(a.w.name).localeCompare(String(b.w.name)));
+  const known = Object.fromEntries(PIECES.map((p) => [p.slug, p]));
+  const next = on.map(({ slug, w }) => known[slug] || { name: w.name || slug, slug, cat: '', year: (String(w.context?.when || '').match(/\d{4}/) || [''])[0],
+    sil: 'house', img: w.cover || null, desc: w.oneLiner || '', meta: [], take: '' });
+  PIECES.splice(0, PIECES.length, ...next);
+  SECTIONS.forEach((s) => { s.pieces = []; });
+  on.forEach(({ w }, i) => SECTIONS[fo[w.floor]].pieces.push(i));
+})();
 (function applySiteText(t) {
   if (!t) return;
   applyType(t.style);
@@ -44,6 +60,10 @@ function applyType(style) {
   deep(COPY, t.copy);
   if (Array.isArray(t.archive)) ARCHIVE.splice(0, ARCHIVE.length, ...t.archive.map((r) => [r.name, r.line, r.course, r.year]));
 })((STUDIO && studioDraft()) || SITE_TEXT);
+if (SECTIONS.some((s) => !s.pieces.length) && SECTIONS.some((s) => s.pieces.length)) {
+  for (let i = SECTIONS.length - 1; i >= 0; i--) if (!SECTIONS[i].pieces.length) SECTIONS.splice(i, 1);
+  SECTIONS.forEach((s, i) => { s.num = String(i + 1).padStart(2, '0'); });
+}
 const catName = (p) => p.catName || CATS[p.cat]?.name || '';
 const NP = PIECES.length;
 const PARAMS = new URLSearchParams(location.search); const SNAP = PARAMS.has('snap');
@@ -74,13 +94,15 @@ function toast(text) { toastQ.push(text); if (!toastT) toastNext(); }
 function toastNext() { const t = toastQ.shift(); if (!t) { toastT = null; return; } toastEl.textContent = t; toastEl.classList.add('on'); toastT = setTimeout(() => { toastEl.classList.remove('on'); toastT = setTimeout(toastNext, 450); }, 3200); }
 function ach(id, text) { if (PROG.ach.has(id)) return; PROG.ach.add(id); progSave(); toast(text); }
 const seenKey = (pi) => PIECES[pi].slug || 'p' + pi;
+const seenN = () => PIECES.reduce((n, p, i) => n + (PROG.seen.has(seenKey(i)) ? 1 : 0), 0);   // of the projects on the site now
+const needOf = (k) => Math.min(k || 0, NP);                                                   // an unlock never asks for more projects than there are
 function markSeen(pi) { const key = seenKey(pi); if (PROG.seen.has(key)) return; PROG.seen.add(key); progSave(); progUI();
-  const n = PROG.seen.size, A = PL.ach;
+  const n = seenN(), A = PL.ach;
   if (n === 1) ach('first', A.first);
   SECTIONS.forEach((sec, i) => { if (sec.pieces.every((k) => PROG.seen.has(seenKey(k)))) ach('floor' + i, ptl(A.floor, { f: sec.num })); });
   if (n >= Math.ceil(NP / 2) && n < NP) ach('half', A.half);
-  if (n === NP) ach('all', A.all); }
-function progUI() { $('lift-seen').textContent = ptl(PL.seen, { n: String(PROG.seen.size).padStart(2, '0'), t: String(NP).padStart(2, '0') }); renderTalents(); renderWardrobe(); }
+  if (n === NP) ach('all', tpl(A.all)); }
+function progUI() { $('lift-seen').textContent = ptl(PL.seen, { n: String(seenN()).padStart(2, '0'), t: String(NP).padStart(2, '0') }); renderTalents(); renderWardrobe(); }
 $('vh-a').textContent = matchMedia('(hover: none)').matches ? COPY.entry.hintTouch : COPY.entry.hint; $('vh-b').textContent = COPY.entry.sub;
 $('bubble-who').textContent = COPY.intro.who; $('intro').style.setProperty('--n', INTRO_SCREENS);
 $('intro').innerHTML = `<div class="sr-only">${COPY.intro.pages.map((pg) => `<p>${pg.join(' ')}</p>`).join('')}</div>`;
@@ -249,14 +271,15 @@ document.querySelectorAll('.split').forEach((el) => makeText(el));
 const chars = [];
 document.querySelectorAll('.st .big, .value-text .big').forEach((el) => { const c = { el, title: !!el.closest('.st'), shown: false, style: REDUCE ? '' : el.dataset.style || '', tl: null }; SplitText.create(el, { type: 'chars', charsClass: 'char', onSplit(self) { c.chars = self.chars; gsap.set(self.chars, { opacity: c.shown ? 1 : 0 }); self.chars.forEach((ch) => { ch.style.setProperty('--cx', ch.offsetLeft + 'px'); ch.style.setProperty('--cy', ch.offsetTop + 'px'); }); } });   // --cx/--cy: each letter's place, for the glow (C-g)
   if (c.style === 'type') { c.caret = document.createElement('i'); c.caret.className = 'caret'; c.caret.setAttribute('aria-hidden', 'true'); el.appendChild(c.caret); }
+  // a statement Kay emptied in the Studio has no letters: reveal and hide have nothing to do
   const caretAt = (ch) => { const k = c.caret; if (!k) return; k.style.left = (ch.offsetLeft + ch.offsetWidth).toFixed(1) + 'px'; k.style.top = ch.offsetTop.toFixed(1) + 'px'; k.style.height = ch.offsetHeight.toFixed(1) + 'px'; };
-  c.reveal = () => { if (c.shown || !c.chars) return; c.shown = true; c.tl?.kill(); gsap.killTweensOf(c.chars); const ch = c.chars;
+  c.reveal = () => { if (c.shown || !c.chars?.length) return; c.shown = true; c.tl?.kill(); gsap.killTweensOf(c.chars); const ch = c.chars;
     if (c.style === 'stamp') { gsap.set(ch, { yPercent: -60, rotate: (i) => ((i * 37) % 15) - 7, opacity: 0 });
       c.tl = gsap.timeline().to(ch, { opacity: 1, duration: 0.12, stagger: 0.024 }, 0).to(ch, { yPercent: 0, rotate: 0, duration: 0.55, ease: 'back.out(2.6)', stagger: 0.024 }, 0); }
     else if (c.style === 'neon') { el.classList.add('lit'); c.tl = gsap.timeline().to(ch, { keyframes: { opacity: [0, 1, 0.12, 0.85, 0.2, 1], easeEach: 'none' }, duration: 0.6, stagger: { each: 0.02, from: 'random' } }); }
     else if (c.style === 'type') { c.caret.classList.add('on'); caretAt(ch[0]); c.tl = gsap.timeline(); ch.forEach((x, i) => { c.tl.set(x, { opacity: 1 }, i * 0.034).call(caretAt, [x], i * 0.034); }); }
     else c.tl = gsap.to(ch, { opacity: 1, duration: 0.5, stagger: 0.014, ease: 'power2.out' }); };
-  c.hide = () => { if (!c.shown || !c.chars) return; c.shown = false; c.tl?.kill(); el.classList.remove('lit'); c.caret?.classList.remove('on');
+  c.hide = () => { if (!c.shown || !c.chars?.length) return; c.shown = false; c.tl?.kill(); el.classList.remove('lit'); c.caret?.classList.remove('on');
     gsap.to(c.chars, { opacity: 0, duration: 0.3, overwrite: true, onComplete: () => { if (!c.shown) gsap.set(c.chars, { yPercent: 0, rotate: 0 }); } }); }; chars.push(c); });
 const heroWords = [...document.querySelectorAll('.hero .word')];
 gsap.set(heroWords.map((w) => w.querySelector('.main')), { yPercent: 110 });
@@ -843,7 +866,7 @@ function perfPose(P) {
 }
 const talentsEl = $('talents');
 // G1: an act unlocks after that many projects seen; the thumbs-up needs its clip in the GLB
-function renderTalents() { const n = PROG.seen.size; talentsEl.innerHTML = `<p class="who mono">${COPY.talents.title}</p><div class="acts">${COPY.talents.acts.filter(([k]) => k !== 'thumbs' || !GT.ready || GT.act.thumbs).map(([k, label, , need]) => { const ok = n >= (need || 0);
+function renderTalents() { const n = seenN(); talentsEl.innerHTML = `<p class="who mono">${COPY.talents.title}</p><div class="acts">${COPY.talents.acts.filter(([k]) => k !== 'thumbs' || !GT.ready || GT.act.thumbs).map(([k, label, , need]) => { need = needOf(need); const ok = n >= need;
   return `<button type="button" data-act="${k}"${ok ? '' : ' disabled'}>${label}${ok ? '' : `<span class="lk">${ptl(COPY.talents.locked, { n: need })}</span>`}</button>`; }).join('')}</div>`; }
 function talents(open) { const was = T.menu; T.menu = open; if (open && T.wmenu) wardrobe(false); talentsEl.classList.toggle('on', open); talentsEl.inert = !open; talentsEl.setAttribute('aria-hidden', open ? 'false' : 'true');
   if (open && !was) { T.menuFrom = document.activeElement; setTimeout(() => talentsEl.querySelector('button')?.focus({ preventScroll: true }), 30); }
@@ -869,17 +892,17 @@ function planWalk() { const path = GT.walkPath; if (!path) return null; const N 
       if (!best || score > best.score) best = { score, y, ex, ez, k }; }
     if (best && best.score > 0 && best.k === k) break; }
   return best; }
-function perform(kind) { const a = COPY.talents.acts.find((x) => x[0] === kind); if (!GT.ready || !PERF[kind] || !GT.act[PERF[kind][0][0]] || !a || PROG.seen.size < (a[3] || 0)) return;
-  talents(false); if (kind === 'catwalk') GT.walk = planWalk(); T.perf = { kind, t: 0 }; say(a[2], 2.2); }
+function perform(kind) { const a = COPY.talents.acts.find((x) => x[0] === kind); if (!GT.ready || !PERF[kind] || !GT.act[PERF[kind][0][0]] || !a || seenN() < needOf(a[3])) return;
+  talents(false); if (kind === 'catwalk') GT.walk = planWalk(); T.perf = { kind, t: 0 }; say(tpl(a[2]), 2.2); }
 talentsEl.addEventListener('click', (e) => { const b = e.target.closest('button[data-act]'); if (!b) return; e.stopPropagation(); perform(b.dataset.act); });
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (T.menu) talents(false); if (T.wmenu) wardrobe(false); } });
 // ───────────────────────── The wardrobe (G2, Kay's pieces): what the tiger wears, chosen on the meadow, kept between visits ─────────────────────────
 const wardrobeEl = $('wardrobe'), wearEl = $('wear'); wardrobeEl.inert = true;
 const WORN = {};                                               // id → { meshes, loaded, loading }
 // a piece whose file is not there yet (Kay is still making it) shows, locked, as "soon"
-function renderWardrobe() { const n = PROG.seen.size, items = WEAR;
-  wardrobeEl.innerHTML = `<p class="who mono">${PL.wardrobeTitle}</p><div class="acts">${items.length ? items.map((w) => { const have = !!w.src, ok = have && n >= w.need, on = PROG.wear.has(w.id);
-    return `<button type="button" data-wear="${w.id}"${ok ? ` aria-pressed="${on}"` : ' disabled'}>${w.name}${ok ? '' : `<span class="lk">${have ? ptl(PL.lockedItem, { n: w.need }) : PL.soon}</span>`}</button>`; }).join('') : `<span class="mono none">${PL.nothing}</span>`}</div>`; }
+function renderWardrobe() { const n = seenN(), items = WEAR;
+  wardrobeEl.innerHTML = `<p class="who mono">${PL.wardrobeTitle}</p><div class="acts">${items.length ? items.map((w) => { const have = !!w.src, need = needOf(w.need), ok = have && n >= need, on = PROG.wear.has(w.id);
+    return `<button type="button" data-wear="${w.id}"${ok ? ` aria-pressed="${on}"` : ' disabled'}>${w.name}${ok ? '' : `<span class="lk">${have ? ptl(PL.lockedItem, { n: need }) : PL.soon}</span>`}</button>`; }).join('') : `<span class="mono none">${PL.nothing}</span>`}</div>`; }
 function wardrobe(open) { const was = T.wmenu; T.wmenu = open; wardrobeEl.classList.toggle('on', open); wardrobeEl.inert = !open; wardrobeEl.setAttribute('aria-hidden', open ? 'false' : 'true');
   if (open) { if (T.menu) talents(false); if (!was) { T.wFrom = document.activeElement; setTimeout(() => wardrobeEl.querySelector('button')?.focus({ preventScroll: true }), 30); } }
   else if (wardrobeEl.contains(document.activeElement)) { const f = T.wFrom; T.wFrom = null; if (f && f.focus && f !== document.body) f.focus({ preventScroll: true }); else document.activeElement.blur(); } }
@@ -895,7 +918,7 @@ function wearItem(w, on) { const W = WORN[w.id] || (WORN[w.id] = { meshes: [], l
       if (m.material) { m.material = m.material.clone(); m.material.fog = true; } bone.add(m); W.meshes.push(m); });
     W.loaded = true; W.loading = false; if (!PROG.wear.has(w.id)) W.meshes.forEach((m) => { m.visible = false; }); },
     undefined, () => { W.loading = false; console.warn('wardrobe: could not load', w.src); }); }
-function applyWear() { if (!GT.ready) return; for (const w of WEAR) if (w.src) wearItem(w, PROG.wear.has(w.id) && PROG.seen.size >= w.need); }
+function applyWear() { if (!GT.ready) return; for (const w of WEAR) if (w.src) wearItem(w, PROG.wear.has(w.id) && seenN() >= needOf(w.need)); }
 // ───────────────────────── The visitor's reward (G3): a nod when you stay on a project, a look-away when you rush past ─────────────────────────
 const REW = { cur: null, pi: -1, still: 0, said: false, nodded: new Set(), rushed: null, lastRush: -99 };
 function rewardW() { const R = T.rew; if (!R) return 0; const d = GT.dur[R.kind === 'nod' ? 'nodHead' : 'lookHead'] || 1; return smooth(Math.min(1, R.t / 0.3)) * (1 - smooth(seg(R.t, [d - 0.45, d - 0.05]))); }
@@ -1224,7 +1247,7 @@ function frame(now) {
   setPill(ENTRY.phase !== 'done' ? (ENTRY.phase === 'void' && hoverTiger ? 'say hi' : '') : overClose ? COPY.panel.close : hoverTiger && !panelOpen ? (GT.ready && state === 'sit' ? 'talent show' : COPY.cursor.tiger) : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
 
   tigerPoint(v3, false); v3.project(camera);
-  window.__dbg = { s: +s.toFixed(3), state, glb: GT.ready, entry: ENTRY.phase, et: +ENTRY.t.toFixed(2), seen: PROG.seen.size, rew: T.rew ? T.rew.kind : null, still: +REW.still.toFixed(1), peek: +T.peek.toFixed(2), perf: T.perf ? T.perf.kind : null, walk: GT.walk ? [+GT.walk.y.toFixed(2), GT.walk.k, +GT.walk.score.toFixed(3)] : null, menu: T.menu, landed, aN: +nearestA.toFixed(3), inWindow, tiger: [+v3.x.toFixed(3), +v3.y.toFixed(3)], quipT: +T.quipT.toFixed(2), cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };
+  window.__dbg = { s: +s.toFixed(3), state, glb: GT.ready, entry: ENTRY.phase, et: +ENTRY.t.toFixed(2), seen: seenN(), rew: T.rew ? T.rew.kind : null, still: +REW.still.toFixed(1), peek: +T.peek.toFixed(2), perf: T.perf ? T.perf.kind : null, walk: GT.walk ? [+GT.walk.y.toFixed(2), GT.walk.k, +GT.walk.score.toFixed(3)] : null, menu: T.menu, landed, aN: +nearestA.toFixed(3), inWindow, tiger: [+v3.x.toFixed(3), +v3.y.toFixed(3)], quipT: +T.quipT.toFixed(2), cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };
   if (ENTRY.phase !== 'done') renderOpening(); else renderer.render(scene, camera);
   if (!document.hidden) requestAnimationFrame(frame);
 }
