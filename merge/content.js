@@ -36,11 +36,11 @@ export const SIL = {
 };
 
 export const PIECES = [
-  { name: 'LevelUp',               slug: 'levelup',     cat: 'product',   year: '2025', sil: 'level',   img: 'assets/projects/levelup.webp', silImg: 'assets/projects/levelup-sil.webp', desc: 'A clip-on bubble level for barbells, narrowed from 70 written ideas and 21 sketches to one printed clip.', meta: ['DSGN 308', 'prototype'], take: 'My grocery-bag problem lost the vote to a crooked barbell, 63 to 82.5.',
+  { name: 'LevelUp',               slug: 'levelup',     cat: 'product',   year: '2025', sil: 'level',   img: 'assets/projects/levelup.webp', silImg: 'assets/projects/levelup-sil.webp', lineImg: 'assets/projects/levelup-line.webp', desc: 'A clip-on bubble level for barbells, narrowed from 70 written ideas and 21 sketches to one printed clip.', meta: ['DSGN 308', 'prototype'], take: 'My grocery-bag problem lost the vote to a crooked barbell, 63 to 82.5.',
     detail: { line: 'Built after watching gym-goers at SPAC misalign bars without ever noticing.', tools: 'AEIOU observational research at SPAC · user and lift-coach interviews · structured ideation (70 ideas → 21 sketches → 3 mockups) · three-setting mockup testing · 3D printing · Colab analysis of time-per-rep data', numbers: 'Against spec: 4.35/5 visibility (goal 4/5), 2.5 s setup (goal < 5 s), 100% of reps level with the vial in view (goal ≥ 90%). It missed two: it hit one of three testers’ chests, and it fits only 28.5 mm bars.', one: 'When the bar met the lift coach’s chest, the bubble split into several smaller ones — the device defeating its own readout.' } },
-  { name: 'No-Tip-Clip',           slug: 'notipclip',   cat: 'product',   year: '2024', sil: 'caster',  img: 'assets/projects/notipclip.webp', desc: 'An anti-tip caster for wheelchairs carrying halo-traction patients at Shriners Children’s.', meta: ['DTC', 'clinical'], take: 'The weight bag steadied the chair but was hard to place the same way twice. The wheel promised one size for all. $62.26 in parts.',
+  { name: 'No-Tip-Clip',           slug: 'notipclip',   cat: 'product',   year: '2024', sil: 'caster',  img: 'assets/projects/notipclip.webp', lineImg: 'assets/projects/notipclip-line.webp', desc: 'An anti-tip caster for wheelchairs carrying halo-traction patients at Shriners Children’s.', meta: ['DTC', 'clinical'], take: 'The weight bag steadied the chair but was hard to place the same way twice. The wheel promised one size for all. $62.26 in parts.',
     detail: { line: 'A 3D-printed adjustable clamp and caster that works like a training wheel on a bicycle.', role: 'Wrote the interview guide, the mockup plans, the mockup test report and the instructions for use; drafted the safety evaluation.', tools: 'Client interviews and a site visit to Shriners Children’s Hospital · secondary research on halo traction · proxy-user testing with weighted loads and timed obstacle courses · 3D printing (Cura, 95% infill, ~50 h print) · McMaster-Carr hardware sourcing', numbers: 'Weight-bag tests against a 7 kg hanging load rated stability 2, 5, 8, 8 and flexibility 5, 7, 6, 4 (out of 10) at 1, 3, 5 and 10 kg: past 5 kg, more weight bought no stability. Parts came to $62.26; the clamp’s cutout is about 1.5× standard frame tubing.', one: 'Instead of adding weight, we added a point of contact with the floor.' } },
-  { name: 'Slide Master',          slug: 'slidemaster', cat: 'product',   year: '2024', sil: 'board',   img: 'assets/projects/slidemaster.webp', desc: 'A wheelchair-to-shower transfer board where the seat slides, so the user’s skin doesn’t have to.', meta: ['DTC', 'wood'], take: 'The plywood started to crack before our tester put his full weight on it. We chose pine by sitting on it.',
+  { name: 'Slide Master',          slug: 'slidemaster', cat: 'product',   year: '2024', sil: 'board',   img: 'assets/projects/slidemaster.webp', lineImg: 'assets/projects/slidemaster-line.webp', desc: 'A wheelchair-to-shower transfer board where the seat slides, so the user’s skin doesn’t have to.', meta: ['DTC', 'wood'], take: 'The plywood started to crack before our tester put his full weight on it. We chose pine by sitting on it.',
     detail: { line: 'Redesigned around what goes wrong with existing boards: skin friction, slipping, getting on, and pinched fingers.', role: 'Led the mockup plan and the design-freeze documents; co-wrote the concept and rationale, the front matter and references; presented existing solutions and ran the demo at the poster session.', tools: 'Partner interviews and a site visit · iterative mockup testing · woodworking · drawer-slide mechanism · orthographic drafting · Tinkercad', numbers: 'Final board 29″ × 9″ × ¾″ with a 23″ × 3″ hollow cavity and a tapered onboarding end (offcuts tested at 10°, 20° and 30°); the seat rides on 12″ ball-bearing drawer slides.', one: 'The plywood started to crack before our tester put his full weight on it. We chose pine by sitting on the candidates, not by calculation.' } },
   { name: 'Northwestern Game Jam', slug: 'gamejam',     cat: 'game',      year: '2026', sil: 'house',   img: 'assets/projects/gamejam.webp', wide: true, desc: 'A Taoist exorcist hired to cleanse a haunted show-home, and the grandmother who refused to leave.', meta: ['game jam', 'Unity'], take: 'The concept pivoted three times. The question never changed: who has more claim to a home.',
     detail: { line: 'Northwestern Game Jam 2026, theme “Twist of Fate” — a four-person team, showcased May 9.', role: 'Wrote the game design document and the narrative bible.', tools: 'Game design documentation · narrative bible · Unity (first prototype in Godot) · AI-generated art and cutscenes · asset pipeline organization', one: 'The concept changed three times — a roommate living in the walls, an Airbnb, a realtor on a haunted block, a Daoist exorcist — but the question never did: who has more claim to a home, the person who owns it or the person who lived in it.' } },
@@ -75,11 +75,24 @@ export const SECTIONS = [
   { num: '02', title: 'DESIGN & INTERACTION', sub: 'games · apps · motion · vr · stage',         theme: 'bar',      pieces: [3, 4, 5, 6, 7, 8], value: ['{N_UP} MONSTERS.', 'EVERY ONE', 'HAD A', 'DEADLINE.'] },
   { num: '03', title: 'ANALYTICS & STRATEGY', sub: 'optimization · pricing · market sizing · finance', theme: 'computer', deck: true, pieces: [9, 10, 11, 12], value: ['HALF OF PRICING', 'IS DECIDING', 'WHAT NOT', 'TO COUNT.'] },
 ];
-export const TITLE_SCREENS = 0.6;                                  // the section title band (Kay, 2026-09-27: half a screen is enough); the floor change shows around it
+export const TITLE_SCREENS = 1;                                    // each floor's title: a full-screen paper block (Kay, 2026-10-01: the transition between floors is the paper itself, Léo's way; the elevator doors were dropped)
 export const INTRO_SCREENS = 2.4;                                  // the intro window after the hero: the tiger leans off the ladder and talks (a game dialogue bubble)
 export const MEADOW_SCREENS = 3.4;                                 // the meadow window after the archives: landing, turn, sit, the talent show
 export const LAND_AT = 0.45;                                       // the landing, in screens after the meadow window's top reaches the top of the screen
 export const VALUE_SCREENS = 1;                                    // the value statement takes one screen at the end of its window, over the room
+
+// ── The motion pass (Kay, 2026-10-01): the opening, the floors' elevator doors and lights, each floor's own way of showing its work
+// OPENING (seconds): the title card holds at least `card` once the tiger is in, folds away (`cardOut`), the tiger drops onto the paper
+// (`drop`), waves when clicked (`wave`); then a line is drawn through it (`line`), the paper splits along it and slides off both ways
+// (`split` [start, end]) while the camera backs out to the rail (`dolly` [start, end]); the nav and the statement arrive at `chrome`.
+export const OPENING = { card: 1.5, cardOut: 0.7, drop: 0.8, wave: 1.4, line: 0.42, split: [0.42, 2.1], dolly: [0.25, 2.45], chrome: 1.2, nod: 2.2 };
+// LIGHTS: the new floor arrives dark (`dark` × its ambient light) under the title paper, and its lamps click on one by one between `on`
+// [from, to] screens after the slab (the paper has left the screen at +1); a lamp below the frame stays off until it rises into view
+// (motion-sensor lights), so the whole descent keeps lighting up
+export const LIGHTS = { dark: 0.2, on: [0.55, 1.15], click: 0.07 };
+// how each floor shows its work and says its statement (by room skin): print = the drawing prints into the part, spot = a spotlight
+// finds each object in the dark, deck = the computer; stamp / neon / type = the value statement's letters
+export const FLOOR_STYLE = { workshop: { show: 'print', value: 'stamp' }, bar: { show: 'spot', value: 'neon' }, computer: { show: 'deck', value: 'type' } };
 
 // World skins. `ink: 'light'` = pale words and nav over a dark room (Léo flips his nav white over the library).
 export const THEMES = {
@@ -106,6 +119,7 @@ export const CAMERA = { x: 0, z: 5.2, pitch: -0.12, fov: 34, header: { rangeZ: 4
 // The climber (Laurens): the character stays in frame on the right; its CLIPS are scrubbed by scroll (action.time = f(scroll)).
 export const TIGER = {
   x: 1.6,                 // world x of the ladder / the tiger (ndc ≈ +0.63)
+  pier: 0.75,             // the pier's left edge, this far left of the ladder (Kay, 2026-10-01: was 1.5 — the rooms only had half the screen; now they reach past the middle)
   glue: 1.08,             // hips sit this far below the camera while climbing (fixed screen position, ndc y ≈ −0.33)
   ledgeY: -2.25,          // top platform (world y); camera starts at y = 0 (hips at the start of the climb sit 0.13 below it)
   ladderZ: 0,             // the ladder plane; hips hang at z = +0.33 (belly to the wall, back to you)
@@ -135,7 +149,12 @@ export const COPY = {
   intro:  { who: 'KOOKYTIGER', pages: [['你好.', 'I make products, films, games and spreadsheets — which is either four things or one thing, depending on which floor you catch me on.'],
                                       ['T-shaped, as in wide across and deep in one stem.'],
                                       ['Also as in Tu. Also as in: every project below was a monster once. I went down and dealt with it.']], photo: null },
-  talents: { hint: 'psst — click me', trigger: 'Ask for a trick', title: 'Talent show', close: 'Close', acts: [['dance', 'Dance', 'watch this.'], ['zombie', 'Zombie', 'braaains.'], ['catwalk', 'Catwalk', 'serving.']] },
+  talents: { hint: 'psst — click me', trigger: 'Ask for a trick', title: 'Talent show', close: 'Close', locked: 'see {n} projects',
+             acts: [['dance', 'Dance', 'watch this.', 0], ['zombie', 'Zombie', 'braaains.', 4], ['catwalk', 'Catwalk', 'serving.', 8], ['thumbs', 'Thumbs up', 'all thirteen. respect.', 13]] },   // [id, label, quip, projects seen to unlock]
+  // the visitor's progress (Kay, 2026-10-01): projects seen unlock acts and the wardrobe; a few achievements, each said once; a return visit is noticed
+  progress: { seen: '{n} / {t} seen', time: '{m} min', wardrobe: 'Wardrobe', wardrobeTitle: 'Wardrobe', nothing: 'nothing yet — see a project', lockedItem: 'see {n}', soon: 'soon',
+              ach: { first: 'first monster down', floor: 'floor {f} cleared', half: 'halfway. the zombie is yours', all: 'thirteen down. the trick is yours', landed: 'the other shore', back: 'welcome back · last time: floor {f}' },
+              quips: { back: 'oh. you again.', nod: ['mm-hm.', 'that one was fun.', 'yeah. that one.', 'good eye.'], rush: ['...', 'too fast.', 'you missed one.'], stay: ['still here?', 'take your time.', 'i can wait.'] } },
   shore:  { words: ['THE OTHER', 'SHORE'], sub: '{N} floors down · grass, finally', sayhi: 'Say hi ↗', tiger: 'peace. for now.' },
   archives: { title: 'Archives', note: 'monsters too small to mention' },
   section:  { projects: 'projects' },
@@ -143,6 +162,21 @@ export const COPY = {
   cursor: { tiger: 'click the tiger', card: 'open' },
   panel:  { role: 'What I did', tools: 'Tools', numbers: 'Numbers', one: 'The one thing', ask: 'Ask me for the full report ↗', close: 'Close' },
 };
+
+// The wardrobe (G2, Kay makes the pieces): modelled on assets/src/wear/tiger-ref.glb, exported alone with transforms applied, so each sits
+// on the tiger in the reference's coordinates; `bone` is the Mixamo bone it rides (Head for hats and glasses, Neck for ties and scarves,
+// Spine1 for a backpack); `need` = projects seen to unlock. src null = not delivered yet: shown in the wardrobe as "soon", never requested.
+export const WEAR = [
+  { id: 'hardhat',    name: 'Hard hat',   bone: 'Head',  need: 1,  src: null },
+  { id: 'goggles',    name: 'Goggles',    bone: 'Head',  need: 3,  src: null },
+  { id: 'sunglasses', name: 'Sunglasses', bone: 'Head',  need: 5,  src: null },
+  { id: 'bowtie',     name: 'Bow tie',    bone: 'Neck',  need: 7,  src: null },
+  { id: 'headphones', name: 'Headphones', bone: 'Head',  need: 10, src: null },
+  { id: 'crown',      name: 'Crown',      bone: 'Head',  need: 13, src: null },
+];
+// the visitor's reward (G3): a nod when you stay on a project this long (seconds) with the page still; a look-away when a project passes the
+// middle in less than `rush` seconds; `cursor` = how the tiger's head follows the pointer while it climbs (C-b); `light` = the cursor's lamp (C-a)
+export const REWARD = { stay: 2.6, rush: 0.5, rushEvery: 12, cursor: { yaw: 1.1, pitch: 0.45, maxYaw: 1.5 }, light: { ahead: 1.5, ease: 7 } };
 
 export const ARCHIVE = [
   ['Running', 'AI-assisted short — the storyboard survived, the model didn’t', 'RTVF 376', '2026'],

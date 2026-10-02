@@ -121,7 +121,9 @@ CLIPS = [('idle', 'Happy Idle.fbx'), ('turn', 'Quick 180 Turn.fbx'), ('mount', '
          ('sit', 'Sitting.fbx'), ('wave', 'Waving.fbx'),
          # the meadow's talent show (Kay, 2026-09-27): dance, zombie (idle → scream → attack), catwalk (one wide 180° walk, played there and back)
          ('dance', 'Wave Hip Hop Dance.fbx'), ('zidle', '_packs/Scary Zombie Pack/zombie idle.fbx'), ('zscream', '_packs/Scary Zombie Pack/zombie scream.fbx'),
-         ('zattack', '_packs/Scary Zombie Pack/zombie attack.fbx'), ('catwalk', 'Catwalk Walk Turn 180 Wide L.fbx')]
+         ('zattack', '_packs/Scary Zombie Pack/zombie attack.fbx'), ('catwalk', 'Catwalk Walk Turn 180 Wide L.fbx'),
+         # the visitor's reward (Kay, 2026-10-01): a nod when you stay on a project, a look-away when you rush past, a thumbs-up for the last one
+         ('nod', '_packs/Gestures Pack Basic/hard head nod.fbx'), ('lookaway', '_packs/Gestures Pack Basic/look away gesture.fbx'), ('thumbs', 'Standing Thumbs Up.fbx')]
 def fix_weights(arm, mesh):
     """Mixamo weights a human; this tiger has no neck (the jaw is level with the shoulders), a round belly and a tail. Rest pose, world
     metres, facing −Y: the whole head (above the chin joint) follows the Head bone only, with a short blend band down to the neck;
