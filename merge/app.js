@@ -189,7 +189,7 @@ if (DRAFTS.on) {
   PIECES.forEach((p) => p.slug && get(`writeups/${p.slug}.json`).then((j) => { if (j) DRAFTS.w[p.slug] = j; }));
 }
 // the clicked object itself flies into the panel (its place at the panel's top right) and back to the room on close — one continuous move,
-// not a cut (Kay, 2026-10-01: Aristide's "transitioned through, not a 跳转"). The room keeps an empty spot while it is away.
+// not a cut (Kay, 2026-10-01: Aristide's "transitioned through, not a jump"). The room keeps an empty spot while it is away.
 let flight = null, flownFrom = null, flyTgt = null;
 const objOf = (el) => el?.querySelector('figure .part') || el?.querySelector('figure img:not(.line), figure svg');   // the cut-out itself, never the workshop's line drawing
 // fly: a copy of srcEl travels fromRect → toRect. cross: on landing it fades out while the target fades in (a write-up cover that is
