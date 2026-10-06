@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 (async () => {
   const root = path.resolve(__dirname, '..');                                   // merge/
   const args = process.env.SWIFTSHADER ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [];
-  const b = await chromium.launch({ args: ['--allow-file-access-from-files', ...args] });
+  const b = await chromium.launch({ args: ['--allow-file-access-from-files', '--use-angle=metal', '--ignore-gpu-blocklist', ...args] });
   const p = await b.newPage({ viewport: { width: +(process.env.VW || 1440), height: +(process.env.VH || 900) } });
   const errs = []; p.on('pageerror', e => errs.push('PAGEERROR ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('CONSOLE ' + m.text().slice(0, 200)); });
   const file = (process.env.DIR || 'merge') === 'dist' ? path.join(root, 'dist', 'index.html') : path.join(root, 'preview.html');

@@ -92,7 +92,10 @@ export const VALUE_SCREENS = 1;                                    // the value 
 // OPENING (seconds): the title card holds at least `card` once the tiger is in, folds away (`cardOut`), the tiger drops onto the paper
 // (`drop`), waves when clicked (`wave`); then a line is drawn through it (`line`), the paper splits along it and slides off both ways
 // (`split` [start, end]) while the camera backs out to the rail (`dolly` [start, end]); the nav and the statement arrive at `chrome`.
-export const OPENING = { card: 1.5, cardOut: 0.7, drop: 0.8, wave: 1.4, line: 0.42, split: [0.42, 2.1], dolly: [0.25, 2.45], chrome: 1.2, nod: 2.2 };
+// The opening in beats (Kay, 2026-10-06, replacing the paper split): the title card holds while the tiger loads → it folds away → the tiger drops
+// onto the paper and bounces twice (drop) → black (black) → the alley lamp clicks on and finds it (beam) → the alley comes up around it (rise;
+// the nav rises at chrome) → scroll. seconds per beat.
+export const OPENING = { card: 1.5, cardOut: 0.7, drop: 1.35, black: 0.8, beam: 1.5, rise: 2.6, chrome: 1.3, nod: 2.2 };
 // LIGHTS: the new floor arrives dark (`dark` × its ambient light) under the title paper, and its lamps click on one by one between `on`
 // [from, to] screens after the slab (the paper has left the screen at +1); a lamp below the frame stays off until it rises into view
 // (motion-sensor lights), so the whole descent keeps lighting up
@@ -103,7 +106,8 @@ export const FLOOR_STYLE = { workshop: { show: 'print', value: 'stamp' }, bar: {
 
 // World skins. `ink: 'light'` = pale words and nav over a dark room (Léo flips his nav white over the library).
 export const THEMES = {
-  stone:    { bg: '#D9D2C3', fog: [14, 46], ink: 'dark',  wall: [168, 12, 18], side: [150, 12, 18], key: 0.85, keyColor: 0xFFF3E0, hemi: 1.2, hemiSky: 0xE8EEF4, hemiGround: 0xC9C2B4, torch: 0xFFE2B8, torchI: 6, camLight: 0, camColor: 0xFFFFFF },
+  // the top: a back alley after school (Kay, 2026-10-06) — dusk, a warm lamp over the platform, the tag on the wall; the nav stays ink (ALLEY below)
+  stone:    { bg: '#77726D', fog: [10, 32], ink: 'light', wall: [118, 12, 18], side: [104, 12, 18], key: 0.6, keyColor: 0xE2D2BA, hemi: 0.85, hemiSky: 0x97A0AE, hemiGround: 0x3F3A36, torch: 0xFFD9A0, torchI: 6, camLight: 0, camColor: 0xFFFFFF },
   workshop: { bg: '#CFC9BD', fog: [12, 40], ink: 'dark',  wall: [176, 16, 14], side: [160, 16, 14], key: 0.95, keyColor: 0xFFF1D6, hemi: 1.0, hemiSky: 0xE6E9EC, hemiGround: 0xB8B0A2, torch: 0xFFD9A0, torchI: 5, camLight: 0, camColor: 0xFFFFFF },
   bar:      { bg: '#15121D', fog: [8, 30],  ink: 'light', wall: [58, 16, 10],  side: [48, 16, 10],  key: 0.18, keyColor: 0xC9B8FF, hemi: 0.34, hemiSky: 0x5C4F8A, hemiGround: 0x1A1420, torch: 0xFF8AC4, torchI: 5, camLight: 6.5, camColor: 0xF3E4EC },
   library:  { bg: '#1E1710', fog: [9, 32],  ink: 'light', wall: [70, 14, 12],  side: [60, 14, 12],  key: 0.22, keyColor: 0xFFE0B0, hemi: 0.36, hemiSky: 0x6B5A44, hemiGround: 0x1C1510, torch: 0xFFC978, torchI: 7, camLight: 6.0, camColor: 0xFFE2B8 },
@@ -153,7 +157,7 @@ export const COPY = {
   header: { statement: ['{N_CAP} floors down.', 'A monster on each.'], scroll: 'Scroll to descend' },
   hero:   { words: ['KOOKY', 'T-SHAPED', 'TIGER'], reveal: ['MADE + RTVF', 'NORTHWESTERN ’27', 'WUHAN → EVANSTON'], indication: '(Click the tiger)' },
   // the intro is the tiger talking from the ladder, page by page (Kay's own words, unchanged); photo = a picture of Kay shown on hover (none yet)
-  intro:  { who: 'KOOKYTIGER', you: 'YOU', name: 'Kay Tu', sub: 'Wuhan → Chicago · Northwestern ’27 · MaDE + RTVF', photo: 'assets/about/kay.webp',
+  intro:  { who: 'KOOKYTIGER', you: 'YOU', name: 'Kay Tu', sub: 'Wuhan → Chicago · Northwestern ’27 · MaDE + RTVF', photo: 'assets/about/kay-wide.webp', locked: 'Locked — open {n} projects first', unlocked: 'Unlocked',
             // the dialogue box's script (the real one is writeups/_site.json → copy.intro.script; the grammar is in app.js above parseScript)
             script: '# start\nHi! I\'m Kay Tu. Born and raised in Wuhan, China; now a senior at Northwestern, in Chicago, on a dual degree: Manufacturing & Design Engineering, and Radio/Television/Film.\n\n> Nice to meet you, Kay. -> bye\n\n# bye\nTalk to me — I bet we\'ll find something in common.\n@ Say hi ↗\n\n> Start over -> start' },
   talents: { hint: 'psst — click me', trigger: 'Ask for a trick', title: 'Talent show', close: 'Close', locked: 'see {n} projects',
@@ -207,7 +211,10 @@ export const MOTION = {
 };
 
 // Light world (Léo: the world is as light as the paper). Sky top → bottom, and the three stage tints (Laurens's thresholds).
-export const SKY = { top: '#C9D3DC', bottom: '#D9D2C3', windowMix: 0.25, shore: '#E6EEEA', flipMs: 800 };
+export const SKY = { top: '#C9D3DC', bottom: '#77726D', windowMix: 0.25, shore: '#E6EEEA', flipMs: 800 };
+// the alley at the top: its lamp (a spot over the platform, warm, with a visible cone), and the tag sprayed on the wall (the header statement,
+// COPY.header.statement, in a graffiti face: app.js → graffitiTexture). The lamp is what clicks on in the opening's beam.
+export const ALLEY = { lamp: { color: 0xFFD2A0, intensity: 38, angle: 0.52, penumbra: 0.55, distance: 16, cone: 0.09 }, tag: { x: -2.6, dy: 1.3, w: 6.0, phone: { x: 0, dy: 3.75, w: 3.0 }, color: '#F2A93B', outline: '#2A2016', font: 'Sedgwick Ave Display', tilt: -0.045 } };
 export const LIGHT = {
   exposure: 1.0,
   key:  { color: 0xFFF3E0, intensity: 0.85, intensityShore: 1.6 },

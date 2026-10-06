@@ -8,7 +8,7 @@
 //   each state is a function of (scroll phase) → pose, exactly like `action.time = f(scroll)`.
 import * as THREE from './vendor/three.module.min.js';
 import { GLTFLoader } from './vendor/GLTFLoader.js';
-import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, VALUE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_TEXT_AT, INTRO_SCREENS, MEADOW_SCREENS, LAND_AT, RATE, CAMERA, TIGER, LEDGE_X, DECK, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT, OPENING, LIGHTS, FLOOR_STYLE, WEAR, REWARD } from './content.js';
+import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, VALUE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_TEXT_AT, INTRO_SCREENS, MEADOW_SCREENS, LAND_AT, RATE, CAMERA, TIGER, LEDGE_X, DECK, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT, OPENING, LIGHTS, FLOOR_STYLE, WEAR, REWARD, ALLEY } from './content.js';
 import { WRITEUPS, WRITEUP_LIB, TOOL_ICONS, SITE_TEXT } from './writeups.js';
 import { renderWriteup, wuView } from './writeup-view.js';
 
@@ -101,7 +101,7 @@ function ach(id, text) { if (PROG.ach.has(id)) return; PROG.ach.add(id); progSav
 const seenKey = (pi) => PIECES[pi].slug || 'p' + pi;
 const seenN = () => PIECES.reduce((n, p, i) => n + (PROG.seen.has(seenKey(i)) ? 1 : 0), 0);   // of the projects on the site now
 const needOf = (k) => Math.min(k || 0, NP);                                                   // an unlock never asks for more projects than there are
-function markSeen(pi) { const key = seenKey(pi); if (PROG.seen.has(key)) return; PROG.seen.add(key); progSave(); progUI();
+function markSeen(pi) { const key = seenKey(pi); if (PROG.seen.has(key)) return; PROG.seen.add(key); progSave(); progUI(); dlgRefresh();
   const n = seenN(), A = PL.ach;
   if (n === 1) ach('first', A.first);
   SECTIONS.forEach((sec, i) => { if (sec.pieces.every((k) => PROG.seen.has(seenKey(k)))) ach('floor-' + sec.id, ptl(A.floor, { f: sec.num })); });
@@ -490,8 +490,42 @@ const lamp = (color, intensity, x, y, z, g, dist = 9) => { const l = new THREE.P
 const glow = (color, r, x, y, z, g) => { const o = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.4, roughness: 1 })); o.position.set(x, y, z); g.add(o); return o; };
 const rnd = (seed) => { let x = Math.sin(seed * 999.1) * 10000; return () => { x = Math.sin(x) * 10000; return x - Math.floor(x); }; };
 // ── props per skin: (group, yTop, yBottom) — the floor of a room is the slab under it
+// the header statement as a wall tag: a canvas in the graffiti face (ALLEY.tag.font, loaded with the page's fonts; redrawn when it arrives),
+// sprayed — a wide soft overspray, a fat dark outline, the fill, a thin highlight, and drips at fixed places (a seeded sequence, the same every load)
+function graffitiTexture(lines) { const c = document.createElement('canvas'); c.width = 2048; c.height = 900; const g = c.getContext('2d'), Tg = ALLEY.tag;
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const draw = () => { let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+    g.clearRect(0, 0, c.width, c.height); g.save(); g.translate(c.width / 2, c.height / 2); g.rotate(Tg.tilt);
+    const size = lines.length > 1 ? 290 : 350, lh = size * 1.02; g.font = `400 ${size}px "${Tg.font}", "Bricolage Grotesque", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const sc = Math.min(1, 1820 / Math.max(...lines.map((l) => g.measureText(l).width), 1)); g.scale(sc, sc);
+    const y0 = -((lines.length - 1) * lh) / 2;
+    lines.forEach((l, i) => { const y = y0 + i * lh, w = g.measureText(l).width;
+      g.shadowColor = Tg.color; g.shadowBlur = 80; g.fillStyle = 'rgba(242,169,59,.38)'; g.fillText(l, 0, y); g.fillText(l, 0, y); g.shadowBlur = 0; g.shadowColor = 'transparent';
+      g.lineJoin = 'round'; g.lineWidth = 36; g.strokeStyle = Tg.outline; g.strokeText(l, 0, y);
+      g.fillStyle = Tg.color; g.fillText(l, 0, y);
+      g.lineWidth = 5; g.strokeStyle = 'rgba(255,241,214,.5)'; g.strokeText(l, -7, y - 9);
+      for (let k = 0; k < 12; k++) { const x = -w / 2 + rnd() * w, len = 26 + rnd() * 150, r = 5 + rnd() * 7; g.globalAlpha = 0.9; g.fillStyle = Tg.color; g.fillRect(x - r / 2, y + size * 0.3, r, len); g.beginPath(); g.arc(x, y + size * 0.3 + len, r * 0.72, 0, 7); g.fill(); g.globalAlpha = 1; } });
+    g.restore(); tex.needsUpdate = true; };
+  draw(); if (document.fonts && document.fonts.load) document.fonts.load(`400 300px "${Tg.font}"`).then(draw).catch(() => {});
+  return tex; }
 const PROPS = {
-  stone(g, yT, yB) {},
+  // the top: a back alley after school (Kay, 2026-10-06) — a lamp on an arm off the pier over the platform (the opening's beam), and the
+  // header statement sprayed on the back wall as a tag (graffitiTexture); both lit like everything else, so they come up with the alley
+  stone(g, yT, yB) { const X = TIGER.x, L = TIGER.ledgeY, A = ALLEY.lamp;
+    const lx = X - 1.15, ly = L + 3.05, lz = -0.7;
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(X - TIGER.pier - lx + 0.3, 0.06, 0.06), postMat); arm.position.set((lx + X - TIGER.pier + 0.3) / 2, ly + 0.22, lz); arm.castShadow = true; g.add(arm);
+    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.3, 14, 1, true), new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.8, side: THREE.DoubleSide })); shade.position.set(lx, ly + 0.08, lz); shade.castShadow = true; g.add(shade);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), new THREE.MeshStandardMaterial({ color: A.color, emissive: A.color, emissiveIntensity: 0, roughness: 1 })); bulb.position.set(lx, ly - 0.02, lz); g.add(bulb);
+    const spot = new THREE.SpotLight(A.color, 0, A.distance, A.angle, A.penumbra, 1.6); spot.position.set(lx, ly, lz); spot.target.position.set(X - 0.1, L, GB.zStand); spot.castShadow = true; spot.shadow.mapSize.set(1024, 1024); spot.shadow.bias = -0.0005; g.add(spot); g.add(spot.target);
+    // the beam itself: a faint cone from the shade to the platform (additive, so it only brightens what is behind it)
+    const h = ly - L, beamTex = (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 256; const g2 = c.getContext('2d'), gr = g2.createLinearGradient(0, 0, 0, 256);
+      gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 4, 256); return new THREE.CanvasTexture(c); })();
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(Math.tan(A.angle) * h * 0.92, h, 28, 1, true), new THREE.MeshBasicMaterial({ color: A.color, map: beamTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide, fog: false }));
+    cone.position.set((lx + X - 0.1) / 2, (ly + L) / 2, (lz + GB.zStand) / 2); cone.lookAt(lx, ly, lz); cone.rotateX(-HALF); cone.renderOrder = 2; g.add(cone);
+    world.alley = { spot, cone, bulb };
+    // the tag on the wall
+    const T = ALLEY.tag, P = LAY.mobile ? T.phone : T, tex = graffitiTexture(COPY.header.statement), tag = new THREE.Mesh(new THREE.PlaneGeometry(P.w, P.w * tex.image.height / tex.image.width), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 1, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    tag.position.set(LAY.camX + P.x, L + P.dy, -2.78); tag.receiveShadow = true; g.add(tag); },   // x is from the camera's (phones shift it); on a phone the tag sits over the lamp, where the narrow frame can hold it
   workshop(g, yT, yB) { const R = rnd(yT); const floor = yB + 0.15; const wood = mat({ color: 0xa88a62, roughness: 0.85 }), dark = mat({ color: 0x3a3632 }), red = mat({ color: 0xc0392b, roughness: 0.6 }), steel = mat({ color: 0x9aa0a6, roughness: 0.4, metalness: 0.6 });
     for (let y = yT - 2.2; y > floor + 1.6; y -= 3.2) {                                    // pegboards with tools, every few metres of wall
       const pb = bx(4.2, 2.2, 0.06, mat({ color: 0xd7c9a8, roughness: 0.95 }), -4.4, y, -2.74, g, false);
@@ -673,7 +707,7 @@ function measure() {
   R.titles = SECTIONS.map((_, w) => { const r = $('title' + w).getBoundingClientRect(); return { top: r.top + sy, h: r.height }; });
   R.worlds = [{ top: R.intro.top, h: R.intro.h, theme: 'stone' }, ...R.windows, { top: R.meadow.top, h: R.meadow.h, theme: SECTIONS[SECTIONS.length - 1].theme }];
   // for the nav's and the lift's ink: the windows with their floor (over paper — the title blocks, hero, archives, footer — the ink is dark)
-  R.inks = [{ top: R.intro.top, h: R.intro.h, theme: 'stone', fl: -1 }, ...R.windows.map((w, i) => ({ ...w, fl: i })), { top: R.meadow.top, h: R.meadow.h, theme: SECTIONS[SECTIONS.length - 1].theme, fl: -1 }];
+  R.inks = [{ top: R.header.top, h: R.header.h, theme: 'stone', fl: -1 }, { top: R.intro.top, h: R.intro.h, theme: 'stone', fl: -1 }, ...R.windows.map((w, i) => ({ ...w, fl: i })), { top: R.meadow.top, h: R.meadow.h, theme: SECTIONS[SECTIONS.length - 1].theme, fl: -1 }];
   world.hold = deckIdx >= 0 ? { s0: R.windows[deckIdx].top / vh + DECK.entry, len: SECTIONS[deckIdx].pieces.length - 1 } : { s0: 0, len: 0 };
   texts.forEach((t) => { const r = t.el.getBoundingClientRect(); t.top = r.top + sy; t.h = r.height; });
   chars.forEach((c) => { const r = c.el.getBoundingClientRect(); c.top = r.top + sy; c.h = r.height; placeChars(c); });
@@ -1003,104 +1037,115 @@ function glowFrame() { if (!mouse.seen || LAY.mobile || (mx.x === T.gx && mx.y =
 // Phases: card → cardOut → drop → void (waits for a click) → [waiting] → wave → enter → done. A click or scroll before the tiger has
 // landed is kept (queued) and skips the wave. ?snap and the Studio skip it all (?snap&entry=1 plays it).
 const QUIET = (SNAP && !PARAMS.has('entry')) || STUDIO;
-const ENTRY = { phase: QUIET ? 'done' : 'card', t: 0, k: QUIET ? 1 : 0, queued: false, chrome: false }, PAPER = new THREE.Color('#F1F1EE'), INKC = new THREE.Color('#111111');
-const OP = REDUCE ? { ...OPENING, card: 0.6, cardOut: 0.4, drop: 0.01, wave: 0.6, line: 0.01, split: [0, 0.45], dolly: [0, 0.5], chrome: 0.2 } : OPENING;
+const ENTRY = { phase: QUIET ? 'done' : 'card', t: 0, k: QUIET ? 1 : 0, queued: false, chrome: false, light: QUIET ? 1 : 0, lamp: QUIET ? 1 : 0 }, PAPER = new THREE.Color('#F1F1EE'), BLACK = new THREE.Color('#000000');
+const OP = REDUCE ? { ...OPENING, card: 0.6, cardOut: 0.4, drop: 0.01, black: 0.25, beam: 0.3, rise: 0.8, chrome: 0.2 } : OPENING;
 const tcard = $('titlecard'); window.__entry = ENTRY;                 // tools/opening.js steps through it
-const hintEl = $('void-hint'); if (QUIET) hintEl.hidden = true;
-function entryGo() { if (ENTRY.phase !== 'void') return; ENTRY.t = 0; document.documentElement.classList.add('entering'); lockPage(false); setTimeout(() => { hintEl.hidden = true; }, 700);
-  const start = () => { ENTRY.t = 0; if (REDUCE) { entryDone(); return; }                       // reduced motion: a cut, no split, no dolly
-    if (GT.ready && !ENTRY.queued) { ENTRY.phase = 'wave'; T.wave = T.waveLen = OP.wave + 0.5; } else ENTRY.phase = 'enter'; };
-  if (GT.ready || GT.failed) start(); else { ENTRY.phase = 'waiting'; tigerLoad.then(start); } }   // a click before the model is in waits for it
-const entryPoke = () => { if (ENTRY.phase === 'void') entryGo(); else if (['card', 'cardOut', 'drop'].includes(ENTRY.phase)) ENTRY.queued = true; };
+const hintEl = $('void-hint'); hintEl.hidden = true;                  // the old "click the tiger" hint: the opening plays itself now (Kay, 2026-10-06)
+// a click, a scroll or a key hurries the opening: the card folds early; black cuts to the lamp; the lamp cuts to the rise; the rise brings the nav
+const entryPoke = () => { const E = ENTRY; if (E.phase === 'card' || E.phase === 'cardOut' || E.phase === 'drop') E.queued = true;
+  else if (E.phase === 'black') { E.phase = 'beam'; E.t = 0; } else if (E.phase === 'beam') { E.phase = 'rise'; E.t = 0; E.lamp = 1; } else if (E.phase === 'rise' && E.t < OP.chrome) E.t = OP.chrome; };
 function lockPage(on) { for (const el of [$('page'), document.querySelector('.nav')]) if (el) el.inert = on; }
 if (ENTRY.phase !== 'done') lockPage(true);
-// A3: the nav items rise one by one (CSS, html.chrome), then the statement, then the scroll hint
+// A3: the nav items rise one by one (CSS, html.chrome), then the scroll hint (the statement is sprayed on the wall now)
 function entryChrome() { if (ENTRY.chrome) return; ENTRY.chrome = true; document.documentElement.classList.add('chrome');
-  const st = texts.find((x) => x.el.id === 'h-statement'), sc = texts.find((x) => x.el.id === 'h-scroll');
-  if (st) { st.stagger = MOTION.reveal.heroStagger; st.delay = QUIET ? 0 : 0.35; st.reveal(); } if (sc) setTimeout(() => sc.reveal(), QUIET ? 0 : 1100); }
-function entryDone() { ENTRY.phase = 'done'; ENTRY.k = 1; document.documentElement.classList.add('entering', 'entered'); lenis.start(); entryChrome(); tcard.classList.add('gone');
+  const sc = texts.find((x) => x.el.id === 'h-scroll'); if (sc) setTimeout(() => sc.reveal(), QUIET ? 0 : 900); }
+function entryDone() { ENTRY.phase = 'done'; ENTRY.k = 1; ENTRY.light = 1; ENTRY.lamp = 1; document.documentElement.classList.add('entering', 'entered', 'entry-ready'); lockPage(false); lenis.start(); entryChrome(); tcard.classList.add('gone');
   if (!QUIET && !REDUCE) T.nod = OP.nod;
   if (PROG.back && !QUIET) setTimeout(() => { say(PL.quips.back, 3); const lf = SECTIONS.find((x) => x.id === PROG.lastFloor); if (lf) toast(ptl(PL.ach.back, { f: lf.num })); }, 900); }
 window.addEventListener('wheel', entryPoke, { passive: true });
 window.addEventListener('touchmove', entryPoke, { passive: true });
 window.addEventListener('keydown', (e) => { if (ENTRY.phase !== 'done' && e.key === 'Tab') e.preventDefault(); });
-window.addEventListener('keydown', (e) => { if (['card', 'cardOut', 'drop', 'void'].includes(ENTRY.phase) && ['Enter', ' ', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); entryPoke(); } });
-// the opening's clock (called from frame): the card holds until there is a tiger (the GLB, or the procedural one if the GLB failed) — the
-// card is the loading state, like Léo's "World building" — then folds, the tiger drops, then the hint
+window.addEventListener('keydown', (e) => { if (ENTRY.phase !== 'done' && ['Enter', ' ', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); entryPoke(); } });
+// the opening's clock (called from frame). Beats (OPENING): the card holds until there is a tiger (the GLB, or the procedural one if the GLB
+// failed) — the card is the loading state, like Léo's "World building" — then folds; the tiger drops onto the paper and bounces twice (drop);
+// black; the alley lamp clicks on and finds it (beam: the only light); the alley comes up around it (rise), the nav rises; then scroll.
 function entryTick(dt) { const E = ENTRY; if (E.phase === 'done' || !booted) return; E.t += dt;
   // every shader (the world's, the tiger's, their shadows) compiles while the card is up, not on a frame you see move
   if (!E.compiled && (GT.ready || GT.failed) && R.win0 && world.objs.length) { E.compiled = true; const tg = GT.ready ? GT.root : rig.root, was = tg.visible;
     for (const o of world.objs) o.visible = true; tg.visible = true;
-    try { (renderer.compileAsync ? renderer.compileAsync(scene, camera) : Promise.resolve(renderer.compile(scene, camera))).catch(() => {}); } catch (e) {}
+    // one real on-screen frame, confined to a 2 × 2 px corner (the paper is painted over it the same frame): the exact programs the lit frames use, shadows included
+    try { renderer.setScissorTest(true); renderer.setScissor(0, 0, 2, 2); renderer.shadowMap.needsUpdate = true; renderer.render(scene, camera); } catch (e) {} renderer.setScissorTest(false);
     for (const o of world.objs) o.visible = false; tg.visible = was; }
   if (E.phase === 'card') { if (!tcard.classList.contains('on')) tcard.classList.add('on');
     if (E.t >= (E.queued ? 0.6 : OP.card) && (GT.ready || GT.failed)) { E.phase = 'cardOut'; E.t = 0; tcard.classList.add('out'); } }
   else if (E.phase === 'cardOut' && E.t >= OP.cardOut) { E.phase = 'drop'; E.t = 0; }
-  else if (E.phase === 'drop' && E.t >= OP.drop) { E.phase = 'void'; E.t = 0; tcard.classList.add('gone'); document.documentElement.classList.add('entry-ready'); if (E.queued) entryGo(); }
-  else if (E.phase === 'wave' && E.t >= OP.wave) { E.phase = 'enter'; E.t = 0; }
-  else if (E.phase === 'enter') { E.k = smooth(seg(E.t, OP.dolly)); if (E.t >= OP.chrome) entryChrome(); if (E.t >= Math.max(OP.split[1], OP.dolly[1])) entryDone(); } }
-// the tiger's drop onto the paper: its contact shadow grows under it as it falls, then it squashes and settles
+  else if (E.phase === 'drop' && E.t >= OP.drop) { E.phase = 'black'; E.t = 0; E.k = 1; tcard.classList.add('gone'); document.documentElement.classList.add('entering', 'entry-ready'); }   // the cut: close shot → the rail's first position
+  else if (E.phase === 'black' && E.t >= OP.black) { E.phase = 'beam'; E.t = 0; }
+  else if (E.phase === 'beam') { E.lamp = flickT(E.t, 'spot'); if (E.t >= OP.beam) { E.phase = 'rise'; E.t = 0; E.lamp = 1; } }
+  else if (E.phase === 'rise') { E.light = smooth(clamp(E.t / OP.rise, 0, 1)); if (E.t >= OP.chrome) entryChrome(); if (E.t >= OP.rise) entryDone(); } }
+// how lit the world is during the opening: full on the paper (the tiger alone, lit as always), nothing in the black and under the lamp, rising after
+const entryLightK = () => (ENTRY.phase === 'black' || ENTRY.phase === 'beam' ? 0 : ENTRY.phase === 'rise' ? ENTRY.light : 1);
+// the tiger's drop onto the paper: its contact shadow grows under it as it falls; it lands, squashes, and bounces twice (duang duang — Kay)
 const contact = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g2 = c.getContext('2d'), gr = g2.createRadialGradient(64, 64, 0, 64, 64, 64);
   gr.addColorStop(0, 'rgba(20,18,14,.5)'); gr.addColorStop(0.55, 'rgba(20,18,14,.2)'); gr.addColorStop(1, 'rgba(20,18,14,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128);
   const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, fog: false }));
   m.rotation.x = -HALF; m.renderOrder = -1; m.layers.enable(1); m.visible = false; scene.add(m); return m; })();
-function entryBody() { const E = ENTRY, tg = GT.ready ? GT.root : rig.root, shown = E.phase !== 'card' && E.phase !== 'cardOut';
-  if (GT.ready) GT.root.visible = shown; else rig.root.visible = shown && (E.phase === 'enter' || E.phase === 'done' || GT.failed === true);   // never the placeholder while the GLB loads
-  let fall = 0, sq = 0, sh = 1;
-  if (E.phase === 'drop') { const u = clamp(E.t / OP.drop, 0, 1), f = clamp(u / 0.5, 0, 1), w = clamp((u - 0.5) / 0.5, 0, 1); fall = 1 - f * f; sq = u >= 0.5 ? Math.exp(-5 * w) * Math.cos(10 * w) : 0; sh = 0.3 + 0.7 * f * f; }
-  if (fall || sq) { tg.position.y += fall * HS * 1.4; tg.scale.set(1 + 0.09 * sq, 1 - 0.15 * sq, 1 + 0.09 * sq); tg.updateMatrixWorld(true); }
+const HOPS = [[0.34, 0.30, 0.26], [0.64, 0.21, 0.10]];               // each bounce: [leaves the ground at u, lasts (of the drop), height in tiger heights]
+const squash = (d) => (d < 0 ? 0 : Math.exp(-d / 0.06) * Math.cos((2 * Math.PI * d) / 0.13));   // a landing: squash, rebound, settle (d = drop fraction since it)
+function entryBody() { const E = ENTRY, tg = GT.ready ? GT.root : rig.root, shown = E.phase !== 'card' && E.phase !== 'cardOut' && E.phase !== 'black';
+  if (GT.ready) GT.root.visible = shown; else rig.root.visible = shown && (E.phase === 'beam' || E.phase === 'rise' || E.phase === 'done' || GT.failed === true);   // never the placeholder while the GLB loads
+  let lift = 0, sq = 0, sh = 1;
+  if (E.phase === 'drop') { const u = clamp(E.t / OP.drop, 0, 1), f = clamp(u / HOPS[0][0], 0, 1); lift = 1.4 * (1 - f * f);
+    for (const [u0, du, h] of HOPS) { const x = (u - u0) / du; if (x > 0 && x < 1) lift += 4 * h * x * (1 - x); }
+    sq = squash(u - HOPS[0][0]) + 0.6 * squash(u - HOPS[1][0]) + 0.35 * squash(u - (HOPS[1][0] + HOPS[1][1]));
+    sh = 1 - 0.7 * clamp(lift / 1.4, 0, 1); }
+  if (lift || sq) { tg.position.y += lift * HS; tg.scale.set(1 + 0.1 * sq, 1 - 0.16 * sq, 1 + 0.1 * sq); tg.updateMatrixWorld(true); }
   else if (tg.scale.y !== 1) { tg.scale.set(1, 1, 1); tg.updateMatrixWorld(true); }
-  const fade = E.phase === 'enter' ? 1 - smooth(seg(E.t, [OP.split[0], OP.split[0] + 0.6])) : 1;
-  contact.visible = shown && (GT.ready || GT.failed) && E.phase !== 'done' && fade > 0.01;
-  if (contact.visible) { contact.position.set(TIGER.x, TIGER.ledgeY + 0.012, GB.zStand); contact.scale.set(HS * 0.62 * sh, HS * 0.36 * sh, 1); contact.material.opacity = sh * fade; } }
-// the opening's picture: paper everywhere, the world only inside the split (between its two cut edges), the tiger on top of both.
-// The tiger and its contact shadow are on layer 1 (so are the lights): a scissored pass draws them alone over the paper.
+  contact.visible = shown && (GT.ready || GT.failed) && E.phase === 'drop';
+  if (contact.visible) { contact.position.set(TIGER.x, TIGER.ledgeY + 0.012, GB.zStand); contact.scale.set(HS * 0.62 * sh, HS * 0.36 * sh, 1); contact.material.opacity = sh; } }
+// the opening's picture: on the paper beats, paper everywhere and the tiger alone on it (it, its contact shadow and the lights are on layer 1);
+// black; then the world as it is, lit only by what entryLightK and the alley lamp allow
 const CLEAR0 = renderer.getClearColor(new THREE.Color()), CLEARA0 = renderer.getClearAlpha();
-function renderOpening() {
-  const E = ENTRY, inEnter = E.phase === 'enter', line = inEnter ? clamp(E.t / OP.line, 0, 1) : 0, g = inEnter ? CustomEase.get('reveal')(seg(E.t, OP.split)) : 0;
-  tigerPoint(v3, false); v3.project(camera); const cx = clamp((v3.x + 1) / 2 * vw, 2, vw - 2), gl = cx * (1 - g), gr = cx + (vw - cx) * g, open = gr - gl >= 1.5;
-  // order: paper → the line → the world in the gap (it renders the shadow map, with every caster) → the paper's cut edges → the tiger alone
-  // on top (no depth clear: outside the gap it lands on the paper; inside it, the world's depth keeps what stands in front of it in front)
-  renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
-  renderer.autoClear = false; renderer.setScissorTest(false); renderer.setClearColor(PAPER, 1); renderer.clear(true, true, true); renderer.setScissorTest(true);
-  if (line > 0 && !open) { const lh = vh * smooth(line); renderer.setScissor(cx - 0.75, vh - lh, 1.5, lh); renderer.setClearColor(INKC, 1); renderer.clear(true, false, false); }
-  if (open) { renderer.setScissor(gl, 0, gr - gl, vh); scene.background = skyColor; renderer.render(scene, camera);
-    renderer.setClearColor(INKC, 1); for (const ex of [gl, gr]) if (ex > 1 && ex < vw - 1) { renderer.setScissor(ex - 0.75, 0, 1.5, vh); renderer.clear(true, false, false); } }
-  renderer.setScissorTest(false); scene.background = null; camera.layers.set(1); renderer.render(scene, camera); camera.layers.set(0);
+function renderOpening() { const E = ENTRY;
+  renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true; renderer.autoClear = false; renderer.setScissorTest(false);
+  if (E.phase === 'black') { renderer.setClearColor(BLACK, 1); renderer.clear(true, true, true); }
+  else if (E.phase === 'beam' || E.phase === 'rise') { scene.background = skyColor; renderer.setClearColor(CLEAR0, CLEARA0); renderer.clear(true, true, true); renderer.render(scene, camera); }
+  else { renderer.setClearColor(PAPER, 1); renderer.clear(true, true, true); scene.background = null; camera.layers.set(1); renderer.render(scene, camera); camera.layers.set(0); }
   scene.background = skyColor; renderer.setClearColor(CLEAR0, CLEARA0); renderer.autoClear = true; renderer.shadowMap.autoUpdate = true; }
 
 // ───────────────────────── The intro (Kay, 2026-10-06): a game dialogue box, after Disco Elysium's — a rigid paper box with her portrait; the visitor
 // picks a question and the answer joins the log, while the tiger leans off the ladder beside it (the box is sticky through the intro window; style.css → .dlg).
 // The words are COPY.intro.script (edited in the Studio's Site text):  "# id" starts a node; its lines are what KookyTiger says (a blank line = a new
 // paragraph; "@ Say hi ↗" = the email link); "> question -> id" is a choice; ">? 58 | [SKILL — Medium] question -> id | what the skill says when the
-// dice fail" is a check (two dice, the number is the chance; a failed check can be tried again after another question); "* hub" adds the questions of
-// "start" not asked yet (a node with no choices gets them); "> Start over -> start" wipes the log. The keys 1–9 pick while the box is on screen.
+// dice fail" is a check (two dice, the number is the chance; a failed check can be tried again after another question); ">! 3 | question -> id" is
+// locked until the visitor has opened that many projects (Disco Elysium's greyed lines; PROG.seen); "> label -> go:title0" scrolls to that element
+// instead of answering; "%floors" / "%tools" on a line of their own become the live lineup / the approved write-ups' software; "* hub" adds the
+// questions of "start" not asked yet (a node with no choices gets them); "> Start over -> start" wipes the log. The keys 1–9 pick while the box is on screen.
 const esc = (x) => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 function parseScript(src) { const nodes = {}; let cur = null;
   for (const raw of String(src || '').split('\n')) { const line = raw.trimEnd();
     const h = /^#\s*(\S+)/.exec(line); if (h) { cur = nodes[h[1]] = { id: h[1], text: [], opts: [], hub: false }; continue; } if (!cur) continue;
     if (/^\*\s*hub\b/.test(line)) { cur.hub = true; continue; }
     const c = /^>\?\s*(\d+)\s*\|\s*(.+?)\s*->\s*(\S+)\s*\|\s*(.*)$/.exec(line); if (c) { cur.opts.push({ label: c[2], to: c[3], pct: +c[1], fail: c[4].trim() }); continue; }
+    const k = /^>!\s*(\d+)\s*\|\s*(.+?)\s*->\s*(\S+)\s*$/.exec(line); if (k) { cur.opts.push({ label: k[2], to: k[3], need: +k[1] }); continue; }
     const o = /^>\s*(.+?)\s*->\s*(\S+)\s*$/.exec(line); if (o) { cur.opts.push({ label: o[1], to: o[2] }); continue; }
     cur.text.push(line); }
-  for (const n of Object.values(nodes)) { n.paras = n.text.join('\n').trim().split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean); if (!n.opts.length) n.hub = true; }
+  for (const n of Object.values(nodes)) { n.paras = n.text.map((l) => (/^%\w+$/.test(l.trim()) ? `\n${l.trim()}\n` : l)).join('\n').trim().split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean); if (!n.opts.length) n.hub = true; }   // a %token line is a paragraph of its own
   return nodes; }
 const dlgEl = $('dlg'), dlgLog = $('dlg-log'), dlgOpts = $('dlg-opts'), DLG = { nodes: {}, visited: new Set(), opts: [], at: 'start', cool: null };
 const ODDS = [100, 100, 100, 97, 92, 83, 72, 58, 42, 28, 17, 8, 3];                               // P(two dice ≥ n) in %, n = the index
 const skillOf = (label) => (/^\[([^\]—–:-]+)/.exec(label)?.[1] || '').trim();
 const labelHTML = (label) => esc(label).replace(/^\[([^\]]+)\]\s*/, (_, k) => `<span class="sk">${k}</span>`);
-const paraHTML = (t) => `<p>${t.split('\n').map((l) => (/^@\s*/.test(l) ? `<a href="mailto:${COPY.footer.email}">${esc(l.replace(/^@\s*/, ''))}</a>` : esc(l))).join('<br>')}</p>`;   // a line starting with @ is the email link
+const titleCase = (t) => String(t).toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+const dlgDyn = { floors: () => SECTIONS.filter((x) => x.pieces && x.pieces.length).map((x) => `<p><b>${esc(x.num)} ${esc(titleCase(x.title))}</b> — ${esc(x.sub)}: ${x.pieces.map((i) => esc(PIECES[i].name)).join(', ')}.</p>`).join(''),
+                 tools: () => `<p>${esc((WRITEUP_LIB.software || []).map((x) => x.name).join(', '))}.</p>` };
+const paraHTML = (t) => (/^%(floors|tools)$/.test(t.trim()) ? dlgDyn[t.trim().slice(1)]()      // the live facts
+  : `<p>${t.split('\n').map((l) => (/^@\s*/.test(l) ? `<a href="mailto:${COPY.footer.email}">${esc(l.replace(/^@\s*/, ''))}</a>` : esc(l))).join('<br>')}</p>`);   // a line starting with @ is the email link
 function dlgLine(who, html, cls = '') { const el = document.createElement('div'); el.className = 'line ' + cls; el.innerHTML = `<span class="k mono">${esc(who)}</span><div class="t">${html}</div>`; dlgLog.appendChild(el);
   if (!REDUCE) gsap.fromTo(el, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.55, ease: 'reveal' }); return el; }
 const dlgScroll = () => requestAnimationFrame(() => dlgLog.scrollTo({ top: dlgLog.scrollHeight, behavior: REDUCE ? 'auto' : 'smooth' }));
 function dlgOptions(n) { const hub = n.hub ? (DLG.nodes.start?.opts || []).filter((o) => !n.opts.some((x) => x.to === o.to)) : [];
   DLG.opts = [...n.opts, ...hub].filter((o) => o.to === 'start' || !DLG.visited.has(o.to));
-  dlgOpts.innerHTML = DLG.opts.map((o, i) => `<li><button type="button" data-i="${i}"${DLG.cool === o.to ? ' disabled' : ''}><span class="n">${i + 1}.</span><span>${labelHTML(o.label)}</span></button></li>`).join(''); }
+  const n0 = seenN();
+  dlgOpts.innerHTML = DLG.opts.map((o, i) => { const locked = o.need && n0 < o.need;
+    return `<li><button type="button" data-i="${i}"${DLG.cool === o.to || locked ? ' disabled' : ''}${locked ? ' class="locked"' : ''}><span class="n">${i + 1}.</span><span>${labelHTML(o.label)}${locked ? `<span class="lock">${esc(ptl(COPY.intro.locked, { n: o.need }))}</span>` : ''}</span></button></li>`; }).join(''); }
+function dlgRefresh() { if (DLG.nodes[DLG.at]) dlgOptions(DLG.nodes[DLG.at]); }       // a project opened: a locked question may have come free
 function dlgSay(id) { const n = DLG.nodes[id] || DLG.nodes.start; if (!n) return;
   if (n.id === 'start' && DLG.visited.size) { DLG.visited.clear(); dlgLog.innerHTML = ''; }                    // start over
   DLG.at = n.id; DLG.visited.add(n.id); DLG.cool = null;
   dlgLine(COPY.intro.who, n.paras.map(paraHTML).join('')); dlgOptions(n); dlgScroll(); }
-function dlgPick(i) { const o = DLG.opts[i]; if (!o || DLG.cool === o.to) return;
+function dlgPick(i) { const o = DLG.opts[i]; if (!o || DLG.cool === o.to || (o.need && seenN() < o.need)) return;
+  if (o.to.startsWith('go:')) { REW.autoUntil = performance.now() / 1000 + 1.9; lenis.scrollTo('#' + o.to.slice(3), { duration: 1.6, easing: (x) => 1 - Math.pow(1 - x, 4) }); return; }   // an action: go there
   dlgLine(COPY.intro.you, `<p>${esc(o.label.replace(/^\[[^\]]+\]\s*/, ''))}</p>`, 'you');
   if (o.pct) {                                                      // a check: two dice against the face whose odds are nearest the chance given
     const a = 1 + Math.floor(Math.random() * 6), b = 1 + Math.floor(Math.random() * 6), need = ODDS.reduce((best, p, n) => (n >= 2 && Math.abs(p - o.pct) < Math.abs(ODDS[best] - o.pct) ? n : best), 2);
@@ -1215,7 +1260,7 @@ function frame(now) {
   if (ENTRY.phase !== 'done') {                               // the opening: a close shot of the tiger on paper that backs out to the rail's first position
     const D = LAY.mobile ? 7.4 : 5.4, cy = TIGER.ledgeY + HS * 0.52;
     camera.position.lerp(_a.set(TIGER.x, cy + D * Math.sin(-CAMERA.pitch), GB.zStand + D * Math.cos(CAMERA.pitch)), 1 - ENTRY.k); }
-  { const show = ENTRY.phase === 'enter' || ENTRY.phase === 'done'; for (const o of world.objs) o.visible = show && !o.userData.hidden; }
+  { const show = ENTRY.phase === 'beam' || ENTRY.phase === 'rise' || ENTRY.phase === 'done'; for (const o of world.objs) o.visible = show && !o.userData.hidden; }
   camera.updateMatrixWorld();                                   // overlays and the hover ray below use this frame's camera
 
   // ── which window are we in? (for the sky tint + the cards)
@@ -1301,7 +1346,10 @@ function frame(now) {
   hemi.intensity = lerp(hemi.intensity, landed ? LIGHT.hemi.intensityShore : th.hemi, lk); hemi.color.lerp(tmpC.set(landed ? LIGHT.hemi.skyShore : th.hemiSky), lk); hemi.groundColor.lerp(tmpC.set(landed ? LIGHT.hemi.groundShore : th.hemiGround), lk);
   camLight.intensity = lerp(camLight.intensity, landed ? 0 : th.camLight, lk); camLight.color.lerp(tmpC.set(th.camColor), lk);
   scene.fog.near = lerp(scene.fog.near, landed ? 24 : th.fog[0], lk); scene.fog.far = lerp(scene.fog.far, landed ? 110 : th.fog[1], lk);
-  if (ENTRY.phase !== 'done') { skyColor.copy(skyTarget); scene.fog.color.copy(skyColor); scene.fog.near = th.fog[0]; scene.fog.far = th.fog[1]; }
+  if (ENTRY.phase !== 'done') { const ek = entryLightK(); skyColor.copy(skyTarget).multiplyScalar(ek); scene.fog.color.copy(skyColor); scene.fog.near = th.fog[0]; scene.fog.far = th.fog[1];   // the opening: black, then the alley comes up
+    key.intensity = th.key * ek; key.color.set(th.keyColor); hemi.intensity = th.hemi * ek; hemi.color.set(th.hemiSky); hemi.groundColor.set(th.hemiGround); camLight.intensity = 0; }
+  if (world.alley) { const A = world.alley, k = ENTRY.lamp * (1 + 0.025 * Math.sin(t * 7.3) + 0.015 * Math.sin(t * 13.1));   // the alley lamp: the opening's beam, then on, with a buzz
+    A.spot.intensity = ALLEY.lamp.intensity * k; A.cone.material.opacity = ALLEY.lamp.cone * k; A.bulb.material.emissiveIntensity = 1.8 * k; }
   // nav ink flips only while the nav sits inside a dark window (Léo's toggleColor rule)
   liftFrame(s, camY, underLift); inkFrame(s, landed);            // B2 + the ink of the nav and the lift
 
@@ -1340,7 +1388,7 @@ function frame(now) {
   const under = document.elementFromPoint(mx.x, mx.y);
   ray.setFromCamera(new THREE.Vector2(mouse.x, -mouse.y), camera); hoverTiger = inWorld && mouse.seen && ray.intersectObject(tigerHit).length > 0; const overCard = !panelOpen && under?.closest?.('.card .in, .slide .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close'); const overGrip = PW.drag || under?.closest?.('#panel-grip');
   const hot = !!(overCard || overLink || overClose || overGrip || under?.closest?.('button:not(:disabled), [role="button"]') || (hoverTiger && !panelOpen)); if (hot !== T.pawHot) { T.pawHot = hot; cursor.classList.toggle('hot', hot); }   // the dot grows over anything clickable
-  setPill(ENTRY.phase !== 'done' ? (ENTRY.phase === 'void' && hoverTiger ? 'say hi' : '') : overGrip ? COPY.panel.resize : overClose ? COPY.panel.close : hoverTiger && !panelOpen ? (GT.ready && state === 'sit' ? 'talent show' : COPY.cursor.tiger) : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
+  setPill(ENTRY.phase !== 'done' ? '' : overGrip ? COPY.panel.resize : overClose ? COPY.panel.close : hoverTiger && !panelOpen ? (GT.ready && state === 'sit' ? 'talent show' : COPY.cursor.tiger) : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
 
   tigerPoint(v3, false); v3.project(camera);
   window.__dbg = { s: +s.toFixed(3), state, glb: GT.ready, entry: ENTRY.phase, et: +ENTRY.t.toFixed(2), seen: seenN(), rew: T.rew ? T.rew.kind : null, still: +REW.still.toFixed(1), peek: +T.peek.toFixed(2), perf: T.perf ? T.perf.kind : null, walk: GT.walk ? [+GT.walk.y.toFixed(2), GT.walk.k, +GT.walk.score.toFixed(3)] : null, menu: T.menu, landed, aN: +nearestA.toFixed(3), inWindow, tiger: [+v3.x.toFixed(3), +v3.y.toFixed(3)], quipT: +T.quipT.toFixed(2), cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };

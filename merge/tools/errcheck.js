@@ -3,7 +3,7 @@ const path = require('path');
 const { chromium } = require('playwright');
 (async () => {
   const root = path.resolve(__dirname, '..');
-  const b = await chromium.launch({ args: ['--allow-file-access-from-files'] });
+  const b = await chromium.launch({ args: ['--allow-file-access-from-files', '--use-angle=metal', '--ignore-gpu-blocklist'] });
   const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
   p.on('pageerror', e => console.log('PAGEERROR', e.message)); p.on('console', m => { if (m.type() === 'error') console.log('CONSOLE', m.text().slice(0, 300)); });
   const file = process.env.DIR === 'dist' ? path.join(root, 'dist', 'index.html') : path.join(root, 'preview.html');
