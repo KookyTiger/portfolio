@@ -44,6 +44,11 @@
     "civenv205"
   ],
   "cover": "assets/projects/amg.webp",
+  "brief": {
+    "problem": "Should Amgen keep paying for AMG-786, an oral obesity drug in Phase I, in a market owned by Novo Nordisk's and Eli Lilly's injections? A go/no-go case for CIV_ENV 205; I was the team's “Calculator” — pricing and valuation in Excel.",
+    "solution": "Pessimistic on purpose: Phase I budgeted at $102 million against DiMasi's $30.9 million upper bound, Phase II's pass rate cut to about 50%, a 105-month timeline. I carried four rivals' monthly list prices forward at 3.1% inflation to 2033 and proposed $1,400–1,500 a month.",
+    "impact": "NPV $12.1 billion with 11% yearly sales growth, $6.9 billion with none, on a $1.36 billion investment. Our call: proceed, but keep later-stage spending small until Phase II clears. What I'd fix: weight the NPV by our own decision tree, and size demand in patients, not doses."
+  },
   "blocks": [
     {
       "id": "question",

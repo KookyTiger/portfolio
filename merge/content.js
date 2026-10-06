@@ -167,7 +167,9 @@ export const COPY = {
   section:  { projects: 'projects' },
   footer: { words: ['{N_UP} DOWN.', 'BRING', 'YOUR BOSS'], sayhi: 'Say hi ↗', email: 'kaytu2027@u.northwestern.edu', bottom: ['Zishu Kay Tu', 'Northwestern MaDE + RTVF', '© 2026'] },
   cursor: { tiger: 'click the tiger', card: 'open' },
-  panel:  { role: 'What I did', tools: 'Tools', numbers: 'Numbers', one: 'The one thing', ask: 'Ask me for the full report ↗', close: 'Close' },
+  panel:  { role: 'What I did', tools: 'Tools', numbers: 'Numbers', one: 'The one thing', ask: 'Ask me for the full report ↗', close: 'Close',
+            // a write-up opens on its short version (problem / solution / impact / tools, ~30 s); a tab switches to the whole process (Kay, 2026-10-05)
+            brief: 'In short', full: 'The whole process', problem: 'Problem', solution: 'Solution', impact: 'Impact', more: 'Read the whole process', resize: 'drag' },
 };
 
 // The wardrobe (G2, Kay makes the pieces): modelled on assets/src/wear/tiger-ref.glb, exported alone with transforms applied, so each sits

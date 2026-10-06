@@ -60,6 +60,11 @@
     "dsgn308"
   ],
   "cover": "assets/projects/levelup.webp",
+  "brief": {
+    "problem": "Lifting a barbell unevenly is common and easy to miss: in 20 minutes at SPAC we watched three people do it, and most didn't see it as their problem. In extreme cases a raised shoulder can lead to rotator-cuff trouble or a torn labrum.",
+    "solution": "LevelUp: a printed PLA clip that snaps over the bar, with a 1-inch level vial on an arm angled to face the lifter. No straps, no magnets. I helped model the clip in CAD and print it.",
+    "impact": "Three SPAC lifters clipped it on without instructions in 2.5 s on average; with the vial in view, the bubble never left the level zone. Still to fix: it hit one tester's chest and fits one bar size."
+  },
   "blocks": [
     {
       "id": "problem",

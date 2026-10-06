@@ -31,6 +31,8 @@ Pictures are always named by their published path, `assets/projects/<slug>/<file
   "skills": [{ "name": "Observational research", "evidence": "research" }],   // evidence = id of the block that shows it
   "classes": ["dsgn308"],            // ids from _studio.json → classes
   "cover": "assets/projects/levelup.webp",
+  "brief": { "problem": "…", "solution": "…", "impact": "…" },   // the short version (~30 s) the panel opens on; a tab leads to the blocks.
+                                                                  // Its tools are `software`. It only repeats the blocks — nothing that isn't in one. Empty = the panel opens on the blocks.
   "blocks": [{
     "id": "problem", "stage": "problem",
     "title": "A headline that states the thinking (≤ 8 words)",

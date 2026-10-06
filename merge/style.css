@@ -276,12 +276,12 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 /* ── project detail panel (slides in from the left over the cards; the tiger keeps hanging on the right) ── */
 #panel-scrim { position: fixed; inset: 0; z-index: 44; display: none; }
 #panel-scrim.on { display: block; }
-.panel { position: fixed; left: 0; top: 0; bottom: 0; z-index: 45; width: min(58vw, 860px); background: rgba(241,241,238,.9); -webkit-backdrop-filter: blur(18px) saturate(1.05); backdrop-filter: blur(18px) saturate(1.05); color: var(--ink); transform: translate3d(-104%, 0, 0); transition: transform .75s cubic-bezier(.4,0,0,1), box-shadow .75s ease; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.panel { position: fixed; left: 0; top: 0; bottom: 0; z-index: 45; width: var(--panel-w, min(58vw, 860px)); background: rgba(241,241,238,.9); -webkit-backdrop-filter: blur(18px) saturate(1.05); backdrop-filter: blur(18px) saturate(1.05); color: var(--ink); transform: translate3d(-104%, 0, 0); transition: transform .75s cubic-bezier(.4,0,0,1), box-shadow .75s ease; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .panel.open { transform: translate3d(0, 0, 0); box-shadow: 40px 0 120px rgba(20,20,16,.14); }          /* shadow only when in: closed, it bled into the screen's left edge */
 .panel .close { position: sticky; float: right; z-index: 3; margin: 22px 22px 0 0; top: 22px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
 .panel .close:hover { background: var(--ink); color: var(--paper); }
 .panel::before { content: ""; position: sticky; top: 0; display: block; height: 88px; margin-bottom: -88px; z-index: 2; pointer-events: none; background: linear-gradient(rgba(241,241,238,.97) 60%, rgba(241,241,238,0)); }   /* a long write-up scrolls under the nav: keep the top of the panel clear; the close button stays with it */
-.panel .inner { padding: 96px 56px 56px; }
+.panel .inner { padding: 96px clamp(56px, 6.5%, 120px) 56px; }       /* the side room grows a little as the reader widens the panel */
 .panel .eyebrow { display: flex; gap: 14px; margin: 0 0 18px; }
 .panel .eyebrow .n { color: var(--ink); }
 .panel h2 { font-size: clamp(30px, 3.2vw, 44px); line-height: 1.05; letter-spacing: -.02em; font-weight: 400; margin: 0 0 16px; }
@@ -299,6 +299,15 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
 .fly { position: fixed; z-index: 47; margin: 0; pointer-events: none; object-fit: contain; fill: var(--ink); filter: drop-shadow(0 18px 22px rgba(20,20,16,.25)); will-change: left, top, width, height; }
 .panel .ask { display: inline-block; margin-top: 40px; font-size: 16px; text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
 .panel .blk { will-change: transform, opacity; }
+/* the panel is a window the reader can stretch (Kay, 2026-10-05): its right edge is a grip — drag it, or ← → / Home / End on the keyboard,
+   double-click = the whole screen and back — from a third of the screen to all of it (app.js → setPanelW; kept between visits) */
+#panel-grip { position: fixed; top: 0; bottom: 0; left: calc(var(--panel-w, min(58vw, 860px)) - 8px); width: 16px; z-index: 46; cursor: col-resize; touch-action: none; opacity: 0; transition: opacity .3s ease; }
+#panel-grip[hidden] { display: none; }
+#panel-grip.on { opacity: 1; transition-delay: .45s; }                     /* after the panel has slid in */
+#panel-grip::before { content: ""; position: absolute; left: 50%; top: 50%; width: 4px; height: 48px; margin: -24px 0 0 -2px; border-radius: 2px; background: var(--ink); opacity: .22; transition: opacity .2s ease, height .25s cubic-bezier(.4,0,0,1), margin .25s cubic-bezier(.4,0,0,1); }
+#panel-grip:hover::before, #panel-grip:focus-visible::before, #panel-grip.drag::before { opacity: .75; height: 84px; margin-top: -42px; }
+#panel-grip:focus-visible { outline: none; }
+body.resizing { cursor: col-resize; user-select: none; -webkit-user-select: none; }
 .card .in { cursor: pointer; }
 .card .in:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
 
@@ -342,6 +351,7 @@ html.nav-split .nav .brand, html.nav-split .nav .links { color: var(--paper); tr
   .archives table { grid-column: 1 / -1; font-size: 13px; }
   .footer .word { font-size: calc(clamp(38px, 13vw, 80px) * var(--footer-size, 1)); }
   .panel { width: 100vw; box-shadow: none; }
+  #panel-grip { display: none; }                                             /* phones: the panel is the screen */
   .panel .close { top: 70px; margin-top: 70px; }                            /* below the nav links, which sit where the × was */
   .panel::before { height: 120px; margin-bottom: -120px; }
   .panel .inner { padding: 84px 22px 48px; }

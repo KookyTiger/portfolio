@@ -57,6 +57,11 @@
     "iems313"
   ],
   "cover": "assets/projects/austin.webp",
+  "brief": {
+    "problem": "Group Austin's 44 ZIP areas into two to four clusters for vaccination planning: keep vulnerable areas together, neighbours close and travel patterns intact, without one cluster taking most of 1,146,600 people. The real question: how much of one good thing do you give up for another?",
+    "solution": "Phase 1: k-medoids with a population-balance penalty, from hundreds of starting points. Phase 2: two integer programs in Gurobi with a hard floor — every cluster holds at least 80% of an equal share. Three distances (vulnerability, geography, connectivity), scaled and blended: 132 maps.",
+    "impact": "Two answers, both at K = 2: an all-pairs model within 1% on population and 10–15% off the best on each measure, and a medoid model that wins its own objective but loses every ratio. Which to use depends on the outbreak. What I'd fix: the two objectives were never on the same scale."
+  },
   "blocks": [
     {
       "id": "question",

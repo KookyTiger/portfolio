@@ -4,7 +4,7 @@
 // Every edit autosaves; a save made on top of an older version is refused (409) so nobody overwrites anybody.
 // Approving a write-up publishes it to the site.
 // ─────────────────────────────────────────────────────────────
-import { renderWriteup, renderFloorBand, toolIcon, stagesOf } from '../writeup-view.js';
+import { renderWriteup, renderFloorBand, toolIcon, stagesOf, wuView } from '../writeup-view.js';
 import { LocalBackend, GitHubBackend } from './backend.js';
 
 const $ = (id) => document.getElementById(id);
@@ -15,7 +15,7 @@ const store = { get(k, d) { try { const v = localStorage.getItem(k); return v ==
                 set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
 
 const S = { studio: null, projects: {}, hashes: {}, icons: {}, sel: { type: 'inbox' }, dirty: new Set(), saving: new Set(), timers: {},
-            showDraft: new Set(), focusBlock: null, pvMode: store.get('studio.pv', 'panel'), conflicts: {}, pics: {},
+            showDraft: new Set(), focusBlock: null, pvMode: store.get('studio.pv', 'panel'), pvView: 'brief', conflicts: {}, pics: {},
             siteDirty: false, pvSite: { dev: 'desktop', hover: false, s: 0, ...store.get('studio.pvsite', {}) } };
 const KINDS = ['sketch', 'photo', 'mockup', 'prototype', 'test', 'cad', 'render', 'screen', 'diagram', 'chart', 'still'];
 const FLOOR_NAMES = { engineering: 'Engineering', design: 'Design & Interaction', analytics: 'Analytics & Strategy', backlog: 'Backlog' };
@@ -234,6 +234,14 @@ function projectEditor(p) {
     <div class="sec"><span class="k">Skills this project shows</span><div class="chips">${skillChips}<button class="add" data-act="pick-skills">＋ skill</button></div></div>
     <div class="sec"><span class="k">Classes</span><div class="chips">${classChips}<button class="add" data-act="pick-classes">＋ class</button></div></div>
     <div class="sec"><span class="k">Cover (the cut-out on the site)</span><div class="row"><input data-k="cover" value="${esc(p.cover || '')}" style="max-width:420px">${p.cover ? `<img src="${esc(pic(p.cover))}" alt="" style="height:44px">` : ''}</div></div>
+    <div class="sec brief-ed"><span class="k">The short version — what the panel opens on (about 30 seconds); a tab leads to the whole process below</span>
+      <div class="grid3">
+        <label class="f"><span>Problem</span><textarea data-k="brief.problem" rows="4" placeholder="What was wrong, for whom — one or two sentences.">${esc(p.brief?.problem || '')}</textarea></label>
+        <label class="f"><span>Solution</span><textarea data-k="brief.solution" rows="4" placeholder="What you made and how it answers the problem.">${esc(p.brief?.solution || '')}</textarea></label>
+        <label class="f"><span>Impact</span><textarea data-k="brief.impact" rows="4" placeholder="What it did: the numbers, the test, what changed.">${esc(p.brief?.impact || '')}</textarea></label>
+      </div>
+      <p class="hint" style="margin:6px 0 0">The tools shown with it are “Software I used” above. Nothing new goes here: the short version only repeats what the blocks say. Empty = the panel opens straight on the whole process.</p>
+    </div>
     ${legacy}
     <div class="sec"><span class="k">The page, block by block — ${esc(tpl.name || p.template)}</span>
       ${(() => { let n = 0; return (p.blocks || []).map((b, i) => blockCard(p, b, i, stages, tpl, b.layout !== 'quote' && stages[b.stage] ? ++n : null)).join(''); })()}
@@ -335,7 +343,7 @@ const SITE_FIELDS = [
   ['Top bar', [['copy.nav.name', 'Name'], ['copy.nav.sub', 'Under the name'], ['copy.nav.tagline', 'Tagline'], ['copy.nav.links', 'Links (Work / About / Archives), one per line', 'lines', 3]]],
   ['The landing — the other shore', [['copy.shore.words', 'Big words, one per line', 'lines', 2], ['copy.shore.sub', 'Under them'], ['copy.shore.sayhi', 'Link'], ['copy.shore.tiger', 'What the tiger says'], ['copy.talents.hint', 'Talent-show hint'], ['copy.talents.trigger', 'Talent-show button'], ['copy.talents.title', 'Talent-show title']]],
   ['Archives & footer', [['copy.archives.title', 'Archives title'], ['copy.archives.note', 'Archives note'], ['copy.footer.words', 'Footer big words, one per line', 'lines', 3], ['copy.footer.sayhi', 'Footer link'], ['copy.footer.email', 'Email'], ['copy.footer.bottom', 'Bottom line, one part per line', 'lines', 3]]],
-  ['Small labels', [['copy.cursor.tiger', 'Cursor over the tiger'], ['copy.cursor.card', 'Cursor over a project'], ['copy.panel.ask', 'Link at the end of a project'], ['copy.section.projects', 'Word after the project count on a floor title']]],
+  ['Small labels', [['copy.cursor.tiger', 'Cursor over the tiger'], ['copy.cursor.card', 'Cursor over a project'], ['copy.panel.ask', 'Link at the end of a project'], ['copy.panel.brief', 'Project tab: the short version'], ['copy.panel.full', 'Project tab: the whole process'], ['copy.panel.more', 'Link under the short version'], ['copy.panel.problem', 'Short version: label 1'], ['copy.panel.solution', 'Short version: label 2'], ['copy.panel.impact', 'Short version: label 3'], ['copy.panel.tools', 'Short version: label 4'], ['copy.panel.resize', 'Cursor on the panel’s edge'], ['copy.section.projects', 'Word after the project count on a floor title']]],
 ];
 // Type: the five kinds of big display words on the site (app.js → applyType turns these into CSS variables)
 const TYPE = [['hero', 'Hero words (KAY / ZISHU / TU)', 'hero'], ['titles', 'Floor titles', 'title0'], ['values', 'Floor statements (the quotes)', 'value0'], ['shore', 'The other shore', 'shore'], ['footer', 'Footer words', 'footer']];
@@ -490,7 +498,7 @@ function renderPreview(reset = false) {
     const p = S.projects[S.sel.id], order = siteLineup(), idx = order.indexOf(p);
     const W = mode === 'wide' ? 1200 : mode === 'phone' ? 390 : 860;
     $('pv-title').textContent = `${p.name} · ${mode === 'wide' ? 'wide panel 1200' : mode === 'phone' ? 'phone 390' : 'site panel 860'}`;
-    pv.innerHTML = `<div class="pv-frame ${mode === 'phone' ? 'phone' : 'panel'}" style="width:${W}px;zoom:${Math.min(1, avail / W)}">${renderWriteup(p, S.studio, S.icons, { index: idx >= 0 ? idx + 1 : null, total: order.length, showEmpty: true, resolve: pic })}</div>`;
+    pv.innerHTML = `<div class="pv-frame ${mode === 'phone' ? 'phone' : 'panel'}" style="width:${W}px;zoom:${Math.min(1, avail / W)}">${renderWriteup(p, S.studio, S.icons, { index: idx >= 0 ? idx + 1 : null, total: order.length, showEmpty: true, resolve: pic, view: S.pvView, labels: S.site?.copy?.panel })}</div>`;
   } else if (S.sel.type === 'floor') {
     const f = S.studio.floors.find((x) => x.id === S.sel.id), n = projectsOn(f.id).length, total = S.studio.floors.length;
     $('pv-title').textContent = `${f.title} · title band`;
@@ -572,6 +580,7 @@ async function publishSite() {
 $('tb-sitepub').addEventListener('click', publishSite);
 $('pv-mode').addEventListener('click', (e) => { const m = e.target.closest('button')?.dataset.m; if (!m) return; S.pvMode = m; store.set('studio.pv', m); renderPreview(true); });
 $('pv').addEventListener('click', (e) => {
+  const v = e.target.closest('[data-view]'); if (v) { S.pvView = v.dataset.view; wuView($('pv').querySelector('.wu'), S.pvView); return; }   // the write-up's two versions
   const a = e.target.closest('a'); if (a) e.preventDefault();
   const id = (a?.getAttribute('href') || '').startsWith('#wu-') ? a.getAttribute('href').slice(4) : e.target.closest('[data-block]')?.dataset.block;
   if (!id || S.sel.type !== 'project') return;
@@ -592,6 +601,7 @@ function focusBlock(id) {
   $('edit').querySelector(`#blk-${CSS.escape(id)}`)?.classList.add('focus');
   const pv = $('pv'); pv.querySelectorAll('.hl').forEach((x) => x.classList.remove('hl'));
   const t = pv.querySelector(`[data-block="${CSS.escape(id)}"]`);
+  if (t && t.closest('.wu-process') && S.pvView !== 'full') { S.pvView = 'full'; wuView(t.closest('.wu'), 'full'); }   // a block lives in the whole process
   if (t) { t.classList.add('hl'); const fr = t.getBoundingClientRect(), pr = pv.getBoundingClientRect(); if (fr.top < pr.top || fr.bottom > pr.bottom) t.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 }
 $('edit').addEventListener('focusin', (e) => { const card = e.target.closest('.blk'); if (card && S.sel.type === 'project') focusBlock(card.id.slice(4)); });

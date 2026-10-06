@@ -56,6 +56,11 @@
   ],
   "classes": [],
   "cover": "assets/projects/gamejam.webp",
+  "brief": {
+    "problem": "Five weeks, the theme Twist of Fate, a showcase on May 9 — my first video game. A college student with a side hustle in Daoist rituals is paid $5,000 to cleanse a staged house that keeps scaring buyers away. The ghost is the last resident, who refused to sell.",
+    "solution": "Candell Handles, a first-person horror game in Unity: a ghost cat leads you through the house, letters tell the story, a grandmother hunts you on sight. About 6,000 lines of our own C# on a horror template; props from Tripo, characters from Mixamo. I did concept, narrative, in-game writing, gameplay scripting and 3D assets.",
+    "impact": "Two endings: a pistol with one bullet, or five charms dropped in the pool to set her free. Two days before the showcase Unity would only open in Safe Mode with 999+ errors; we fixed it on May 8 and demoed to four judges on May 9."
+  },
   "blocks": [
     {
       "id": "premise",

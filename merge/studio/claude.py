@@ -48,7 +48,7 @@ def cmd_changes():
         old = S.read_json(SEEN / f'{slug}.json')
         if old is None: lines.append(f'\n■ {p.get("name", slug)} — new since last look'); old = {'blocks': []}
         head = []
-        for k in ('name', 'status', 'floor', 'onSite', 'template', 'oneLiner', 'context', 'software', 'skills', 'classes', 'cover'):
+        for k in ('name', 'status', 'floor', 'onSite', 'template', 'oneLiner', 'context', 'software', 'skills', 'classes', 'cover', 'brief'):
             if old.get(k) != p.get(k): head.append(f'   {k}: {json.dumps(old.get(k), ensure_ascii=False)} → {json.dumps(p.get(k), ensure_ascii=False)}')
         ob = {b['id']: b for b in old.get('blocks', [])}; nb = {b['id']: b for b in p.get('blocks', [])}
         body = []

@@ -43,6 +43,11 @@
   ],
   "classes": [],
   "cover": "assets/projects/alv.webp",
+  "brief": {
+    "problem": "Ama La Vida sells career coaching as memberships and wanted new prices by June without pushing members out. At every renewal a member can continue, stop or downgrade. I was one of three analysts on pricing & retention.",
+    "solution": "Follow the downgrades, not just the cancellations: a cancellation says someone left, not how much of the plan they still wanted. From 2,000+ plan changes in ALV's history, analysed in R, I traced when members switched, in which direction and to what.",
+    "impact": "Plan changes ran one way: down — 69–83% of moves out of the monthly plans ended on the cheapest virtual plan. My charts became two slides of the client deck: a $250-a-session ceiling, and members keeping their price by renewing for 12 months."
+  },
   "blocks": [
     {
       "id": "question",

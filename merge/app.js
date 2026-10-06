@@ -10,7 +10,7 @@ import * as THREE from './vendor/three.module.min.js';
 import { GLTFLoader } from './vendor/GLTFLoader.js';
 import { CATS, SIL, PIECES, SECTIONS, TITLE_SCREENS, VALUE_SCREENS, THEMES, CARD_ART, SCREEN_PER_CARD, SHORE_TEXT_AT, INTRO_SCREENS, MEADOW_SCREENS, LAND_AT, RATE, CAMERA, TIGER, LEDGE_X, DECK, COPY, ARCHIVE, MOUSE, MOTION, SKY, LIGHT, OPENING, LIGHTS, FLOOR_STYLE, WEAR, REWARD } from './content.js';
 import { WRITEUPS, WRITEUP_LIB, TOOL_ICONS, SITE_TEXT } from './writeups.js';
-import { renderWriteup } from './writeup-view.js';
+import { renderWriteup, wuView } from './writeup-view.js';
 
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -214,12 +214,12 @@ function openPanel(pi, from) { if (panelOpen) settlePanel(); const p = PIECES[pi
   const src = artSrc(p), obj = `<figure class="obj" aria-hidden="true">${src ? `<img src="${src}" alt="">` : `<svg viewBox="0 0 200 140">${SIL[p.sil]}</svg>`}</figure>`;
   let cross = false;
   if (w) {
-    panelInner.innerHTML = renderWriteup(w, draft ? DRAFTS.lib : WRITEUP_LIB, draft ? DRAFTS.icons : TOOL_ICONS, { index: pi + 1, total: NP, email: COPY.footer.email });
+    panelInner.innerHTML = renderWriteup(w, draft ? DRAFTS.lib : WRITEUP_LIB, draft ? DRAFTS.icons : TOOL_ICONS, { index: pi + 1, total: NP, email: COPY.footer.email, labels: COPY.panel });   // opens on the short version when the write-up has one
     // the object flies into the write-up's cover; if the cover is another picture (People Like Us), it lands there and dissolves into it
     const cov = panelInner.querySelector('.wu-cover img');
     if (cov) { cov.loading = 'eager'; cov.closest('figure').classList.add('obj-in'); cross = !src || cov.getAttribute('src') !== src; } else panelInner.insertAdjacentHTML('afterbegin', obj);
     panelInner.querySelector('.wu-title')?.setAttribute('id', 'panel-title');
-    panelInner.querySelectorAll('.wu > :not(.wu-block)').forEach((el) => el.classList.add('blk'));   // the head reveals like the old panel; the stages sit below the fold
+    panelInner.querySelectorAll('.wu > :not(.wu-process), .wu-process > :not(.wu-block)').forEach((el) => el.classList.add('blk'));   // the head, the tabs and the short version reveal like the old panel; the stages sit below the fold
   } else {
   const sec = (k, v, cls = '') => v ? `<div class="sec blk ${cls}"><span class="k mono">${k}</span><p>${v}</p></div>` : '';
   panelInner.innerHTML = obj + `<p class="eyebrow mono blk"><span class="n">${String(pi + 1).padStart(2, '0')} / ${NP}</span><span>${catName(p)}</span><span>${p.year}</span><span>${p.meta.join(' · ')}</span></p>
@@ -235,6 +235,7 @@ function openPanel(pi, from) { if (panelOpen) settlePanel(); const p = PIECES[pi
       if (cross) gsap.fromTo(tgt, { opacity: 0 }, { opacity: 1, duration: 0.35, delay: 0.9, ease: 'power1.in' });
       flownFrom = s0; s0.closest('figure').classList.add('away'); tgt.style.opacity = '0'; } }   // after fly(): a flight it cut short has already sent its object home
   panel.classList.add('open'); panel.inert = false; panel.setAttribute('aria-hidden', 'false'); panelScrim.classList.add('on'); panelOpen = true; panel.scrollTop = 0; modalBg(true);
+  clearTimeout(PW.t); panelGrip.hidden = false; void panelGrip.offsetWidth; panelGrip.classList.add('on'); panelGrip.setAttribute('aria-valuenow', Math.round(panelFrac() * 100));   // the grip fades in once the panel is in
   markSeen(pi);                                                   // after panelOpen: its achievements wait for the close (the panel would cover them)
   panelInner.querySelector('.obj-in')?.classList.remove('blk');               // the cover the object lands in holds still
   gsap.fromTo(panelInner.querySelectorAll('.blk'), { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'reveal', stagger: 0.05, delay: 0.12, overwrite: true });
@@ -247,10 +248,15 @@ function closePanel() { if (!panelOpen) return; panelOpen = false;
     if (b && b.width > 4 && b.bottom > 0 && b.top < vh) { if (tgt) gsap.killTweensOf(tgt); fly(b, a, back, 0.75, home); if (tgt) tgt.style.opacity = '0'; }
     else { if (flight) { const f = flight; flight = null; f.tw.kill(); f.el.remove(); } home(); } }
   panel.classList.remove('open'); panel.inert = true; panel.setAttribute('aria-hidden', 'true'); panelScrim.classList.remove('on'); modalBg(false); lenis.start(); if (panelFrom) panelFrom.focus({ preventScroll: true });
+  gripEnd(); panelGrip.classList.remove('on'); clearTimeout(PW.t); PW.t = setTimeout(() => { if (!panelOpen) panelGrip.hidden = true; }, 320);
   setTimeout(() => { if (!toastT && !panelOpen) toastNext(); }, 450); }
 document.querySelectorAll('.card .in, .slide .in').forEach((el) => { const pi = +el.closest('[data-p]').dataset.p; el.addEventListener('click', () => openPanel(pi, el)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel(pi, el); } }); });
 panel.inert = true; $('panel-close').addEventListener('click', closePanel); panelScrim.addEventListener('click', closePanel);
-panelInner.addEventListener('click', (e) => { const a = e.target.closest('a[href^="#wu-"]'); if (!a) return;   // a write-up's process strip and skills jump inside the panel
+panelInner.addEventListener('click', (e) => {
+  const v = e.target.closest('[data-view]');                      // the two versions of a write-up: the short one (default) ⇄ the whole process (writeup-view.js → wuView)
+  if (v) { wuView(panelInner.querySelector('.wu'), v.dataset.view); const tabs = panelInner.querySelector('.wu-tabs'), y = tabs ? Math.max(0, tabs.offsetTop - 84) : 0;
+    if (panel.scrollTop > y || v.classList.contains('wu-more')) panel.scrollTo({ top: y, behavior: 'smooth' }); return; }
+  const a = e.target.closest('a[href^="#wu-"]'); if (!a) return;   // a write-up's process strip and skills jump inside the panel
   e.preventDefault(); panelInner.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
 // the screen's own controls (floor 03): ← → keys, horizontal wheel / trackpad, drag — each maps onto page scroll, which drives the strip
@@ -311,6 +317,22 @@ heroWords.forEach((w) => { const main = w.querySelector('.main'), alt = w.queryS
 const lenis = new Lenis({ lerp: 0.1, smoothWheel: true }); window.__lenis = lenis;
 lenis.stop();
 let scroll = 0, vh = innerHeight, vw = innerWidth;
+// the panel is a window the reader can stretch (Kay, 2026-10-05): its right edge is a grip — drag it, or ← → / Home / End with it focused,
+// double-click = the whole screen and back — from a third of the screen to all of it. The width is kept between visits (kooky.panelW; never in the Studio's preview).
+const panelGrip = $('panel-grip'); const PW = { min: 0.34, drag: false, t: 0 };
+const panelFrac = () => panel.offsetWidth / vw;
+function setPanelW(f) {                                          // f: a fraction of the window; 0 = the stylesheet's own width
+  if (f) { f = clamp(f, Math.max(PW.min, 420 / vw), 1); if (f > 0.965) f = 1; document.documentElement.style.setProperty('--panel-w', (f * 100).toFixed(2) + 'vw'); }
+  else document.documentElement.style.removeProperty('--panel-w');
+  panelGrip.setAttribute('aria-valuenow', Math.round(panelFrac() * 100)); if (panelOpen) navOnPaper(); }
+function savePanelW() { if (STUDIO) return; try { const v = document.documentElement.style.getPropertyValue('--panel-w'); v ? localStorage.setItem('kooky.panelW', v) : localStorage.removeItem('kooky.panelW'); } catch {} }
+try { const v = STUDIO ? '' : localStorage.getItem('kooky.panelW'); if (/^\d+(\.\d+)?vw$/.test(v || '')) setPanelW(parseFloat(v) / 100); } catch {}
+panelGrip.addEventListener('pointerdown', (e) => { if (e.button) return; e.preventDefault(); panelGrip.setPointerCapture(e.pointerId); PW.drag = true; panelGrip.classList.add('drag'); document.body.classList.add('resizing'); });
+panelGrip.addEventListener('pointermove', (e) => { if (PW.drag) setPanelW(e.clientX / vw); });
+function gripEnd() { if (!PW.drag) return; PW.drag = false; panelGrip.classList.remove('drag'); document.body.classList.remove('resizing'); savePanelW(); }
+panelGrip.addEventListener('pointerup', gripEnd); panelGrip.addEventListener('pointercancel', gripEnd); panelGrip.addEventListener('lostpointercapture', gripEnd);
+panelGrip.addEventListener('dblclick', () => { setPanelW(panelFrac() > 0.98 ? 0 : 1); savePanelW(); });
+panelGrip.addEventListener('keydown', (e) => { const d = { ArrowRight: 0.05, ArrowLeft: -0.05, Home: -2, End: 2 }[e.key]; if (!d) return; e.preventDefault(); setPanelW(panelFrac() + d); savePanelW(); });
 document.querySelectorAll('.nav a[data-to]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); REW.autoUntil = performance.now() / 1000 + 1.9; lenis.scrollTo('#' + a.dataset.to, { duration: 1.6, easing: (t) => 1 - Math.pow(1 - t, 4) }); }));
 
 // ───────────────────────── Three: a light world ─────────────────────────
@@ -1285,9 +1307,9 @@ function frame(now) {
 
   // ── cursor
   const under = document.elementFromPoint(mx.x, mx.y);
-  ray.setFromCamera(new THREE.Vector2(mouse.x, -mouse.y), camera); hoverTiger = inWorld && mouse.seen && ray.intersectObject(tigerHit).length > 0; const overCard = !panelOpen && under?.closest?.('.card .in, .slide .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close');
-  const hot = !!(overCard || overLink || overClose || under?.closest?.('button:not(:disabled), [role="button"]') || (hoverTiger && !panelOpen)); if (hot !== T.pawHot) { T.pawHot = hot; cursor.classList.toggle('hot', hot); }   // the dot grows over anything clickable
-  setPill(ENTRY.phase !== 'done' ? (ENTRY.phase === 'void' && hoverTiger ? 'say hi' : '') : overClose ? COPY.panel.close : hoverTiger && !panelOpen ? (GT.ready && state === 'sit' ? 'talent show' : COPY.cursor.tiger) : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
+  ray.setFromCamera(new THREE.Vector2(mouse.x, -mouse.y), camera); hoverTiger = inWorld && mouse.seen && ray.intersectObject(tigerHit).length > 0; const overCard = !panelOpen && under?.closest?.('.card .in, .slide .in'); const overLink = under?.closest?.('a'); const overClose = under?.closest?.('#panel-close'); const overGrip = PW.drag || under?.closest?.('#panel-grip');
+  const hot = !!(overCard || overLink || overClose || overGrip || under?.closest?.('button:not(:disabled), [role="button"]') || (hoverTiger && !panelOpen)); if (hot !== T.pawHot) { T.pawHot = hot; cursor.classList.toggle('hot', hot); }   // the dot grows over anything clickable
+  setPill(ENTRY.phase !== 'done' ? (ENTRY.phase === 'void' && hoverTiger ? 'say hi' : '') : overGrip ? COPY.panel.resize : overClose ? COPY.panel.close : hoverTiger && !panelOpen ? (GT.ready && state === 'sit' ? 'talent show' : COPY.cursor.tiger) : overLink ? 'open' : overCard ? COPY.cursor.card : (scroll < vh * 0.4 && booted && !panelOpen ? 'scroll' : ''));
 
   tigerPoint(v3, false); v3.project(camera);
   window.__dbg = { s: +s.toFixed(3), state, glb: GT.ready, entry: ENTRY.phase, et: +ENTRY.t.toFixed(2), seen: seenN(), rew: T.rew ? T.rew.kind : null, still: +REW.still.toFixed(1), peek: +T.peek.toFixed(2), perf: T.perf ? T.perf.kind : null, walk: GT.walk ? [+GT.walk.y.toFixed(2), GT.walk.k, +GT.walk.score.toFixed(3)] : null, menu: T.menu, landed, aN: +nearestA.toFixed(3), inWindow, tiger: [+v3.x.toFixed(3), +v3.y.toFixed(3)], quipT: +T.quipT.toFixed(2), cam: camera.position.toArray().map((v) => +v.toFixed(2)), hips: rig.root.position.toArray().map((v) => +v.toFixed(2)), c: +cycleAt(rig.root.position.y).toFixed(3) };

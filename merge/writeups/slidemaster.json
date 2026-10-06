@@ -60,6 +60,11 @@
     "dsgn106-1"
   ],
   "cover": "assets/projects/slidemaster.webp",
+  "brief": {
+    "problem": "People with spinal-cord injuries cross from wheelchair to shower chair on a flat board, scooting on bare, often wet skin they cannot feel — so friction damage goes unnoticed. Boards also slip off the tub and pinch fingers. Budget: about $60.",
+    "solution": "Slide Master: a pine board with a tapered end that slips under the thigh, rubber that grips the tub, and two ball-bearing drawer slides carrying a seat — the seat slides so the skin doesn't. I led the mockup plan, helped build the CAD and drew the orthographic views.",
+    "impact": "Demoed on March 9 at the Segal Design Institute with students, faculty and our partners: the transfer worked across users of different ages, body sizes and weights. Next: testing by the people it's for, a lower height, and the slides hidden in a U-channel."
+  },
   "blocks": [
     {
       "id": "problem",

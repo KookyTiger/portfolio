@@ -52,7 +52,7 @@ sys.path.insert(0, str(SITE))
 import writeups_export
 print('live write-ups:', ', '.join(writeups_export.export(SITE)) or 'none')
 writeups = re.sub(r'^export ', '', read('writeups.js'), flags=re.M)
-wview = esm_block(read('writeup-view.js'), ['renderWriteup'])
+wview = esm_block(read('writeup-view.js'), ['renderWriteup', 'wuView'])
 
 css = read('style.css') + '\n' + read('writeup-view.css')
 html = read('index.html')

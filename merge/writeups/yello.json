@@ -37,6 +37,11 @@
   ],
   "classes": [],
   "cover": "assets/projects/yello.webp",
+  "brief": {
+    "problem": "Yello sells campus-recruiting software that plugs into the big applicant tracking systems. It asked CASE to map the HR-tech ecosystem, commercial and federal, and recommend where to partner. I was one of three analysts on partnerships and expansion.",
+    "solution": "Start from the 24 partners Yello already had and look for what was missing around campus recruiting. My pick: Handshake — Yello's own blog says most of its customers already use it alongside Yello, so a formal tie would follow behaviour already there.",
+    "impact": "Partner sideways, not head-on: Handshake, RippleMatch and Pymetrics, plus GoGovernment and Leidos where Yello's FedRAMP authorization counts. The number behind it: over 98.8% of the Fortune 500 already run an ATS. What we never did: size each partner, as the brief asked."
+  },
   "blocks": [
     {
       "id": "question",

@@ -60,6 +60,11 @@
     "dsgn106-2"
   ],
   "cover": "assets/projects/notipclip.webp",
+  "brief": {
+    "problem": "Halo traction stretches a child's spine with weights hung from a boom on the back of a wheelchair. The boom makes the chair back-heavy; when it tips, the weights pull sideways. Shriners Children's Chicago held it down with sandbags that slip.",
+    "solution": "The No-Tip-Clip: a two-piece 3D-printed clamp that bolts around the chair's lowest rear rod and carries a caster on a bolt — turn it until the wheel just touches the floor, then lock it. A point of contact with the floor instead of more weight.",
+    "impact": "$62.26 of a $150 budget, printed in about 50 hours. In our tests, past 5 kg extra weight bought no stability, while the wheel steadied the chair. Next: on a sloped rod the wheel leans, so angle and attachment come first."
+  },
   "blocks": [
     {
       "id": "problem",

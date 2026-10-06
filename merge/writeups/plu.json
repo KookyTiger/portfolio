@@ -54,6 +54,11 @@
     "dis2026"
   ],
   "cover": "assets/projects/plu/can-mockup-three-characters.webp",
+  "brief": {
+    "problem": "People Like Us is a Copenhagen brewery where 70% of the staff are neurodivergent, about to open Denmark's first non-alcoholic bar. It had a pink bar, a bold logo and playful beer names, but no one identity across cans, posters, menus, merch and the room.",
+    "solution": "One dot, same area, any shape — you can stretch it or spike it, but never make yourself smaller. A web tool where guests pinch their own dot, dress it and join a pool that shows live on the bar's screen; I directed Claude to build it: over 350 prompts, 40 commits in July. Cans, posters and merch came from the same tool.",
+    "impact": "Presented July 31: scan a QR code, make your dot, see it arrive on the big screen through Firestore, get it printed as a sticker for the empty frame on your can. Three characters — Lulu, Carl, Astrid — made with the tool guests use. “Your dot is 100% — same as everyone's. Just shaped differently.”"
+  },
   "blocks": [
     {
       "id": "premise",

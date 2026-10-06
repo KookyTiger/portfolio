@@ -237,7 +237,15 @@
       "card": "open"
     },
     "panel": {
-      "ask": "Ask me for the full report ↗"
+      "ask": "Ask me for the full report ↗",
+      "brief": "In short",
+      "full": "The whole process",
+      "more": "Read the whole process",
+      "problem": "Problem",
+      "solution": "Solution",
+      "impact": "Impact",
+      "tools": "Tools",
+      "resize": "drag"
     }
   },
   "archive": [

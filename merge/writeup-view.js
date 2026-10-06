@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // Write-up view: renders one project case study (and a floor's title band) from merge/writeups/*.json.
-// Used by the Studio's live preview now; the site's detail panel will use the same functions once Kay approves the layout.
+// Used by the site's detail panel and the Studio's live preview.
 // Pure functions → HTML strings. Styles: writeup-view.css (everything scoped under .wu / .fb).
 // ─────────────────────────────────────────────────────────────
 
@@ -95,10 +95,27 @@ function blockHTML(b, stage, num, opts = {}) {
   return `<section class="wu-block l-${esc(b.layout || 'text')}" data-block="${esc(b.id)}" id="wu-${esc(b.id)}">${eyebrow}${b.layout === 'quote' ? '' : title}${body}</section>`;
 }
 
+// Two versions of a write-up (Kay, 2026-10-05): the short one — problem / solution / impact / tools, read in about 30 s — is what the panel
+// opens on; a tab switches to the whole process. `p.brief` holds the three texts (the tools are `p.software`); without it, only the process shows.
+const LABELS = { brief: 'In short', full: 'The whole process', problem: 'Problem', solution: 'Solution', impact: 'Impact', tools: 'Tools', more: 'Read the whole process' };
+const BRIEF_KEYS = ['problem', 'solution', 'impact'];
+export const hasBrief = (p) => BRIEF_KEYS.some((k) => String(p?.brief?.[k] || '').trim());
+const words = (t) => (String(t || '').match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) || []).length;
+// reading time at 220 words a minute: the short version to the next 15 s, the process to the minute — so the tabs say what they cost
+export const readTime = (text) => { const sec = (words(text) / 220) * 60; return sec < 52 ? `${Math.max(15, Math.ceil(sec / 15) * 15)} s` : `${Math.max(1, Math.round(sec / 60))} min`; };
+// switch an article between its versions (the site's panel and the Studio preview call it on the tabs' clicks)
+export function wuView(art, view) {
+  if (!art) return; const brief = view === 'brief';
+  art.classList.toggle('v-brief', brief); art.classList.toggle('v-full', !brief);
+  art.querySelectorAll('.wu-tab').forEach((t) => t.setAttribute('aria-selected', String((t.dataset.view === 'brief') === brief)));
+}
+
 // p = a project (public fields are enough), lib = _studio.json, icons = vendor/tool-icons.json → icons
-// opts: { index, total, email, showEmpty (dashed placeholders for empty stages), base (prefix for relative picture paths), resolve (src → url) }
+// opts: { index, total, email, showEmpty (dashed placeholders for empty stages and an empty short version), base (prefix for relative picture paths),
+//         resolve (src → url), view ('brief' | 'full': which version opens; default the short one when there is one), labels (overrides of LABELS) }
 export function renderWriteup(p, lib, icons, opts = {}) {
   BASE = opts.base || ''; RESOLVE = opts.resolve || null;
+  const L = { ...LABELS, ...(opts.labels || {}) };
   const stages = stagesOf(p, lib);
   const floor = (lib.floors || []).find((f) => f.id === p.floor);
   const c = p.context || {};
@@ -118,16 +135,32 @@ export function renderWriteup(p, lib, icons, opts = {}) {
   const seen = new Set();
   const stepsHTML = steps.length > 2 ? `<nav class="wu-steps" aria-label="Process">${steps.filter((x) => !seen.has(x.b.stage) && seen.add(x.b.stage)).map((x) => `<a href="#wu-${esc(x.b.id)}"><span class="n">${String(x.num).padStart(2, '0')}</span>${esc(x.st.label)}</a>`).join('')}</nav>` : '';
   const email = opts.email || 'kaytu2027@u.northwestern.edu';
-  return `<article class="wu">
+  // the short version and the tabs
+  const br = p.brief || {}, brief = hasBrief(p), withBrief = brief || opts.showEmpty;
+  const view = opts.view === 'full' || !withBrief ? 'full' : 'brief';
+  const tFull = readTime(blocks.map((b) => `${b.title || ''} ${b.text || ''}`).join(' ')), tBrief = readTime(BRIEF_KEYS.map((k) => br[k] || '').join(' '));
+  const tab = (v, label, t) => `<button class="wu-tab" type="button" role="tab" id="wu-tab-${v}" aria-selected="${String(view === v)}" aria-controls="${v === 'brief' ? 'wu-brief' : 'wu-process'}" data-view="${v}">${esc(label)}<em>${t}</em></button>`;
+  const tabs = withBrief ? `<div class="wu-tabs" role="tablist">${tab('brief', L.brief, brief ? tBrief : '—')}${tab('full', L.full, tFull)}</div>` : '';
+  const bit = (k, html, cls = '') => `<div class="wu-bit ${cls}"><span class="wu-k">${esc(L[k])}</span>${html}</div>`;
+  const briefHTML = !withBrief ? '' : `<section class="wu-brief" id="wu-brief" role="tabpanel" aria-labelledby="wu-tab-brief">
+      ${brief ? BRIEF_KEYS.map((k) => String(br[k] || '').trim() ? bit(k, `<div class="wu-text">${mdLite(br[k])}</div>`) : '').join('')
+              : `<div class="wu-bit wu-empty"><p class="wu-hint">No short version yet — the panel opens on the whole process. Problem, solution and impact go in the editor's “The short version”.</p></div>`}
+      ${tools ? bit('tools', tools) : ''}
+      <button class="wu-more" type="button" data-view="full">${esc(L.more)} · ${tFull} →</button>
+    </section>`;
+  return `<article class="wu v-${view}">
     ${eyebrow ? `<p class="wu-eyebrow wu-k">${eyebrow}</p>` : ''}
     <h2 class="wu-title">${esc(p.name)}</h2>
     ${p.oneLiner ? `<p class="wu-lede">${esc(p.oneLiner)}</p>` : ''}
     ${p.cover ? `<figure class="wu-cover"><img src="${esc(url(p.cover))}" alt="${esc(p.name)}"></figure>` : ''}
     ${meta ? `<div class="wu-meta">${meta}</div>` : ''}
+    ${tabs}${briefHTML}
+    <div class="wu-process" id="wu-process" ${withBrief ? 'role="tabpanel" aria-labelledby="wu-tab-full"' : ''}>
     ${kit ? `<div class="wu-kit">${kit}</div>` : ''}
     ${stepsHTML}
     ${numbered.map((x) => blockHTML(x.b, x.st, x.num, opts)).join('')}
     <a class="wu-ask" href="mailto:${esc(email)}?subject=${encodeURIComponent(p.name || '')}">Ask me for the full report ↗</a>
+    </div>
   </article>`;
 }
 

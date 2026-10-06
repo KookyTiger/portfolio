@@ -50,6 +50,11 @@
     "mecheng240"
   ],
   "cover": "assets/projects/bike-caliper/final-pair-render.webp",
+  "brief": {
+    "problem": "Replace a bike's rear rim-brake caliper arms with a pair printed in Nylon 12: fit a fixed mount, survive the braking load, and score on stopping power and weight in two braking tests.",
+    "solution": "Topology optimization showed the load running along each arm's outer edges, so we hollowed the middles. I modelled the right arm and ran its FEA — 81.67 MPa in the pivot hole down to 19.41 against a 21.9 limit — then reshaped it for the second print: thinner, clear of the pads, the cable routed straight down.",
+    "impact": "The pair went from 115.0 g to 60.2 g (−47.7%) and stopped in 12.5 m. Hand force only fell from 205 to 200 N, still over the 180 N limit, because it follows the lever ratio, not stiffness. Next time, move the cable, not material."
+  },
   "blocks": [
     {
       "id": "problem",

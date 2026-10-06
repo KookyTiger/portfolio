@@ -52,6 +52,11 @@
     "civenv385-1"
   ],
   "cover": "assets/projects/peek-a-boo-house/final-spiral-stair-render.webp",
+  "brief": {
+    "problem": "A real lot with three problems: heavy foot traffic and noise out front, a garage throwing sound and glare from the east, strong morning sun on the façade. The obvious answer is a wall; I wanted a house that decides what the street gets to see, and when.",
+    "solution": "Sort the family by how public each room is: everything a guest sees on the ground floor, the parents on a level of their own, the children half a floor above. A curved glass corner opens the dining room, piano, spiral stair and loft to view; the upper volumes stay closed. Foam massing models, a Rhino model, then a Revit set — solo, start to finish.",
+    "impact": "2,183 sq ft on three levels: 1,191 public, 512 for the parents, 480 for the children. At the midterm the façade read as a solid block — my own slide said so; the final answered with a lofted children's bedroom and glass where the family gathers."
+  },
   "blocks": [
     {
       "id": "premise",
