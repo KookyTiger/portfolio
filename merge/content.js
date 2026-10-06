@@ -153,9 +153,9 @@ export const COPY = {
   header: { statement: ['{N_CAP} floors down.', 'A monster on each.'], scroll: 'Scroll to descend' },
   hero:   { words: ['KOOKY', 'T-SHAPED', 'TIGER'], reveal: ['MADE + RTVF', 'NORTHWESTERN ’27', 'WUHAN → EVANSTON'], indication: '(Click the tiger)' },
   // the intro is the tiger talking from the ladder, page by page (Kay's own words, unchanged); photo = a picture of Kay shown on hover (none yet)
-  intro:  { who: 'KOOKYTIGER', pages: [['你好.', 'I make products, films, games and spreadsheets — which is either four things or one thing, depending on which floor you catch me on.'],
-                                      ['T-shaped, as in wide across and deep in one stem.'],
-                                      ['Also as in Tu. Also as in: every project below was a monster once. I went down and dealt with it.']], photo: null },
+  intro:  { who: 'KOOKYTIGER', you: 'YOU', name: 'Kay Tu 屠子淑', sub: 'Wuhan → Chicago · Northwestern ’27 · MaDE + RTVF', photo: 'assets/about/kay.webp',
+            // the dialogue box's script (the real one is writeups/_site.json → copy.intro.script; the grammar is in app.js above parseScript)
+            script: '# start\nHi! I\'m Kay Tu — 屠子淑. Born and raised in Wuhan, China; now a senior at Northwestern, in Chicago, on a dual degree: Manufacturing & Design Engineering, and Radio/Television/Film.\n\n> Nice to meet you, Kay. -> bye\n\n# bye\nTalk to me — I bet we\'ll find something in common.\n@ Say hi ↗\n\n> Start over -> start' },
   talents: { hint: 'psst — click me', trigger: 'Ask for a trick', title: 'Talent show', close: 'Close', locked: 'see {n} projects',
              acts: [['dance', 'Dance', 'watch this.', 0], ['zombie', 'Zombie', 'braaains.', 4], ['catwalk', 'Catwalk', 'serving.', 8], ['thumbs', 'Thumbs up', 'all {N}. respect.', 13]] },   // [id, label, quip, projects seen to unlock — never more than are on the site]
   // the visitor's progress (Kay, 2026-10-01): projects seen unlock acts and the wardrobe; a few achievements, each said once; a return visit is noticed

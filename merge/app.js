@@ -109,8 +109,7 @@ function markSeen(pi) { const key = seenKey(pi); if (PROG.seen.has(key)) return;
   if (n === NP) ach('all', tpl(A.all)); }
 function progUI() { $('lift-seen').textContent = ptl(PL.seen, { n: String(seenN()).padStart(2, '0'), t: String(NP).padStart(2, '0') }); renderTalents(); renderWardrobe(); }
 $('vh-a').textContent = matchMedia('(hover: none)').matches ? COPY.entry.hintTouch : COPY.entry.hint; $('vh-b').textContent = COPY.entry.sub;
-$('bubble-who').textContent = COPY.intro.who; $('intro').style.setProperty('--n', INTRO_SCREENS);
-$('intro').innerHTML = `<div class="sr-only">${COPY.intro.pages.map((pg) => `<p>${pg.join(' ')}</p>`).join('')}</div>`;
+$('intro').style.setProperty('--n', INTRO_SCREENS);
 const navMask = (x, i) => `<span class="m" style="--d:${(i * 0.08).toFixed(2)}s"><span class="mi">${x}</span></span>`;   // the nav's words rise in order when the world opens (A3)
 $('nav-brand').innerHTML = `${navMask(COPY.nav.name, 0)}<span class="sub">${COPY.nav.sub}</span>`;
 $('nav-links').innerHTML = navMask(COPY.nav.tagline || 'Product, film, games, analytics', 1);
@@ -884,7 +883,7 @@ function headLook(yaw, pitch, spine = 0) {
     gq[2].setFromAxisAngle(UP, yaw * k).multiply(gq[3].setFromAxisAngle(right, pitch * kp));
     b.quaternion.copy(gq[0].invert().multiply(gq[1].premultiply(gq[2]))); b.updateMatrixWorld(true); }
 }
-// the tiger's head on screen, px: centre, left edge, top (to keep the bubble and the menu off its face)
+// the tiger's head on screen, px: centre, left edge, top (to keep the talent menu off its face)
 function headBox() { if (GT.ready) GT.bone.Head.getWorldPosition(gv[2]).add(gv[3].set(0, HS * 0.2, 0)); else tigerPoint(gv[2], true).add(gv[3].set(0, -0.3, 0));
   v3.copy(gv[2]).project(camera); const x = (v3.x + 1) / 2 * vw, y = (1 - v3.y) / 2 * vh; const r = GT.ready ? HS * 0.25 : 0.35;
   v3.copy(gv[2]).add(gv[3].set(-r, 0, 0)).project(camera); const left = (v3.x + 1) / 2 * vw; v3.copy(gv[2]).add(gv[3].set(0, r, 0)).project(camera);
@@ -1070,21 +1069,54 @@ function renderOpening() {
   renderer.setScissorTest(false); scene.background = null; camera.layers.set(1); renderer.render(scene, camera); camera.layers.set(0);
   scene.background = skyColor; renderer.setClearColor(CLEAR0, CLEARA0); renderer.autoClear = true; renderer.shadowMap.autoUpdate = true; }
 
-// ───────────────────────── The intro (Kay, 2026-09-27): no paper; the tiger leans off the ladder and talks in a game dialogue bubble ─────────────────────────
-// pages follow the scroll through the intro window; each page types itself out on time
-const bubbleEl = $('bubble'), bubblePage = $('bubble-page'), photoEl = $('photo'), BUB = { page: -1, t: 0, n: -1, full: '' };
-const esc = (x) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-function bubbleFrame(on, page, dt) {
-  bubbleEl.classList.toggle('on', on); if (!on) { BUB.page = -1; photoEl.classList.remove('on'); return; }
-  if (page !== BUB.page) { BUB.page = page; BUB.t = 0; BUB.n = -1; BUB.full = COPY.intro.pages[page].join('\n'); bubbleEl.classList.toggle('last', page === COPY.intro.pages.length - 1); }
-  BUB.t += dt; const n = Math.min(BUB.full.length, Math.floor(BUB.t * 55));
-  if (n !== BUB.n) { BUB.n = n; bubblePage.innerHTML = esc(BUB.full.slice(0, n)) + '<span class="rest">' + esc(BUB.full.slice(n)) + '</span>'; bubbleEl.classList.toggle('done', n >= BUB.full.length); }
-  const H = headBox(), hx = H.x, hy = H.y, bw = bubbleEl.offsetWidth, bh = bubbleEl.offsetHeight;
-  if (LAY.mobile) { bubbleEl.style.left = '16px'; bubbleEl.style.top = clamp(H.top - bh - 22, 70, vh - bh - 16).toFixed(0) + 'px'; }
-  else { bubbleEl.style.left = clamp(H.left - bw - 26, 24, vw - bw - 24).toFixed(0) + 'px'; bubbleEl.style.top = clamp(hy - bh * 0.4, 80, vh - bh - 24).toFixed(0) + 'px'; }
-  const ph = COPY.intro.photo && hoverTiger;                  // a photo of Kay on hover (none yet)
-  photoEl.classList.toggle('on', !!ph); if (ph) { photoEl.style.backgroundImage = `url(${COPY.intro.photo})`; photoEl.style.left = clamp(hx - 90, 16, vw - 196).toFixed(0) + 'px'; photoEl.style.top = clamp(hy + 30, 16, vh - 236).toFixed(0) + 'px'; }
-}
+// ───────────────────────── The intro (Kay, 2026-10-06): a game dialogue box, after Disco Elysium's — a rigid paper box with her portrait; the visitor
+// picks a question and the answer joins the log, while the tiger leans off the ladder beside it (the box is sticky through the intro window; style.css → .dlg).
+// The words are COPY.intro.script (edited in the Studio's Site text):  "# id" starts a node; its lines are what KookyTiger says (a blank line = a new
+// paragraph; "@ Say hi ↗" = the email link); "> question -> id" is a choice; ">? 58 | [SKILL — Medium] question -> id | what the skill says when the
+// dice fail" is a check (two dice, the number is the chance; a failed check can be tried again after another question); "* hub" adds the questions of
+// "start" not asked yet (a node with no choices gets them); "> Start over -> start" wipes the log. The keys 1–9 pick while the box is on screen.
+const esc = (x) => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function parseScript(src) { const nodes = {}; let cur = null;
+  for (const raw of String(src || '').split('\n')) { const line = raw.trimEnd();
+    const h = /^#\s*(\S+)/.exec(line); if (h) { cur = nodes[h[1]] = { id: h[1], text: [], opts: [], hub: false }; continue; } if (!cur) continue;
+    if (/^\*\s*hub\b/.test(line)) { cur.hub = true; continue; }
+    const c = /^>\?\s*(\d+)\s*\|\s*(.+?)\s*->\s*(\S+)\s*\|\s*(.*)$/.exec(line); if (c) { cur.opts.push({ label: c[2], to: c[3], pct: +c[1], fail: c[4].trim() }); continue; }
+    const o = /^>\s*(.+?)\s*->\s*(\S+)\s*$/.exec(line); if (o) { cur.opts.push({ label: o[1], to: o[2] }); continue; }
+    cur.text.push(line); }
+  for (const n of Object.values(nodes)) { n.paras = n.text.join('\n').trim().split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean); if (!n.opts.length) n.hub = true; }
+  return nodes; }
+const dlgEl = $('dlg'), dlgLog = $('dlg-log'), dlgOpts = $('dlg-opts'), DLG = { nodes: {}, visited: new Set(), opts: [], at: 'start', cool: null };
+const ODDS = [100, 100, 100, 97, 92, 83, 72, 58, 42, 28, 17, 8, 3];                               // P(two dice ≥ n) in %, n = the index
+const skillOf = (label) => (/^\[([^\]—–:-]+)/.exec(label)?.[1] || '').trim();
+const labelHTML = (label) => esc(label).replace(/^\[([^\]]+)\]\s*/, (_, k) => `<span class="sk">${k}</span>`);
+const paraHTML = (t) => `<p>${t.split('\n').map((l) => (/^@\s*/.test(l) ? `<a href="mailto:${COPY.footer.email}">${esc(l.replace(/^@\s*/, ''))}</a>` : esc(l))).join('<br>')}</p>`;   // a line starting with @ is the email link
+function dlgLine(who, html, cls = '') { const el = document.createElement('div'); el.className = 'line ' + cls; el.innerHTML = `<span class="k mono">${esc(who)}</span><div class="t">${html}</div>`; dlgLog.appendChild(el);
+  if (!REDUCE) gsap.fromTo(el, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.55, ease: 'reveal' }); return el; }
+const dlgScroll = () => requestAnimationFrame(() => dlgLog.scrollTo({ top: dlgLog.scrollHeight, behavior: REDUCE ? 'auto' : 'smooth' }));
+function dlgOptions(n) { const hub = n.hub ? (DLG.nodes.start?.opts || []).filter((o) => !n.opts.some((x) => x.to === o.to)) : [];
+  DLG.opts = [...n.opts, ...hub].filter((o) => o.to === 'start' || !DLG.visited.has(o.to));
+  dlgOpts.innerHTML = DLG.opts.map((o, i) => `<li><button type="button" data-i="${i}"${DLG.cool === o.to ? ' disabled' : ''}><span class="n">${i + 1}.</span><span>${labelHTML(o.label)}</span></button></li>`).join(''); }
+function dlgSay(id) { const n = DLG.nodes[id] || DLG.nodes.start; if (!n) return;
+  if (n.id === 'start' && DLG.visited.size) { DLG.visited.clear(); dlgLog.innerHTML = ''; }                    // start over
+  DLG.at = n.id; DLG.visited.add(n.id); DLG.cool = null;
+  dlgLine(COPY.intro.who, n.paras.map(paraHTML).join('')); dlgOptions(n); dlgScroll(); }
+function dlgPick(i) { const o = DLG.opts[i]; if (!o || DLG.cool === o.to) return;
+  dlgLine(COPY.intro.you, `<p>${esc(o.label.replace(/^\[[^\]]+\]\s*/, ''))}</p>`, 'you');
+  if (o.pct) {                                                      // a check: two dice against the face whose odds are nearest the chance given
+    const a = 1 + Math.floor(Math.random() * 6), b = 1 + Math.floor(Math.random() * 6), need = ODDS.reduce((best, p, n) => (n >= 2 && Math.abs(p - o.pct) < Math.abs(ODDS[best] - o.pct) ? n : best), 2);
+    const ok = a + b >= need, sk = skillOf(o.label) || 'CHECK';
+    dlgLine(sk, `<p>2d6: ${a} + ${b} = ${a + b} vs ${need} — <span class="${ok ? 'ok' : 'no'}">${ok ? 'Success' : 'Failure'}</span></p>`, 'roll');
+    if (!ok) { dlgLine(sk, `<p>${esc(o.fail)}</p>`); DLG.cool = o.to; dlgOptions(DLG.nodes[DLG.at]); dlgScroll(); return; } }
+  dlgSay(o.to); }
+function dlgInit() { DLG.nodes = parseScript(COPY.intro.script); DLG.visited.clear(); dlgLog.innerHTML = '';
+  $('dlg-who').textContent = COPY.intro.who; $('dlg-name').textContent = COPY.intro.name; $('dlg-sub').textContent = COPY.intro.sub;
+  const ph = $('dlg-photo'); if (COPY.intro.photo) ph.src = COPY.intro.photo; else ph.remove();
+  dlgSay('start'); }
+dlgInit();
+dlgOpts.addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) dlgPick(+b.dataset.i); });
+const dlgOnScreen = () => { const r = dlgEl.getBoundingClientRect(); return r.top < vh * 0.85 && r.bottom > vh * 0.15; };
+window.addEventListener('keydown', (e) => { if (!/^[1-9]$/.test(e.key) || e.metaKey || e.ctrlKey || e.altKey || panelOpen || T.menu || T.wmenu || ENTRY.phase !== 'done') return;
+  if (/^(input|textarea|select)$/i.test(e.target?.tagName) || !dlgOnScreen()) return; e.preventDefault(); dlgPick(+e.key - 1); });
 const tigerLoad = loadTiger();
 
 // ───────────────────────── The motion pass (Kay, 2026-10-01): floors, lights, the objects' entrances ─────────────────────────
@@ -1190,7 +1222,7 @@ function frame(now) {
   let inWindow = -1; R.windows.forEach((w, i) => { if (scroll + vh * 0.5 >= w.top && scroll + vh * 0.5 < w.top + w.h) inWindow = i; });
   const mid = scroll + vh * 0.5, inR = (r) => !!r && mid >= r.top && mid < r.top + r.h;
   const inWorld = scroll < R.hero.top - vh * 0.1 || inWindow >= 0 || inR(R.intro) || inR(R.archives) || inR(R.meadow); T.inWorld = inWorld;
-  // the intro: the tiger leans off the ladder toward you while the bubble talks
+  // the intro: the tiger leans off the ladder toward you, beside the dialogue box
   const ia = R.intro.top / vh - 0.2, ib = (R.intro.top + R.intro.h) / vh - 0.8;               // the hero has gone; out before the first title band
   T.peek = ENTRY.phase === 'done' ? smooth(seg(s, [ia - 0.15, ia + 0.2])) * (1 - smooth(seg(s, [ib - 0.1, ib + 0.25]))) : 0;
 
@@ -1292,8 +1324,7 @@ function frame(now) {
   quipEl.classList.toggle('on', !!T.quip && inWorld);
   if (T.quip) { tigerPoint(v3, true); v3.project(camera); const qw = quipEl.offsetWidth / 2 + 12; quipEl.style.transform = `translate(${clamp((v3.x + 1) / 2 * vw, qw, vw - qw).toFixed(0)}px, ${((1 - v3.y) / 2 * vh - 8).toFixed(0)}px) translate(-50%, -100%)`; }
 
-  // ── the intro bubble; the talent menu beside the tiger
-  const np = COPY.intro.pages.length; bubbleFrame(ENTRY.phase === 'done' && T.peek > 0.3 && s < ib + 0.05, Math.min(np - 1, Math.floor(seg(s, [ia, ib]) * np)), dt);
+  // ── the talent menu beside the tiger
   const menuEl = T.menu ? talentsEl : T.wmenu ? wardrobeEl : null;
   if (menuEl) { const H = headBox(), w = menuEl.offsetWidth, h = menuEl.offsetHeight, side = H.left - w - 18 >= 16;   // beside the head, or above it on a phone
     const L = side ? H.left - w - 18 : clamp(H.x - w / 2, 16, vw - w - 16), Tp = side ? clamp(H.y - h * 0.5, 70, vh - h - 16) : clamp(H.top - h - 14, 70, vh - h - 16);    // placed beside the tiger, and held still (only follows a real move)

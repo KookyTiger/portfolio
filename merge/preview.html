@@ -40,8 +40,6 @@
 </aside>
 <div class="grip" id="panel-grip" role="separator" aria-orientation="vertical" aria-label="Panel width" aria-valuemin="34" aria-valuemax="100" aria-valuenow="58" tabindex="0" hidden></div>
 <div class="quip" id="quip"></div>
-<div class="bubble" id="bubble" aria-hidden="true"><p class="who mono" id="bubble-who"></p><p class="page" id="bubble-page"></p><span class="next" aria-hidden="true">▾</span></div>
-<div class="photo" id="photo" aria-hidden="true"></div>
 <div class="talents" id="talents" role="group" aria-label="Talent show" aria-hidden="true"></div>
 <div class="talents wardrobe" id="wardrobe" role="group" aria-label="Wardrobe" aria-hidden="true"></div>
 <div id="deck" class="deck" aria-label="Projects on the computer screen"></div>
@@ -60,7 +58,13 @@
     <div class="words" id="hero-words"></div>
   </section>
 
-  <section class="window intro-win" id="intro" aria-label="About"></section>
+  <section class="window intro-win" id="intro" aria-label="About">
+    <aside class="dlg" id="dlg" aria-label="About Kay — a dialogue">
+      <header class="head"><img class="portrait" id="dlg-photo" alt="" width="96" height="118"><div class="id"><p class="who mono" id="dlg-who"></p><h2 class="name" id="dlg-name"></h2><p class="sub mono" id="dlg-sub"></p></div></header>
+      <div class="log" id="dlg-log" role="log" aria-live="polite" data-lenis-prevent></div>
+      <ol class="opts" id="dlg-opts" aria-label="Your questions"></ol>
+    </aside>
+  </section>
 
   <div id="body"></div>
 

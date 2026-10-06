@@ -337,7 +337,8 @@ function cardEditor(p) {
 }
 
 const SITE_FIELDS = [
-  ['About me — the tiger\'s speech bubble', [['copy.intro.who', 'Who is speaking'], ['copy.intro.pages', 'What it says: one line per line, a blank line starts a new page', 'pages', 8]]],
+  ['About me — the dialogue box', [['copy.intro.name', 'Name on the box'], ['copy.intro.sub', 'Line under the name'], ['copy.intro.who', 'Label on your lines'], ['copy.intro.you', 'Label on the visitor\'s lines'], ['copy.intro.photo', 'Portrait (a path under assets/)'],
+    ['copy.intro.script', 'The dialogue. "# id" starts a node; its lines are what you say (a blank line = a new paragraph; "@ Say hi ↗" = the email link). "> question -> id" is a choice. ">? 58 | [SKILL — Medium] question -> id | what the skill says when the dice fail" is a dice check (the number = the chance). "* hub" adds the start questions not asked yet (a node with no choices gets them). Keep "start"; "> Start over -> start" wipes the log.', 'text', 28]]],
   ['Opening & header', [['copy.entry.hint', 'Opening hint (computer)'], ['copy.entry.hintTouch', 'Opening hint (phone)'], ['copy.entry.sub', 'Under the hint'], ['copy.header.statement', 'Header statement, one line per line', 'lines', 2], ['copy.header.scroll', 'Scroll hint']]],
   ['Hero', [['copy.hero.words', 'The big words, one per line', 'lines', 3], ['copy.hero.reveal', 'What each big word turns into on hover, one per line (long lines shrink to fit)', 'lines', 3], ['copy.hero.indication', 'Small line under them'], ['copy.hero.left', 'Top-left corner, one line per line', 'lines', 2], ['copy.hero.right', 'Top-right corner, one line per line', 'lines', 2]]],
   ['Top bar', [['copy.nav.name', 'Name'], ['copy.nav.sub', 'Under the name'], ['copy.nav.tagline', 'Tagline'], ['copy.nav.links', 'Links (Work / About / Archives), one per line', 'lines', 3]]],
@@ -515,7 +516,7 @@ function renderPreview(reset = false) {
 // ── the site preview (Site text page): the real site in a frame, reading the text Kay is trying from this browser ──
 // Every change reloads it into a second frame behind the first; the new one takes over once it has scrolled to the same place.
 const SITE_DEV = { desktop: [1440, 900], phone: [390, 844] };
-const siteTargets = () => [['header', 'Header'], ['hero', 'Hero'], ['intro', 'About me (the bubble)'],
+const siteTargets = () => [['header', 'Header'], ['hero', 'Hero'], ['intro', 'About me (the dialogue box)'],
   ...(S.site?.sections || []).flatMap((x, i) => [[`title${i}`, `${x.num} ${x.title} · title`], [`value${i}`, `${x.num} · its statement`]]),
   ['archives', 'Archives'], ['shore', 'The other shore'], ['footer', 'Footer']];
 const siteTarget = (k) => { const m = /^sections\.(\d+)\.(\w+)/.exec(k || ''); if (m) return (m[2] === 'value' ? 'value' : 'title') + m[1];
