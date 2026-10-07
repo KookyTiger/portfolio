@@ -95,7 +95,7 @@ export const VALUE_SCREENS = 1;                                    // the value 
 // The opening in beats (Kay, 2026-10-06, replacing the paper split): the title card holds while the tiger loads → it folds away → the tiger drops
 // onto the bright paper and bounces twice (drop) → waves hello (wave) → suddenly black (black) → a line in the dark, COPY.entry.dark (line) → cut to
 // the alley: its lamp blinks twice and holds (beam) → the alley comes up around it (rise; the nav rises at chrome) → scroll. seconds per beat.
-export const OPENING = { card: 1.5, cardOut: 0.7, drop: 1.35, wave: 1.5, black: 0.6, line: 1.8, beam: 1.4, rise: 2.2, chrome: 1.0, nod: 2.2 };
+export const OPENING = { card: 1.5, cardOut: 0.7, drop: 1.35, wave: 1.5, black: 0.6, line: 1.8, beam: 1.4, rise: 2.2, chrome: 1.0, nod: 2.2, zoom: 3.2 };   // zoom: world units the camera starts farther back, dollying in over beam + rise
 // LIGHTS: the new floor arrives dark (`dark` × its ambient light) under the title paper, and its lamps click on one by one between `on`
 // [from, to] screens after the slab (the paper has left the screen at +1); a lamp below the frame stays off until it rises into view
 // (motion-sensor lights), so the whole descent keeps lighting up
@@ -153,11 +153,11 @@ export const TIGER = {
 
 export const COPY = {
   nav:    { name: 'KookyTiger', sub: 'Zishu Kay Tu', links: ['Work', 'About', 'Archives'] },
-  entry:  { hint: 'Click the tiger', hintTouch: 'Tap the tiger', sub: 'or scroll', dark: 'who turned the light off?' },   // the opening: the line that shows in the dark after the tiger's hello
+  entry:  { hint: 'Click the tiger', hintTouch: 'Tap the tiger', sub: 'or scroll', dark: '- who turned the light off? -' },   // the opening: the line that shows in the dark after the tiger's hello
   header: { statement: ['{N_CAP} floors down.', 'A monster on each.'], scroll: 'Scroll to descend' },
   hero:   { words: ['KOOKY', 'T-SHAPED', 'TIGER'], reveal: ['MADE + RTVF', 'NORTHWESTERN ’27', 'WUHAN → EVANSTON'], indication: '(Click the tiger)' },
   // the intro is the tiger talking from the ladder, page by page (Kay's own words, unchanged); photo = a picture of Kay shown on hover (none yet)
-  intro:  { who: 'KOOKYTIGER', you: 'YOU', name: 'Kay Tu', sub: 'Wuhan → Chicago · Northwestern ’27 · MaDE + RTVF', photo: 'assets/about/kay-wide.webp', locked: 'Locked — open {n} projects first', unlocked: 'Unlocked',
+  intro:  { who: 'KOOKYTIGER', you: 'YOU', name: 'Kay Tu', sub: 'Wuhan → Chicago · Northwestern ’27 · MaDE + RTVF', photo: 'assets/about/kay.webp', locked: 'Locked — open {n} projects first', unlocked: 'Unlocked',
             // the dialogue box's script (the real one is writeups/_site.json → copy.intro.script; the grammar is in app.js above parseScript)
             script: '# start\nHi! I\'m Kay Tu. Born and raised in Wuhan, China; now a senior at Northwestern, in Chicago, on a dual degree: Manufacturing & Design Engineering, and Radio/Television/Film.\n\n> Nice to meet you, Kay. -> bye\n\n# bye\nTalk to me — I bet we\'ll find something in common.\n@ Say hi ↗\n\n> Start over -> start' },
   talents: { hint: 'psst — click me', trigger: 'Ask for a trick', title: 'Talent show', close: 'Close', locked: 'see {n} projects',

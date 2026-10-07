@@ -1037,7 +1037,7 @@ function glowFrame() { if (!mouse.seen || LAY.mobile || (mx.x === T.gx && mx.y =
 // Phases: card → cardOut → drop → void (waits for a click) → [waiting] → wave → enter → done. A click or scroll before the tiger has
 // landed is kept (queued) and skips the wave. ?snap and the Studio skip it all (?snap&entry=1 plays it).
 const QUIET = (SNAP && !PARAMS.has('entry')) || STUDIO;
-const ENTRY = { phase: QUIET ? 'done' : 'card', t: 0, k: QUIET ? 1 : 0, queued: false, chrome: false, light: QUIET ? 1 : 0, lamp: QUIET ? 1 : 0 }, PAPER = new THREE.Color('#F1F1EE'), BLACK = new THREE.Color('#000000');
+const ENTRY = { phase: QUIET ? 'done' : 'card', t: 0, k: QUIET ? 1 : 0, queued: false, chrome: false, light: QUIET ? 1 : 0, lamp: QUIET ? 1 : 0, zoom: QUIET ? 1 : 0 }, PAPER = new THREE.Color('#F1F1EE'), BLACK = new THREE.Color('#000000');
 const OP = REDUCE ? { ...OPENING, card: 0.6, cardOut: 0.4, drop: 0.01, wave: 0.01, black: 0.25, line: 0.9, beam: 0.3, rise: 0.8, chrome: 0.2 } : OPENING;
 const tcard = $('titlecard'); window.__entry = ENTRY;                 // tools/opening.js steps through it
 const hintEl = $('void-hint'); hintEl.hidden = true;                  // the old "click the tiger" hint: the opening plays itself now (Kay, 2026-10-06)
@@ -1083,7 +1083,9 @@ function entryTick(dt) { const E = ENTRY; if (E.phase === 'done' || !booted) ret
   else if (E.phase === 'black' && E.t >= OP.black) entryTo('line');
   else if (E.phase === 'line' && E.t >= OP.line) entryTo('beam');
   else if (E.phase === 'beam') { E.lamp = flickT(E.t, 'alley'); if (E.t >= OP.beam) entryTo('rise'); }
-  else if (E.phase === 'rise') { E.light = smooth(clamp(E.t / OP.rise, 0, 1)); if (E.t >= OP.chrome) entryChrome(); if (E.t >= OP.rise) entryDone(); } }
+  else if (E.phase === 'rise') { E.light = smooth(clamp(E.t / OP.rise, 0, 1)); if (E.t >= OP.chrome) entryChrome(); if (E.t >= OP.rise) entryDone(); }
+  // the zoom into the alley (Kay, 2026-10-07): from the first blink to the end of the rise, the camera dollies in from OP.zoom units farther back
+  E.zoom = E.phase === 'beam' || E.phase === 'rise' ? smooth(clamp((E.phase === 'beam' ? E.t : OP.beam + E.t) / (OP.beam + OP.rise), 0, 1)) : E.k ? 1 : 0; }
 // how lit the world is during the opening: full on the paper (the tiger alone, lit as always); nothing in the black; the room blinks with the lamp
 // at half (beam); then it rises from half to full
 const entryLightK = () => (ENTRY.phase === 'black' || ENTRY.phase === 'line' ? 0 : ENTRY.phase === 'beam' ? 0.5 * ENTRY.lamp : ENTRY.phase === 'rise' ? 0.5 + 0.5 * ENTRY.light : 1);
@@ -1153,9 +1155,9 @@ function dlgOptions(n) { const hub = n.hub ? (DLG.nodes.start?.opts || []).filte
     return `<li><button type="button" data-i="${i}"${DLG.cool === o.to || locked ? ' disabled' : ''}${locked ? ' class="locked"' : ''}><span class="n">${i + 1}.</span><span>${labelHTML(o.label)}${locked ? `<span class="lock">${esc(ptl(COPY.intro.locked, { n: o.need }))}</span>` : ''}</span></button></li>`; }).join(''); }
 function dlgRefresh() { if (DLG.nodes[DLG.at]) dlgOptions(DLG.nodes[DLG.at]); }       // a project opened: a locked question may have come free
 function dlgSay(id) { const n = DLG.nodes[id] || DLG.nodes.start; if (!n) return;
-  if (n.id === 'start' && DLG.visited.size) { DLG.visited.clear(); dlgLog.innerHTML = ''; }                    // start over
+  if (n.id === 'start' && DLG.visited.size) { DLG.visited.clear(); dlgLog.innerHTML = dlgHead(); }             // start over
   DLG.at = n.id; DLG.visited.add(n.id); DLG.cool = null;
-  dlgLine(COPY.intro.who, n.paras.map(paraHTML).join('')); dlgOptions(n); dlgScroll(); }
+  dlgLine(COPY.intro.who, n.paras.map(paraHTML).join('')); dlgOptions(n); if (n.id !== 'start') dlgScroll(); else dlgLog.scrollTop = 0; }   // the first page stays at the top: her photo, her name, hello
 function dlgPick(i) { const o = DLG.opts[i]; if (!o || DLG.cool === o.to || (o.need && seenN() < o.need)) return;
   if (o.to.startsWith('go:')) { REW.autoUntil = performance.now() / 1000 + 1.9; lenis.scrollTo('#' + o.to.slice(3), { duration: 1.6, easing: (x) => 1 - Math.pow(1 - x, 4) }); return; }   // an action: go there
   dlgLine(COPY.intro.you, `<p>${esc(o.label.replace(/^\[[^\]]+\]\s*/, ''))}</p>`, 'you');
@@ -1165,10 +1167,9 @@ function dlgPick(i) { const o = DLG.opts[i]; if (!o || DLG.cool === o.to || (o.n
     dlgLine(sk, `<p>2d6: ${a} + ${b} = ${a + b} vs ${need} — <span class="${ok ? 'ok' : 'no'}">${ok ? 'Success' : 'Failure'}</span></p>`, 'roll');
     if (!ok) { dlgLine(sk, `<p>${esc(o.fail)}</p>`); DLG.cool = o.to; dlgOptions(DLG.nodes[DLG.at]); dlgScroll(); return; } }
   dlgSay(o.to); }
-function dlgInit() { DLG.nodes = parseScript(COPY.intro.script); DLG.visited.clear(); dlgLog.innerHTML = '';
-  $('dlg-who').textContent = COPY.intro.who; $('dlg-name').textContent = COPY.intro.name; $('dlg-sub').textContent = COPY.intro.sub;
-  const ph = $('dlg-photo'); if (COPY.intro.photo) ph.src = COPY.intro.photo; else ph.remove();
-  dlgSay('start'); }
+// the top of the log: her whole photo (Kay, 2026-10-07: never cropped), then her name — they scroll up with the conversation
+const dlgHead = () => `${COPY.intro.photo ? `<figure class="photo"><img src="${esc(COPY.intro.photo)}" alt="${esc(COPY.intro.name)}"></figure>` : ''}<div class="id"><p class="who mono">${esc(COPY.intro.who)}</p><h2 class="name">${esc(COPY.intro.name)}</h2><p class="sub mono">${esc(COPY.intro.sub)}</p></div>`;
+function dlgInit() { DLG.nodes = parseScript(COPY.intro.script); DLG.visited.clear(); dlgLog.innerHTML = dlgHead(); dlgSay('start'); }
 dlgInit();
 dlgOpts.addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b) dlgPick(+b.dataset.i); });
 const dlgOnScreen = () => { const r = dlgEl.getBoundingClientRect(); return r.top < vh * 0.85 && r.bottom > vh * 0.15; };
@@ -1271,7 +1272,8 @@ function frame(now) {
   entryTick(dt);
   if (ENTRY.phase !== 'done') {                               // the opening: a close shot of the tiger on paper that backs out to the rail's first position
     const D = LAY.mobile ? 7.4 : 5.4, cy = TIGER.ledgeY + HS * 0.52;
-    camera.position.lerp(_a.set(TIGER.x, cy + D * Math.sin(-CAMERA.pitch), GB.zStand + D * Math.cos(CAMERA.pitch)), 1 - ENTRY.k); }
+    camera.position.lerp(_a.set(TIGER.x, cy + D * Math.sin(-CAMERA.pitch), GB.zStand + D * Math.cos(CAMERA.pitch)), 1 - ENTRY.k);
+    if (ENTRY.k) camera.position.z += OP.zoom * (1 - ENTRY.zoom); }                                       // the zoom in: farther back when the lamp first blinks
   { const show = ENTRY.phase === 'beam' || ENTRY.phase === 'rise' || ENTRY.phase === 'done'; for (const o of world.objs) o.visible = show && !o.userData.hidden; }
   camera.updateMatrixWorld();                                   // overlays and the hover ray below use this frame's camera
 
@@ -1358,8 +1360,9 @@ function frame(now) {
   hemi.intensity = lerp(hemi.intensity, landed ? LIGHT.hemi.intensityShore : th.hemi, lk); hemi.color.lerp(tmpC.set(landed ? LIGHT.hemi.skyShore : th.hemiSky), lk); hemi.groundColor.lerp(tmpC.set(landed ? LIGHT.hemi.groundShore : th.hemiGround), lk);
   camLight.intensity = lerp(camLight.intensity, landed ? 0 : th.camLight, lk); camLight.color.lerp(tmpC.set(th.camColor), lk);
   scene.fog.near = lerp(scene.fog.near, landed ? 24 : th.fog[0], lk); scene.fog.far = lerp(scene.fog.far, landed ? 110 : th.fog[1], lk);
-  if (ENTRY.phase !== 'done') { const ek = entryLightK(); skyColor.copy(skyTarget).multiplyScalar(ek); scene.fog.color.copy(skyColor); scene.fog.near = th.fog[0]; scene.fog.far = th.fog[1];   // the opening: black, then the alley comes up
-    key.intensity = th.key * ek; key.color.set(th.keyColor); hemi.intensity = th.hemi * ek; hemi.color.set(th.hemiSky); hemi.groundColor.set(th.hemiGround); camLight.intensity = 0; }
+  if (ENTRY.phase !== 'done') { const ek = entryLightK(), paper = ENTRY.k === 0; skyColor.copy(skyTarget).multiplyScalar(ek); scene.fog.color.copy(skyColor); scene.fog.near = th.fog[0]; scene.fog.far = th.fog[1];   // the opening: black, then the alley comes up
+    // on the paper the tiger stands in a happy white light (Kay, 2026-10-07: 毛茸茸萌萌的), nothing of the alley's dusk
+    key.intensity = paper ? 1.3 : th.key * ek; key.color.set(paper ? 0xFFFFFF : th.keyColor); hemi.intensity = paper ? 1.35 : th.hemi * ek; hemi.color.set(paper ? 0xFFFFFF : th.hemiSky); hemi.groundColor.set(paper ? 0xE6E6E6 : th.hemiGround); camLight.intensity = 0; }
   if (world.alley) { const A = world.alley, k = ENTRY.lamp * (1 + 0.025 * Math.sin(t * 7.3) + 0.015 * Math.sin(t * 13.1));   // the alley lamp: the opening's beam, then on, with a buzz
     A.spot.intensity = ALLEY.lamp.intensity * k; A.cone.material.opacity = ALLEY.lamp.cone * k; A.bulb.material.emissiveIntensity = 1.8 * k; }
   // nav ink flips only while the nav sits inside a dark window (Léo's toggleColor rule)
