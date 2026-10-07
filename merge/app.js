@@ -1038,12 +1038,21 @@ function glowFrame() { if (!mouse.seen || LAY.mobile || (mx.x === T.gx && mx.y =
 // landed is kept (queued) and skips the wave. ?snap and the Studio skip it all (?snap&entry=1 plays it).
 const QUIET = (SNAP && !PARAMS.has('entry')) || STUDIO;
 const ENTRY = { phase: QUIET ? 'done' : 'card', t: 0, k: QUIET ? 1 : 0, queued: false, chrome: false, light: QUIET ? 1 : 0, lamp: QUIET ? 1 : 0 }, PAPER = new THREE.Color('#F1F1EE'), BLACK = new THREE.Color('#000000');
-const OP = REDUCE ? { ...OPENING, card: 0.6, cardOut: 0.4, drop: 0.01, black: 0.25, beam: 0.3, rise: 0.8, chrome: 0.2 } : OPENING;
+const OP = REDUCE ? { ...OPENING, card: 0.6, cardOut: 0.4, drop: 0.01, wave: 0.01, black: 0.25, line: 0.9, beam: 0.3, rise: 0.8, chrome: 0.2 } : OPENING;
 const tcard = $('titlecard'); window.__entry = ENTRY;                 // tools/opening.js steps through it
 const hintEl = $('void-hint'); hintEl.hidden = true;                  // the old "click the tiger" hint: the opening plays itself now (Kay, 2026-10-06)
-// a click, a scroll or a key hurries the opening: the card folds early; black cuts to the lamp; the lamp cuts to the rise; the rise brings the nav
+const darkLine = $('dark-line'); darkLine.textContent = COPY.entry.dark;   // "who turned the light off?"
+// each beat's side effects live here, so a skip and the clock agree
+function entryTo(ph) { const E = ENTRY; E.phase = ph; E.t = 0;
+  if (ph === 'wave') { T.wave = T.waveLen = OP.wave + 0.4; }
+  if (ph === 'black') { E.k = 1; T.wave = 0; tcard.classList.add('gone'); document.documentElement.classList.add('entering', 'entry-ready'); darkLine.classList.remove('on'); }   // the cut: close shot → the rail's first position
+  if (ph === 'line') darkLine.classList.add('on');
+  if (ph === 'beam') { darkLine.classList.remove('on'); E.lamp = 0; }
+  if (ph === 'rise') E.lamp = 1; }
+// a click, a scroll or a key hurries the opening: the card folds early; each later beat cuts to the next; the rise brings the nav
+const NEXT = { wave: 'black', black: 'line', line: 'beam', beam: 'rise' };
 const entryPoke = () => { const E = ENTRY; if (E.phase === 'card' || E.phase === 'cardOut' || E.phase === 'drop') E.queued = true;
-  else if (E.phase === 'black') { E.phase = 'beam'; E.t = 0; } else if (E.phase === 'beam') { E.phase = 'rise'; E.t = 0; E.lamp = 1; } else if (E.phase === 'rise' && E.t < OP.chrome) E.t = OP.chrome; };
+  else if (NEXT[E.phase]) entryTo(NEXT[E.phase]); else if (E.phase === 'rise' && E.t < OP.chrome) E.t = OP.chrome; };
 function lockPage(on) { for (const el of [$('page'), document.querySelector('.nav')]) if (el) el.inert = on; }
 if (ENTRY.phase !== 'done') lockPage(true);
 // A3: the nav items rise one by one (CSS, html.chrome), then the scroll hint (the statement is sprayed on the wall now)
@@ -1069,12 +1078,15 @@ function entryTick(dt) { const E = ENTRY; if (E.phase === 'done' || !booted) ret
   if (E.phase === 'card') { if (!tcard.classList.contains('on')) tcard.classList.add('on');
     if (E.t >= (E.queued ? 0.6 : OP.card) && (GT.ready || GT.failed)) { E.phase = 'cardOut'; E.t = 0; tcard.classList.add('out'); } }
   else if (E.phase === 'cardOut' && E.t >= OP.cardOut) { E.phase = 'drop'; E.t = 0; }
-  else if (E.phase === 'drop' && E.t >= OP.drop) { E.phase = 'black'; E.t = 0; E.k = 1; tcard.classList.add('gone'); document.documentElement.classList.add('entering', 'entry-ready'); }   // the cut: close shot → the rail's first position
-  else if (E.phase === 'black' && E.t >= OP.black) { E.phase = 'beam'; E.t = 0; }
-  else if (E.phase === 'beam') { E.lamp = flickT(E.t, 'spot'); if (E.t >= OP.beam) { E.phase = 'rise'; E.t = 0; E.lamp = 1; } }
+  else if (E.phase === 'drop' && E.t >= OP.drop) entryTo(GT.ready && !REDUCE ? 'wave' : 'black');   // hello, on the bright paper (the GLB has the wave)
+  else if (E.phase === 'wave' && E.t >= OP.wave) entryTo('black');
+  else if (E.phase === 'black' && E.t >= OP.black) entryTo('line');
+  else if (E.phase === 'line' && E.t >= OP.line) entryTo('beam');
+  else if (E.phase === 'beam') { E.lamp = flickT(E.t, 'alley'); if (E.t >= OP.beam) entryTo('rise'); }
   else if (E.phase === 'rise') { E.light = smooth(clamp(E.t / OP.rise, 0, 1)); if (E.t >= OP.chrome) entryChrome(); if (E.t >= OP.rise) entryDone(); } }
-// how lit the world is during the opening: full on the paper (the tiger alone, lit as always), nothing in the black and under the lamp, rising after
-const entryLightK = () => (ENTRY.phase === 'black' || ENTRY.phase === 'beam' ? 0 : ENTRY.phase === 'rise' ? ENTRY.light : 1);
+// how lit the world is during the opening: full on the paper (the tiger alone, lit as always); nothing in the black; the room blinks with the lamp
+// at half (beam); then it rises from half to full
+const entryLightK = () => (ENTRY.phase === 'black' || ENTRY.phase === 'line' ? 0 : ENTRY.phase === 'beam' ? 0.5 * ENTRY.lamp : ENTRY.phase === 'rise' ? 0.5 + 0.5 * ENTRY.light : 1);
 // the tiger's drop onto the paper: its contact shadow grows under it as it falls; it lands, squashes, and bounces twice (duang duang — Kay)
 const contact = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g2 = c.getContext('2d'), gr = g2.createRadialGradient(64, 64, 0, 64, 64, 64);
   gr.addColorStop(0, 'rgba(20,18,14,.5)'); gr.addColorStop(0.55, 'rgba(20,18,14,.2)'); gr.addColorStop(1, 'rgba(20,18,14,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128);
@@ -1082,7 +1094,7 @@ const contact = (() => { const c = document.createElement('canvas'); c.width = c
   m.rotation.x = -HALF; m.renderOrder = -1; m.layers.enable(1); m.visible = false; scene.add(m); return m; })();
 const HOPS = [[0.34, 0.30, 0.26], [0.64, 0.21, 0.10]];               // each bounce: [leaves the ground at u, lasts (of the drop), height in tiger heights]
 const squash = (d) => (d < 0 ? 0 : Math.exp(-d / 0.06) * Math.cos((2 * Math.PI * d) / 0.13));   // a landing: squash, rebound, settle (d = drop fraction since it)
-function entryBody() { const E = ENTRY, tg = GT.ready ? GT.root : rig.root, shown = E.phase !== 'card' && E.phase !== 'cardOut' && E.phase !== 'black';
+function entryBody() { const E = ENTRY, tg = GT.ready ? GT.root : rig.root, shown = !['card', 'cardOut', 'black', 'line'].includes(E.phase);
   if (GT.ready) GT.root.visible = shown; else rig.root.visible = shown && (E.phase === 'beam' || E.phase === 'rise' || E.phase === 'done' || GT.failed === true);   // never the placeholder while the GLB loads
   let lift = 0, sq = 0, sh = 1;
   if (E.phase === 'drop') { const u = clamp(E.t / OP.drop, 0, 1), f = clamp(u / HOPS[0][0], 0, 1); lift = 1.4 * (1 - f * f);
@@ -1091,14 +1103,14 @@ function entryBody() { const E = ENTRY, tg = GT.ready ? GT.root : rig.root, show
     sh = 1 - 0.7 * clamp(lift / 1.4, 0, 1); }
   if (lift || sq) { tg.position.y += lift * HS; tg.scale.set(1 + 0.1 * sq, 1 - 0.16 * sq, 1 + 0.1 * sq); tg.updateMatrixWorld(true); }
   else if (tg.scale.y !== 1) { tg.scale.set(1, 1, 1); tg.updateMatrixWorld(true); }
-  contact.visible = shown && (GT.ready || GT.failed) && E.phase === 'drop';
+  contact.visible = shown && (GT.ready || GT.failed) && (E.phase === 'drop' || E.phase === 'wave');
   if (contact.visible) { contact.position.set(TIGER.x, TIGER.ledgeY + 0.012, GB.zStand); contact.scale.set(HS * 0.62 * sh, HS * 0.36 * sh, 1); contact.material.opacity = sh; } }
 // the opening's picture: on the paper beats, paper everywhere and the tiger alone on it (it, its contact shadow and the lights are on layer 1);
 // black; then the world as it is, lit only by what entryLightK and the alley lamp allow
 const CLEAR0 = renderer.getClearColor(new THREE.Color()), CLEARA0 = renderer.getClearAlpha();
 function renderOpening() { const E = ENTRY;
   renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true; renderer.autoClear = false; renderer.setScissorTest(false);
-  if (E.phase === 'black') { renderer.setClearColor(BLACK, 1); renderer.clear(true, true, true); }
+  if (E.phase === 'black' || E.phase === 'line') { renderer.setClearColor(BLACK, 1); renderer.clear(true, true, true); }
   else if (E.phase === 'beam' || E.phase === 'rise') { scene.background = skyColor; renderer.setClearColor(CLEAR0, CLEARA0); renderer.clear(true, true, true); renderer.render(scene, camera); }
   else { renderer.setClearColor(PAPER, 1); renderer.clear(true, true, true); scene.background = null; camera.layers.set(1); renderer.render(scene, camera); camera.layers.set(0); }
   scene.background = skyColor; renderer.setClearColor(CLEAR0, CLEARA0); renderer.autoClear = true; renderer.shadowMap.autoUpdate = true; }
@@ -1168,8 +1180,8 @@ const tigerLoad = loadTiger();
 const bump = (u, a, b) => Math.sin(Math.PI * seg(u, [a, b]));
 const setVar = (el, k, v) => { const c = el._v || (el._v = {}); if (Math.abs((c[k] ?? -9) - v) > 0.002) { c[k] = v; el.style.setProperty(k, v.toFixed(3)); } };
 // how a lamp comes on: neon stutters (held steps), a bulb pops past full and settles, a spotlight clacks on; the screen's lamp just fades up
-const FLICK = { bar: [[0, 0], [0.04, 0.9], [0.09, 0.08], [0.15, 0.8], [0.2, 0.15], [0.28, 1.15], [0.4, 1]], spot: [[0, 0], [0.05, 1], [0.1, 0.12], [0.16, 1.1], [0.3, 1]],
-                workshop: [[0, 0], [0.03, 1.6], [0.22, 1]], torch: [[0, 0], [0.05, 1.4], [0.3, 1]] }, FLICK_STEP = { bar: true, spot: true };
+const FLICK = { alley: [[0, 0], [0.12, 1], [0.22, 0], [0.5, 0], [0.6, 1], [0.7, 0.04], [1.05, 0.04], [1.15, 1]], bar: [[0, 0], [0.04, 0.9], [0.09, 0.08], [0.15, 0.8], [0.2, 0.15], [0.28, 1.15], [0.4, 1]], spot: [[0, 0], [0.05, 1], [0.1, 0.12], [0.16, 1.1], [0.3, 1]],
+                workshop: [[0, 0], [0.03, 1.6], [0.22, 1]], torch: [[0, 0], [0.05, 1.4], [0.3, 1]] }, FLICK_STEP = { bar: true, spot: true, alley: true };
 function flickT(t, kind) { const k = FLICK[kind]; if (REDUCE || !k) return Math.min(1, t / 0.35);
   if (t >= k[k.length - 1][0]) return k[k.length - 1][1]; let i = 0; while (t > k[i + 1][0]) i++;
   return FLICK_STEP[kind] ? k[i][1] : lerp(k[i][1], k[i + 1][1], (t - k[i][0]) / (k[i + 1][0] - k[i][0])); }

@@ -161,7 +161,8 @@
     "entry": {
       "hint": "Click the tiger",
       "hintTouch": "Tap the tiger",
-      "sub": "or scroll"
+      "sub": "or scroll",
+      "dark": "who turned the light off?"
     },
     "header": {
       "statement": [

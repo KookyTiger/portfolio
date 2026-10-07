@@ -93,9 +93,9 @@ export const VALUE_SCREENS = 1;                                    // the value 
 // (`drop`), waves when clicked (`wave`); then a line is drawn through it (`line`), the paper splits along it and slides off both ways
 // (`split` [start, end]) while the camera backs out to the rail (`dolly` [start, end]); the nav and the statement arrive at `chrome`.
 // The opening in beats (Kay, 2026-10-06, replacing the paper split): the title card holds while the tiger loads → it folds away → the tiger drops
-// onto the paper and bounces twice (drop) → black (black) → the alley lamp clicks on and finds it (beam) → the alley comes up around it (rise;
-// the nav rises at chrome) → scroll. seconds per beat.
-export const OPENING = { card: 1.5, cardOut: 0.7, drop: 1.35, black: 0.8, beam: 1.5, rise: 2.6, chrome: 1.3, nod: 2.2 };
+// onto the bright paper and bounces twice (drop) → waves hello (wave) → suddenly black (black) → a line in the dark, COPY.entry.dark (line) → cut to
+// the alley: its lamp blinks twice and holds (beam) → the alley comes up around it (rise; the nav rises at chrome) → scroll. seconds per beat.
+export const OPENING = { card: 1.5, cardOut: 0.7, drop: 1.35, wave: 1.5, black: 0.6, line: 1.8, beam: 1.4, rise: 2.2, chrome: 1.0, nod: 2.2 };
 // LIGHTS: the new floor arrives dark (`dark` × its ambient light) under the title paper, and its lamps click on one by one between `on`
 // [from, to] screens after the slab (the paper has left the screen at +1); a lamp below the frame stays off until it rises into view
 // (motion-sensor lights), so the whole descent keeps lighting up
@@ -107,7 +107,7 @@ export const FLOOR_STYLE = { workshop: { show: 'print', value: 'stamp' }, bar: {
 // World skins. `ink: 'light'` = pale words and nav over a dark room (Léo flips his nav white over the library).
 export const THEMES = {
   // the top: a back alley after school (Kay, 2026-10-06) — dusk, a warm lamp over the platform, the tag on the wall; the nav stays ink (ALLEY below)
-  stone:    { bg: '#77726D', fog: [10, 32], ink: 'light', wall: [118, 12, 18], side: [104, 12, 18], key: 0.6, keyColor: 0xE2D2BA, hemi: 0.85, hemiSky: 0x97A0AE, hemiGround: 0x3F3A36, torch: 0xFFD9A0, torchI: 6, camLight: 0, camColor: 0xFFFFFF },
+  stone:    { bg: '#7C7772', fog: [10, 32], ink: 'light', wall: [122, 12, 18], side: [108, 12, 18], key: 0.74, keyColor: 0xE2D2BA, hemi: 1.0, hemiSky: 0x97A0AE, hemiGround: 0x3F3A36, torch: 0xFFD9A0, torchI: 6, camLight: 0, camColor: 0xFFFFFF },
   workshop: { bg: '#CFC9BD', fog: [12, 40], ink: 'dark',  wall: [176, 16, 14], side: [160, 16, 14], key: 0.95, keyColor: 0xFFF1D6, hemi: 1.0, hemiSky: 0xE6E9EC, hemiGround: 0xB8B0A2, torch: 0xFFD9A0, torchI: 5, camLight: 0, camColor: 0xFFFFFF },
   bar:      { bg: '#15121D', fog: [8, 30],  ink: 'light', wall: [58, 16, 10],  side: [48, 16, 10],  key: 0.18, keyColor: 0xC9B8FF, hemi: 0.34, hemiSky: 0x5C4F8A, hemiGround: 0x1A1420, torch: 0xFF8AC4, torchI: 5, camLight: 6.5, camColor: 0xF3E4EC },
   library:  { bg: '#1E1710', fog: [9, 32],  ink: 'light', wall: [70, 14, 12],  side: [60, 14, 12],  key: 0.22, keyColor: 0xFFE0B0, hemi: 0.36, hemiSky: 0x6B5A44, hemiGround: 0x1C1510, torch: 0xFFC978, torchI: 7, camLight: 6.0, camColor: 0xFFE2B8 },
@@ -153,7 +153,7 @@ export const TIGER = {
 
 export const COPY = {
   nav:    { name: 'KookyTiger', sub: 'Zishu Kay Tu', links: ['Work', 'About', 'Archives'] },
-  entry:  { hint: 'Click the tiger', hintTouch: 'Tap the tiger', sub: 'or scroll' },            // the opening: the tiger alone on paper; a click, a wave, then the world
+  entry:  { hint: 'Click the tiger', hintTouch: 'Tap the tiger', sub: 'or scroll', dark: 'who turned the light off?' },   // the opening: the line that shows in the dark after the tiger's hello
   header: { statement: ['{N_CAP} floors down.', 'A monster on each.'], scroll: 'Scroll to descend' },
   hero:   { words: ['KOOKY', 'T-SHAPED', 'TIGER'], reveal: ['MADE + RTVF', 'NORTHWESTERN ’27', 'WUHAN → EVANSTON'], indication: '(Click the tiger)' },
   // the intro is the tiger talking from the ladder, page by page (Kay's own words, unchanged); photo = a picture of Kay shown on hover (none yet)

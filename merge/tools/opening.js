@@ -8,12 +8,12 @@ const path = require('path'), fs = require('fs'); const { chromium } = require('
   const errs = []; p.on('pageerror', (e) => errs.push('PAGEERROR ' + e.message)); p.on('console', (m) => { if (m.type() === 'error') errs.push('CONSOLE ' + m.text().slice(0, 200)); });
   fs.mkdirSync(path.join(root, 'shots'), { recursive: true });
   const shot = async (n) => p.screenshot({ path: path.join(root, 'shots', `${out}-${n}.png`) });
-  const freeze = (ph, t) => p.evaluate(([ph, t]) => { const E = window.__entry; E.phase = ph; E.t = t; E.k = ph === 'card' || ph === 'cardOut' || ph === 'drop' ? 0 : 1; if (ph === 'rise') { E.lamp = 1; E.light = Math.min(1, t / 2.6); } if (ph === 'black') E.lamp = 0; }, [ph, t]);
+  const freeze = (ph, t) => p.evaluate(([ph, t]) => { const E = window.__entry; E.phase = ph; E.t = t; E.k = ph === 'card' || ph === 'cardOut' || ph === 'drop' || ph === 'wave' ? 0 : 1; if (ph === 'rise') { E.lamp = 1; E.light = Math.min(1, t / 2.2); } if (ph === 'black' || ph === 'line') E.lamp = 0; document.getElementById('dark-line').classList.toggle('on', ph === 'line'); document.getElementById('titlecard').classList.toggle('gone', !['card', 'cardOut', 'drop', 'wave'].includes(ph)); }, [ph, t]);
   // 1) stepped: hold each moment for a few frames (the clock moves on by a frame or two before the shot)
   await p.goto(base);
   await p.waitForFunction(() => window.__dbg && window.__dbg.glb && window.__entry, null, { timeout: 30000 });
   await p.waitForTimeout(500); await shot('0card');
-  const moments = (process.env.MOMENTS || 'drop:0.3,drop:0.5,drop:0.75,drop:1.0,drop:1.3,black:0.3,beam:0.15,beam:0.5,beam:1.3,rise:0.5,rise:1.3,rise:2.4').split(',');
+  const moments = (process.env.MOMENTS || 'drop:0.5,drop:1.0,wave:0.8,black:0.3,line:1.0,beam:0.15,beam:0.62,beam:1.3,rise:1.0,rise:2.1').split(',');
   for (const m of moments) { const [ph, t] = m.split(':'); await freeze(ph, +t); await p.waitForTimeout(40); await shot(`${ph}-${t}`); console.log(m, await p.evaluate(() => JSON.stringify({ e: window.__entry.phase, t: +window.__entry.t.toFixed(2) }))); }
   // 2) real time from a fresh load: it plays itself; log the phases
   await p.goto(base); await p.waitForFunction(() => window.__entry, null, { timeout: 30000 });
