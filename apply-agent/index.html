@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Apply Agent</title>
+<meta name="description" content="A personal AI agent that runs my job search with me in the loop: it reads postings, tailors from verified facts, fills forms, and never presses Submit.">
+<meta property="og:description" content="A personal AI agent that runs my job search with me in the loop: it reads postings, tailors from verified facts, fills forms, and never presses Submit.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apply Agent · Kay Tu">
+<meta property="og:url" content="https://kookytiger.github.io/portfolio/apply-agent/">
+<meta property="og:image" content="https://kookytiger.github.io/portfolio/apply-agent/board.webp">
+<link rel="canonical" href="https://kookytiger.github.io/portfolio/apply-agent/">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Schibsted+Grotesque:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: Kay's portfolio write-up, as a page. A narrow label column beside the reading column, paper and ink, tiger orange only where a step belongs to Kay. */
+:root {
+  --paper: #F1F1EE;
+  --tile: #E5E4DD;
+  --ink: #111111;
+  --ink-2: #5A5A56;
+  --ink-3: #8E8D87;
+  --line: rgba(17, 17, 17, .14);
+  --tiger: #F2A93B;
+  --tiger-wash: rgba(242, 169, 59, .16);
+  --on-tiger: #111111;
+  --good: #2F7D4F;
+  --bad: #B2412B;
+  --display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --sans: "Schibsted Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Space Mono", "SF Mono", Menlo, Consolas, monospace;
+  --measure: 66ch;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #161614; --tile: #23231F; --ink: #ECEBE6; --ink-2: #ABAAA3; --ink-3: #7A7973;
+    --line: rgba(236, 235, 230, .15); --tiger: #F2A93B; --tiger-wash: rgba(242, 169, 59, .14); --on-tiger: #111111;
+    --good: #6CC08E; --bad: #E58A72; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #161614; --tile: #23231F; --ink: #ECEBE6; --ink-2: #ABAAA3; --ink-3: #7A7973;
+  --line: rgba(236, 235, 230, .15); --tiger: #F2A93B; --tiger-wash: rgba(242, 169, 59, .14); --on-tiger: #111111;
+  --good: #6CC08E; --bad: #E58A72; color-scheme: dark;
+}
+
+body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+.page { max-width: 1120px; margin: 0 auto; padding-block: 56px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 720px) { .page { padding-left: max(40px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px)); } }
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+p { margin: 0; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+.k { font-family: var(--mono); font-size: 11px; line-height: 1.35; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+
+/* head */
+.top { display: flex; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; }
+.top a { text-decoration: none; border-bottom: 1px solid var(--line); }
+.top a:hover { border-bottom-color: var(--ink); }
+.title { font-family: var(--display); font-weight: 800; font-size: clamp(52px, 11vw, 132px); line-height: .88; letter-spacing: -.04em; text-transform: uppercase; margin: 44px 0 26px; }
+.lede { font-size: clamp(19px, 2.4vw, 24px); line-height: 1.32; max-width: 34ch; }
+.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 18px 28px; margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); }
+.meta p { margin-top: 6px; font-size: 15px; line-height: 1.4; }
+
+/* section shell: a label column beside the reading column */
+.band { margin-top: 64px; }
+.band-head { display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 2px solid var(--ink); }
+.band-head h2 { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 3vw, 32px); letter-spacing: -.02em; line-height: 1.1; }
+.sec { display: grid; grid-template-columns: 1fr; gap: 12px 40px; padding-block: 30px 34px; border-bottom: 1px solid var(--line); }
+@media (min-width: 860px) { .sec { grid-template-columns: 210px minmax(0, 1fr); } }
+.sec > h3 { font-family: var(--mono); font-weight: 400; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); padding-top: 4px; }
+.body { min-width: 0; display: grid; gap: 18px; }
+.body > p, .body > ul { max-width: var(--measure); }
+.body ul { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; }
+
+/* the short version: four blocks, two by two when there's room */
+.brief { display: grid; grid-template-columns: 1fr; gap: 0 48px; }
+@media (min-width: 860px) { .brief { grid-template-columns: 1fr 1fr; } }
+.bit { padding-block: 22px 26px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; align-content: start; min-width: 0; }
+.bit p { font-size: clamp(16px, 1.7vw, 18px); line-height: 1.45; max-width: 46ch; }
+.stats { margin: 0; display: grid; gap: 8px; }
+.stats div { display: grid; grid-template-columns: 5.2ch minmax(0, 1fr); gap: 14px; align-items: baseline; }
+.stats dt { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; text-align: right; }
+.stats dd { margin: 0; font-size: 15.5px; line-height: 1.35; }
+.stats .note { font-size: 13px; color: var(--ink-2); }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.tools span { font-family: var(--mono); font-size: 11.5px; letter-spacing: .04em; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; }
+
+/* the loop: eight steps, two of them Kay's */
+.loop { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 12px; counter-reset: step; }
+.loop li { counter-increment: step; border-top: 2px solid var(--ink); padding: 12px 2px 4px; display: grid; gap: 6px; align-content: start; }
+.loop li::before { content: counter(step, decimal-leading-zero); font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--ink-2); }
+.loop b { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -.01em; line-height: 1.15; }
+.loop span { font-size: 14.5px; line-height: 1.4; color: var(--ink-2); }
+.loop li.me { background: var(--tiger-wash); border-top: 6px solid var(--tiger); padding: 10px 12px 14px; }
+.loop li.me::before { content: counter(step, decimal-leading-zero) "  ·  me"; color: var(--ink); }
+.loop li.me span { color: var(--ink); }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 22px; height: 8px; vertical-align: middle; margin-right: 8px; background: var(--ink); }
+.legend i.me { background: var(--tiger); height: 10px; }
+
+/* rule rows: what it must not do, and what stops it */
+.rows { margin: 0; display: grid; }
+.rows > div { display: grid; grid-template-columns: 1fr; gap: 4px 28px; padding-block: 14px; border-top: 1px solid var(--line); }
+.rows > div:first-child { border-top: 0; padding-top: 4px; }
+@media (min-width: 640px) { .rows > div { grid-template-columns: minmax(0, 15em) minmax(0, 1fr); } }
+.rows dt { font-weight: 600; line-height: 1.4; }
+.rows dd { margin: 0; color: var(--ink); line-height: 1.5; max-width: 60ch; }
+.rows.split dt::before { content: "\2715"; color: var(--bad); font-weight: 700; margin-right: 10px; font-size: 13px; }
+.rows .was { color: var(--ink-2); font-weight: 400; font-style: italic; }
+
+/* line fit figure */
+.fit { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin: 0; }
+.fit figure { margin: 0; background: var(--tile); padding: 16px 16px 14px; display: grid; gap: 12px; align-content: start; }
+.fit svg { width: 100%; height: auto; display: block; }
+.fit .bar { fill: var(--ink-3); }
+.fit .bar.ok { fill: var(--ink); }
+.fit .edge { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 3 3; }
+.fit figcaption { display: grid; gap: 2px; font-size: 14px; line-height: 1.35; }
+.fit .v { font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; }
+.fit .v.yes { color: var(--good); }
+.fit .v.no { color: var(--bad); }
+
+/* the letter's path */
+.path { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 6px; align-items: center; }
+.path li { display: flex; align-items: center; gap: 6px; }
+.path li + li::before { content: "\2192"; color: var(--ink-3); font-family: var(--mono); }
+.path span { font-family: var(--mono); font-size: 12px; letter-spacing: .03em; border: 1px solid var(--ink); padding: 5px 10px; line-height: 1.2; }
+.path .me span { background: var(--tiger); color: var(--on-tiger); border-color: var(--tiger); }
+.path .model span { border-style: dashed; }
+
+/* two lanes */
+.lanes { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 720px) { .lanes { grid-template-columns: 1fr 1fr; } }
+.lane { border: 1px solid var(--line); padding: 18px 18px 20px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.lane h4 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -.01em; }
+.lane p { font-size: 15px; line-height: 1.5; }
+
+/* screenshot */
+.shot { margin: 0; display: grid; gap: 10px; }
+.shot .frame { border: 1px solid var(--line); background: var(--tile); overflow: hidden; }
+.shot img { display: block; width: 100%; height: auto; }
+.shot figcaption { font-size: 13.5px; color: var(--ink-2); }
+
+.quiet { color: var(--ink-2); }
+.foot { margin-top: 56px; display: flex; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: no-preference) { .top a, .shot img { transition: border-color .2s ease; } }
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="top k">
+    <span>Kay Tu · Personal project</span>
+    <a href="https://kookytiger.github.io/portfolio/">Portfolio</a>
+  </div>
+
+  <h1 class="title">Apply<br>Agent</h1>
+  <p class="lede">An AI agent that runs my job search with me in the loop. It finds and reads postings, tailors my resume and letters, fills the forms and tracks the replies. It never writes a line about me I haven't verified, and it never presses Submit.</p>
+
+  <div class="meta">
+    <div><span class="k">My role</span><p>Designer and product owner. Built with Claude Code.</p></div>
+    <div><span class="k">When</span><p>Oct 23, 2026 to now</p></div>
+    <div><span class="k">Runs</span><p>On my laptop, every day</p></div>
+    <div><span class="k">Stack</span><p>Next.js, TypeScript, SQLite, Python, Playwright, Claude</p></div>
+  </div>
+
+  <section class="band" aria-labelledby="brief-h">
+    <div class="band-head"><h2 id="brief-h">The short version</h2><span class="k">1 min</span></div>
+    <div class="brief">
+      <div class="bit">
+        <span class="k">Problem</span>
+        <p>I apply to roles across product, design, games and hardware, several a day. The slow parts were fitting a one-page resume where every bullet fills exactly two lines, re-entering the same forms, and tracking replies across two spreadsheets, a Notion table and my inbox. Going faster could not cost accuracy: every line has to be something I can defend in an interview.</p>
+      </div>
+      <div class="bit">
+        <span class="k">Solution</span>
+        <p>One local app that runs the whole loop: find, read, prepare, I review, fill, I submit, track, learn. Models read and draft; code checks. Resume lines come word for word from a bank of bullets I verified, every number in a letter has to trace back to my own facts, and the browser agent stops at the review page.</p>
+      </div>
+      <div class="bit">
+        <span class="k">First five days, Oct 23 to 27</span>
+        <dl class="stats">
+          <div><dt>350</dt><dd>new postings found, 299 jobs scored</dd></div>
+          <div><dt>265</dt><dd>postings read and parsed, plus 264 application forms read</dd></div>
+          <div><dt>13</dt><dd>applications submitted through it</dd></div>
+          <div><dt>791</dt><dd>model calls, about $15 <span class="note">(as reported by Claude Code)</span></dd></div>
+        </dl>
+      </div>
+      <div class="bit">
+        <span class="k">Tools</span>
+        <div class="tools">
+          <span>Claude Code</span><span>Claude Haiku</span><span>Claude Sonnet</span><span>Next.js</span><span>TypeScript</span><span>SQLite</span><span>Python</span><span>Playwright</span><span>Microsoft Word</span><span>Gmail, read-only</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="build-h">
+    <div class="band-head"><h2 id="build-h">The whole build</h2><span class="k">8 min</span></div>
+
+    <div class="sec">
+      <h3>How it works</h3>
+      <div class="body">
+        <p>Every job moves through the same eight steps. Two of them belong to me, and code makes sure they stay mine.</p>
+        <ol class="loop">
+          <li><b>Find</b><span>Three looks a day at new-grad lists and the public job boards of companies I follow, deduplicated by posting, link and title.</span></li>
+          <li><b>Read</b><span>Pulls the posting from the job board's own API, parses it with Haiku, and reads the actual application form to see what it asks for.</span></li>
+          <li><b>Score and sort</b><span>Haiku lists which must-haves I meet, with evidence. Code turns that into a 0 to 100 score and a lane: top, express or skip.</span></li>
+          <li><b>Prepare</b><span>A one-page resume from my bank, checked in Word. A company and role analysis. A letter and short answers where the form asks.</span></li>
+          <li class="me"><b>I review</b><span>Top jobs: I build the letter's outline myself. Express jobs: one card each, and one key approves exactly what is on it.</span></li>
+          <li><b>Fill</b><span>A Chrome window fills the form with my approved files and saved answers, then parks at the review page.</span></li>
+          <li class="me"><b>I submit</b><span>I check the page and press Submit myself. The agent records the confirmation page.</span></li>
+          <li><b>Track and learn</b><span>Reads my inbox read-only for confirmations, tests, interviews and rejections. Every letter I approve teaches it my style.</span></li>
+        </ol>
+        <div class="legend"><span><i></i>the agent</span><span><i class="me"></i>me, enforced in code</span></div>
+        <figure class="shot">
+          <div class="frame"><img src="board.webp" width="2000" height="1250" alt="The app's board: a Pool of scored jobs on the left, then Today with preparation progress bars, Applying, Under review, Next steps with an assessment due date, Denied and Void. Each card shows a match score and a top or express lane chip." loading="lazy"></div>
+          <figcaption>The board, run on demo data with fictional companies. A job I pick for Today shows its preparation as it runs and moves to Applying by itself when it is ready for me.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>What it may never do</h3>
+      <div class="body">
+        <p>These rules live in code, so no prompt and no text on a job page can talk the agent out of them.</p>
+        <dl class="rows split">
+          <div><dt>Press Submit</dt><dd>The form filler never clicks a button that reads submit, apply, next, continue or save, and never presses Enter. It waits for me.</dd></div>
+          <div><dt>Fill with files I didn't approve</dt><dd>A fill can only be queued after I approve the resume and the letter, or mark the letter not needed. Before the tab opens, each file is checked by SHA-256 against what I approved; if anything changed, the job leaves the queue.</dd></div>
+          <div><dt>Touch my accounts</dt><dd>No passwords, no new accounts, no 2FA, no CAPTCHAs. Each one pauses the fill and becomes a step on my list.</dd></div>
+          <div><dt>Answer legal or demographic questions</dt><dd>Left for me, unless I set the answer myself and turn that on. A single question that asks two legal things at once is always mine.</dd></div>
+          <div><dt>Write to anyone</dt><dd>Nothing goes out without my approval of the exact text. Gmail access is read-only: three read tools allowed by name, every other tool denied.</dd></div>
+          <div><dt>Work around a website</dt><dd>It uses the job boards' official APIs and an honest user agent. A site that turns programs away gets a button for me to open the form in my own browser. No LinkedIn automation at all.</dd></div>
+          <div><dt>Delete anything</dt><dd>Archive only. Every change the inbox reader makes to a job comes with an Undo.</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Truth checks</h3>
+      <div class="body">
+        <p>The worst thing a resume tool can do is make me sound better than I am. So the model is never the source of a fact about me.</p>
+        <dl class="rows">
+          <div><dt>Resume</dt><dd>Every bullet comes word for word from my bank, where each one carries a status: ok, check, blocked or never. The agent only picks ok bullets; a check bullet needs my approval first. A "never say" list of phrases and patterns runs as a lint on every resume, letter and answer.</dd></div>
+          <div><dt>Letters</dt><dd>A fact check traces every number, name and leadership verb back to my own facts. A number the model made up blocks approval; something I typed myself only warns, unless it contradicts my bank. When the model revises a letter, the sentences I wrote are put back word for word.</dd></div>
+          <div><dt>Company research</dt><dd>One Haiku call turns the company's own pages into fact cards, each with a 5 to 25 word quote. Code keeps a card only if that quote really is on the stored page.</dd></div>
+          <div><dt>Job pages are data</dt><dd>Before a model reads a posting, code checks it for hidden text, invisible characters and lines addressed to an AI, and the text reaches the model wrapped as quoted data. A posting that tells an AI what to do is flagged to me and ignored.</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Two lines a bullet</h3>
+      <div class="body">
+        <p>My resume rule is one page, and every bullet fills exactly two lines. A character count can't promise that, so Word is the judge. The engine fills my own Word template with python-docx, exports a PDF through Word, and measures where each bullet breaks.</p>
+        <div class="fit" role="group" aria-label="How the line check reads three bullets">
+          <figure>
+            <svg viewBox="0 0 200 64" aria-hidden="true">
+              <line class="edge" x1="196" y1="0" x2="196" y2="64"></line>
+              <rect class="bar ok" x="4" y="10" width="190" height="12" rx="2"></rect>
+              <rect class="bar ok" x="4" y="34" width="162" height="12" rx="2"></rect>
+            </svg>
+            <figcaption><span class="v yes">Kept</span>Two lines, the second one full enough to read as intended.</figcaption>
+          </figure>
+          <figure>
+            <svg viewBox="0 0 200 64" aria-hidden="true">
+              <line class="edge" x1="196" y1="0" x2="196" y2="64"></line>
+              <rect class="bar" x="4" y="10" width="190" height="12" rx="2"></rect>
+              <rect class="bar" x="4" y="34" width="30" height="12" rx="2"></rect>
+            </svg>
+            <figcaption><span class="v no">Dropped</span>One line and a bit. Word breaks it this way even when the character count looked fine.</figcaption>
+          </figure>
+          <figure>
+            <svg viewBox="0 0 200 64" aria-hidden="true">
+              <line class="edge" x1="196" y1="0" x2="196" y2="64"></line>
+              <rect class="bar" x="4" y="2" width="190" height="12" rx="2"></rect>
+              <rect class="bar" x="4" y="24" width="190" height="12" rx="2"></rect>
+              <rect class="bar" x="4" y="46" width="88" height="12" rx="2"></rect>
+            </svg>
+            <figcaption><span class="v no">Dropped</span>Three lines. Never on the page.</figcaption>
+          </figure>
+        </div>
+        <p>For each job it picks the verified bullets that best cover the posting's terms (counting other word forms and close phrasings), fills the page to 96 to 100%, renders once, and retries without any bullet Word sets badly. A resume it can't fit comes to me with one reason.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Two lanes</h3>
+      <div class="body">
+        <p>Not every job deserves the same time. Top jobs get craft, express jobs get speed, and both get every check.</p>
+        <div class="lanes">
+          <div class="lane">
+            <span class="k">Top</span>
+            <h4>I shape the letter</h4>
+            <p>I answer one or two questions in my own words, then pick from five outline cards. Every part of a card cites its source: a company fact card, a quote from the posting, a bullet from my bank, or my own note. I can swap parts between cards. Only then does Sonnet write.</p>
+          </div>
+          <div class="lane">
+            <span class="k">Express</span>
+            <h4>One key per job</h4>
+            <p>A review page shows one card per prepared job: the resume, the letter or "no letter", the short answers. Every check runs again against my bank as it is now. One key approves exactly the versions on screen (their ids and file hashes are sent back and compared) and queues the fill.</p>
+          </div>
+        </div>
+        <p>Once I set a job's lane, nothing the agent learns later moves it. It can only warn me.</p>
+        <ol class="path" aria-label="A letter's path">
+          <li class="me"><span>outline I picked</span></li>
+          <li class="model"><span>draft · Sonnet</span></li>
+          <li><span>house lint</span></li>
+          <li><span>fact check</span></li>
+          <li class="model"><span>self-repair</span></li>
+          <li class="model"><span>second reader</span></li>
+          <li class="me"><span>my approval</span></li>
+        </ol>
+        <p class="quiet">Dashed boxes are model steps, solid ones are code, orange is me.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Model or code</h3>
+      <div class="body">
+        <p>I use a model where reading or writing is the hard part, and code wherever the answer has to be right every time.</p>
+        <dl class="rows">
+          <div><dt>Match score</dt><dd>Haiku lists each must-have as met, partial or missing, with evidence from my profile. Code computes the 0 to 100 score and its label, so the same evidence always gets the same number.</dd></div>
+          <div><dt>Inbox</dt><dd>Rules classify each email by sender and wording first. A "no" only counts when it is actually said: "unfortunately" needs a rejection's object, and an if-clause or boilerplate never counts. Haiku reads only what the rules can't place, and anything still unclear comes to me as one question.</dd></div>
+          <div><dt>Layout</dt><dd>No model involved. Word measures, and the page model in the app is calibrated on my template (128 characters a line, 11.27 pt pitch).</dd></div>
+          <div><dt>Cost</dt><dd>Haiku for bulk reading, Sonnet for writing. The app calls Claude through Claude Code in headless mode on my own login, each call in a clean environment.</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Measuring it</h3>
+      <div class="body">
+        <dl class="rows">
+          <div><dt>Second reader</dt><dd>A separate, read-only model pass reviews every letter. Its edits are cards I accept or skip. It may apply edits by itself only on express jobs, and only while its calibration on held-out letters passes.</dd></div>
+          <div><dt>Blind replay</dt><dd>Each letter I approved is redrafted blind (leave-one-out: its own letter and that company's material are removed) and scored against what I approved. First result: 0.22 similarity against a target of 0.6. Not there yet, and it is the number I most want to move.</dd></div>
+          <div><dt>Versions to approval</dt><dd>My first letter took 10 versions. The target for top jobs is a median of 3 by my fifth.</dd></div>
+          <div><dt>Tailoring</dt><dd>On 251 test postings, 162 still got the resume a posting-blind run would give (235 before better term matching). The limit is my bank's vocabulary, so the next fix is more and better bullets.</dd></div>
+          <div><dt>Tests</dt><dd>50 test files on saved fixtures: the posting and form readers, the email classifier, a mock Greenhouse form and five Workday pages. Tests run on copies of the database, never on my real data.</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>What broke</h3>
+      <div class="body">
+        <p>Using it on real applications every day found the failure modes fast.</p>
+        <dl class="rows">
+          <div><dt><span class="was">Four Word exports at once froze Word.</span></dt><dd>Exports now run one at a time behind a lock. When Word does stall behind a system dialog, the error names the dialog instead of hanging.</dd></div>
+          <div><dt><span class="was">The PDF library I started with quit Word and hung the server.</span></dt><dd>A small exporter that drives Word through JavaScript for Automation and never quits it.</dd></div>
+          <div><dt><span class="was">Some emails look like rejections and aren't: "Unfortunately Tuesday no longer works, could we move your interview?"</span></dt><dd>The rejection rule above, plus an Undo on every change the inbox reader makes.</dd></div>
+          <div><dt><span class="was">The posting and the application form were often different pages, and some forms ask for no letter.</span></dt><dd>It reads the actual form (Greenhouse, Lever and Ashby) to learn what is required, and skips the letter when there is no field for one.</dd></div>
+          <div><dt><span class="was">Writing a letter took 88 seconds behind a spinner.</span></dt><dd>A running summary of the model's thinking now shows from about 6 seconds, and the letter is saved in 30 to 45.</dd></div>
+          <div><dt><span class="was">40 bullets across my resume presets didn't fill two lines in Word.</span></dt><dd>A fit pass offers a fuller telling of the same facts, measured in Word, for me to accept: 40 bad fits down to 14.</dd></div>
+          <div><dt><span class="was">One site showed the automated browser "the application form is temporarily unavailable".</span></dt><dd>Not worked around. That job gets "Open the form in your browser" and the resume ready in Finder.</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>How I built it</h3>
+      <div class="body">
+        <p>I designed it and directed Claude Code, which wrote the code. My part was the spec and the standing rules (what the agent may never do, what counts as true about me), every product decision, checking each change on real applications, and using it every day. Most features started as something I ran into while applying:</p>
+        <dl class="rows">
+          <div><dt>The agent should read every posting itself.</dt><dd>The Fetch and Parse buttons are gone. Every posting is read in the background, the ones I'm applying to first.</dd></div>
+          <div><dt>Let me move resume pieces around like a puzzle.</dt><dd>A drag-and-drop resume builder, with Word still the layout check.</dd></div>
+          <div><dt>A small edit to a letter shouldn't need a rewrite.</dt><dd>Click a paragraph and type. My edits are protected from later model revisions.</dd></div>
+          <div><dt>Why does it think so long, with no feedback?</dt><dd>The streaming thinking summary above.</dd></div>
+        </dl>
+        <p>Five days in: 165 commits made by Claude Code at my direction (plus 193 automatic backups of the app's data), about 30,000 lines of TypeScript, JavaScript and Python, and 13,000 lines of tests.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Next</h3>
+      <div class="body">
+        <ul>
+          <li>A full 20-job run in Word with me at the laptop before express mode is on by default.</li>
+          <li>Forms behind a sign-in, Workday first: one real fill with me watching.</li>
+          <li>Blind letters closer to the ones I approve. The replay score is the number to watch.</li>
+        </ul>
+        <p class="quiet">The code stays private because it holds my personal data. I'm happy to walk through it live.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot k">
+    <span>Kay Tu · 2026</span>
+    <a href="https://kookytiger.github.io/portfolio/">kookytiger.github.io/portfolio</a>
+  </div>
+</main>
+</body>
+</html>
